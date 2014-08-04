@@ -23,7 +23,12 @@ Rect operator*(const Rect rectangle, double scale) {
 namespace decoder {
 
 Localizer::Localizer() {
-	// TODO Auto-generated constructor stub
+	this->loadConfigVars(config::DEFAULT_LOCALIZER_CONFIG);
+
+}
+
+Localizer::Localizer(string configFile) {
+	this->loadConfigVars(configFile);
 
 }
 
@@ -67,29 +72,30 @@ Mat Localizer::highlightTags(Mat &grayImage) {
 	Mat binarizedImage;
 
 	//binarization
-	threshold(grayImage, binarizedImage, config::LOCALIZER_BINTHRES, 255,
+	threshold(grayImage, binarizedImage, this->LOCALIZER_BINTHRES, 255,
 			CV_THRESH_BINARY);
-
 
 	binarizedImage.copyTo(imageCopy);
 
-	if (config::DEBUG_MODE) {
-			dilate(imageCopy, imageCopy, dilatedImage, Point(-1, -1),
-					config::LOCALIZER_DILATIONNUM_1);
-			namedWindow("binarized Image", WINDOW_NORMAL);
-			imshow("binarized Image", imageCopy);
-			waitKey(0);
-			destroyWindow("binarized Image");
-		}
 
+	if (config::DEBUG_MODE) {
+
+		namedWindow("binarized Image", WINDOW_NORMAL);
+		imshow("binarized Image", imageCopy);
+		waitKey(0);
+		destroyWindow("binarized Image");
+	}
 
 	binarizedImage.copyTo(imageCopy2);
 
 	//cv::MORPH_OPEN
-	dilatedImage = getStructuringElement(MORPH_OPEN, Size(3, 4),
-			Point(1, 1));
+	dilatedImage = getStructuringElement(MORPH_ELLIPSE,
+				Size(2 * this->LOCALIZER_DILATION_1_SIZE + 1,
+						2 * this->LOCALIZER_DILATION_1_SIZE + 1),
+				Point(this->LOCALIZER_DILATION_1_SIZE,
+						this->LOCALIZER_DILATION_1_SIZE));
 	dilate(imageCopy, imageCopy, dilatedImage, Point(-1, -1),
-					config::LOCALIZER_DILATIONNUM_1);
+			this->LOCALIZER_DILATION_1_ITERATIONS);
 
 	if (config::DEBUG_MODE) {
 
@@ -101,10 +107,10 @@ Mat Localizer::highlightTags(Mat &grayImage) {
 
 	//erosion
 	erodedImage = getStructuringElement(MORPH_ELLIPSE,
-			Size(2 * config::LOCALIZER_EROSIONNUM_1 + 1,
-					2 * config::LOCALIZER_EROSIONNUM_1 + 1),
-			Point(config::LOCALIZER_EROSIONNUM_1,
-					config::LOCALIZER_EROSIONNUM_1));
+			Size(2 * this->LOCALIZER_EROSION_SIZE + 1,
+					2 * this->LOCALIZER_EROSION_SIZE + 1),
+			Point(this->LOCALIZER_EROSION_SIZE,
+					this->LOCALIZER_EROSION_SIZE));
 	erode(imageCopy, imageCopy, erodedImage);
 	if (config::DEBUG_MODE) {
 		namedWindow("First Erode", WINDOW_NORMAL);
@@ -112,29 +118,12 @@ Mat Localizer::highlightTags(Mat &grayImage) {
 		waitKey(0);
 		destroyWindow("First Erode");
 	}
-/*
-	 Mat element = getStructuringElement( MORPH_ELLIPSE, Size( config::LOCALIZER_DILATIONNUM_1, config::LOCALIZER_DILATIONNUM_1 ), Point(1,1 ) );
 
-	  /// Apply the specified morphology operation
-	  morphologyEx( imageCopy, imageCopy, MORPH_OPEN, element );
-	  */
-
-	/*//erosion
-	 erodedImage = getStructuringElement(MORPH_ELLIPSE,
-	 Size(2 * config::LOCALIZER_EROSIONNUM + 1,
-	 2 * config::LOCALIZER_EROSIONNUM + 1),
-	 Point(config::LOCALIZER_EROSIONNUM, config::LOCALIZER_EROSIONNUM));
-	 erode(imageCopy, imageCopy, erodedImage);
-	 namedWindow("My Window", WINDOW_NORMAL);
-	 imshow("My Window", imageCopy);
-	 waitKey(0);
-	 destroyWindow("My Window");*/
-	//dilation
 	dilatedImage = getStructuringElement(MORPH_ELLIPSE,
-			Size(2 * config::LOCALIZER_DILATIONNUM + 1,
-					2 * config::LOCALIZER_DILATIONNUM + 1),
-			Point(config::LOCALIZER_DILATIONNUM,
-					config::LOCALIZER_DILATIONNUM));
+			Size(2 * this->LOCALIZER_DILATION_2_SIZE + 1,
+					2 * this->LOCALIZER_DILATION_2_SIZE + 1),
+			Point(this->LOCALIZER_DILATION_2_SIZE,
+					this->LOCALIZER_DILATION_2_SIZE));
 	dilate(imageCopy, imageCopy, dilatedImage);
 	if (config::DEBUG_MODE) {
 		namedWindow("My Window", WINDOW_NORMAL);
@@ -152,13 +141,16 @@ Mat Localizer::highlightTags(Mat &grayImage) {
  * @return boundingBoxes output vector of size-filtered bounding boxes
  */
 
-vector<BoundingBox> Localizer::locateTagCandidates(Mat blobImage,
+vector<BoundingBox> Localizer::locateTagCandidates(Mat blobImage_old,
 		Mat cannyEdgeMap, Mat grayImage) {
 
 	vector<BoundingBox> boundingBoxes;
 	vector<vector<Point2i> > contours;
 
 	boundingBoxes = vector<BoundingBox>();
+
+	Mat blobImage;
+	blobImage_old.copyTo(blobImage);
 
 	//find intra-connected white pixels
 	findContours(blobImage, contours, CV_RETR_LIST, CV_CHAIN_APPROX_NONE);
@@ -168,18 +160,18 @@ vector<BoundingBox> Localizer::locateTagCandidates(Mat blobImage,
 			contour != contours.end(); ++contour) {
 
 		//filter contours which are too big
-		if (contour->size() < config::LOCALIZER_MAXTAGSIZE) {
+		if (contour->size() < this->LOCALIZER_MAXTAGSIZE) {
 
 			Rect rec = boundingRect(*contour) * 2;
 
-			if (rec.width < config::LOCALIZER_MINTAGSIZE) {
-				int offset = abs(rec.width - config::LOCALIZER_MINTAGSIZE);
+			if (rec.width < this->LOCALIZER_MINTAGSIZE) {
+				int offset = abs(rec.width - this->LOCALIZER_MINTAGSIZE);
 				rec.x = rec.x - offset / 2;
 				rec.width = rec.width + offset;
 			}
 
-			if (rec.height < config::LOCALIZER_MINTAGSIZE) {
-				int offset = abs(rec.height - config::LOCALIZER_MINTAGSIZE);
+			if (rec.height < this->LOCALIZER_MINTAGSIZE) {
+				int offset = abs(rec.height - this->LOCALIZER_MINTAGSIZE);
 				rec.y = rec.y - offset / 2;
 				rec.height = rec.height + offset;
 			}
@@ -256,12 +248,11 @@ Mat Localizer::computeSobelMap(Mat grayImage) {
 	cv::addWeighted(abs_grad_x, 0.5, abs_grad_y, 0.5, 0, sobel);
 	if (config::DEBUG_MODE) {
 
-			namedWindow("Sobel", WINDOW_NORMAL);
-			imshow("Sobel", sobel);
-			waitKey(0);
-			destroyWindow("Sobel");
-		}
-
+		namedWindow("Sobel", WINDOW_NORMAL);
+		imshow("Sobel", sobel);
+		waitKey(0);
+		destroyWindow("Sobel");
+	}
 
 	return sobel;
 
@@ -307,11 +298,43 @@ Mat Localizer::computeCannyEdgeMap(Mat grayImage) {
 			BORDER_DEFAULT);
 
 	Mat cannyEdgeMap;
-	Canny(localGrayImage, cannyEdgeMap, config::LOCALIZER_LCANNYTHRES,
-			config::LOCALIZER_HCANNYTHRES);
+	Canny(localGrayImage, cannyEdgeMap, this->LOCALIZER_LCANNYTHRES,
+			this->LOCALIZER_HCANNYTHRES);
 
 	return cannyEdgeMap;
 	//DEBUG_IMSHOW( "cannyEdgeMap", cannyEdgeMap );
+}
+
+/**
+ *
+ *
+ * @param filename absolute path to the config file
+ */
+void Localizer::loadConfigVars(string filename) {
+	boost::property_tree::ptree pt;
+	boost::property_tree::ini_parser::read_ini(filename, pt);
+
+	 this->LOCALIZER_LCANNYTHRES= pt.get<int>(
+			config::APPlICATION_ENVIROMENT + ".canny_threshold_low");
+		 this->LOCALIZER_HCANNYTHRES= pt.get<int>(
+			config::APPlICATION_ENVIROMENT + ".canny_threshold_high");
+		 this->LOCALIZER_BINTHRES= pt.get<int>(
+			config::APPlICATION_ENVIROMENT + ".binary_threshold");
+		 this->LOCALIZER_DILATION_1_ITERATIONS= pt.get<int>(
+			config::APPlICATION_ENVIROMENT + ".dilation_1_interation_number");
+		 this->LOCALIZER_DILATION_1_SIZE= pt.get<int>(
+			config::APPlICATION_ENVIROMENT + ".dilation_1_size");
+		 this->LOCALIZER_EROSION_SIZE= pt.get<int>(
+			config::APPlICATION_ENVIROMENT + ".erosion_size");
+		 this->LOCALIZER_DILATION_2_SIZE= pt.get<int>(
+			config::APPlICATION_ENVIROMENT + ".dilation_2_size");
+		 this->LOCALIZER_MAXTAGSIZE= pt.get<int>(
+			config::APPlICATION_ENVIROMENT + ".max_tag_size");
+		 this->LOCALIZER_MINTAGSIZE= pt.get<int>(
+			config::APPlICATION_ENVIROMENT + ".min_tag_size");
+
+
+
 }
 
 }

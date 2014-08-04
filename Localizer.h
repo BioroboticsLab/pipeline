@@ -20,6 +20,8 @@
 #include <fstream>
 #include "BoundingBox.h"
 #include "../config.h"
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/ini_parser.hpp>
 
 using namespace std;
 using namespace cv;
@@ -29,6 +31,8 @@ namespace decoder {
 class Localizer {
 public:
 	Localizer();
+	Localizer(string configFile);
+
 	virtual ~Localizer();
 
 	vector<BoundingBox> process(Mat image);
@@ -78,6 +82,20 @@ private:
 	Mat highlightTags(Mat &grayImage);
 	vector<BoundingBox> locateTagCandidates(Mat blobImage, Mat cannyEdgeMap, Mat grayImage);
 	Mat computeCannyEdgeMap(Mat grayImage);
+	void loadConfigVars(string filename);
+
+	 int LOCALIZER_LCANNYTHRES;
+	 int LOCALIZER_HCANNYTHRES;
+	 int LOCALIZER_BINTHRES;
+	 int LOCALIZER_DILATION_1_ITERATIONS;
+	 int LOCALIZER_DILATION_1_SIZE;
+	 int LOCALIZER_EROSION_SIZE;
+	 int LOCALIZER_DILATION_2_SIZE;
+	 int LOCALIZER_MAXTAGSIZE;
+	 int LOCALIZER_MINTAGSIZE;
+
+
+
 
 
 
