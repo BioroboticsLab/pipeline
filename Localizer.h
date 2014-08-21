@@ -18,7 +18,8 @@
 #include <vector>
 #include <math.h>
 #include <fstream>
-#include "BoundingBox.h"
+#include "./datastructure/BoundingBox.h"
+#include "./datastructure/TagList.h"
 #include "../config.h"
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ini_parser.hpp>
@@ -29,77 +30,100 @@ using namespace cv;
 namespace decoder {
 
 class Localizer {
-public:
-	Localizer();
-	Localizer(string configFile);
-
-	virtual ~Localizer();
-
-	vector<BoundingBox> process(Mat image);
-	void reset();
-
-	const Mat& getBlob() const {
-		return blob_;
-	}
-
-	void setBlob(const Mat& blob) {
-		blob_ = blob;
-	}
-
-	const Mat& getCannyMap() const {
-		return canny_map_;
-	}
-
-	void setCannyMap(const Mat& cannyMap) {
-		canny_map_ = cannyMap;
-	}
-
-	const Mat& getGrayImage() const {
-		return gray_image_;
-	}
-
-	void setGrayImage(const Mat& grayImage) {
-		gray_image_ = grayImage;
-	}
-
-	const Mat& getSobel() const {
-		return sobel_;
-	}
-
-	void setSobel(const Mat& sobel) {
-		sobel_ = sobel;
-	}
 
 private:
 
+	/**************************************
+	 *
+	 * 			constructor
+	 *
+	 **************************************/
 	Mat gray_image_;
 	Mat sobel_;
 	Mat blob_;
 	Mat canny_map_;
 
+	/*
+	 * vars that we be filled by an ini file
+	 */
+	int LOCALIZER_LCANNYTHRES;
+	int LOCALIZER_HCANNYTHRES;
+	int LOCALIZER_BINTHRES;
+	int LOCALIZER_DILATION_1_ITERATIONS;
+	int LOCALIZER_DILATION_1_SIZE;
+	int LOCALIZER_EROSION_SIZE;
+	int LOCALIZER_DILATION_2_SIZE;
+	int LOCALIZER_MAXTAGSIZE;
+	int LOCALIZER_MINTAGSIZE;
+
+	/**************************************
+	 *
+	 * 			stuff
+	 *
+	 **************************************/
+
 	Mat computeSobelMap(Mat grayImage);
 	Mat computeBlobs(Mat sobel);
 	Mat highlightTags(Mat &grayImage);
-	vector<BoundingBox> locateTagCandidates(Mat blobImage, Mat cannyEdgeMap, Mat grayImage);
+	TagList locateTagCandidates(Mat blobImage, Mat cannyEdgeMap,
+			Mat grayImage);
 	Mat computeCannyEdgeMap(Mat grayImage);
 	void loadConfigVars(string filename);
 
-	 int LOCALIZER_LCANNYTHRES;
-	 int LOCALIZER_HCANNYTHRES;
-	 int LOCALIZER_BINTHRES;
-	 int LOCALIZER_DILATION_1_ITERATIONS;
-	 int LOCALIZER_DILATION_1_SIZE;
-	 int LOCALIZER_EROSION_SIZE;
-	 int LOCALIZER_DILATION_2_SIZE;
-	 int LOCALIZER_MAXTAGSIZE;
-	 int LOCALIZER_MINTAGSIZE;
+public:
 
+	/**************************************
+	 *
+	 * 			constructor
+	 *
+	 **************************************/
 
+	Localizer();
+	Localizer(string configFile);
 
+	virtual ~Localizer();
 
+	/**************************************
+	 *
+	 * 			getter/setter
+	 *
+	 **************************************/
 
+	const Mat& getBlob() const;
+	void setBlob(const Mat& blob);
+	const Mat& getCannyMap() const;
+	void setCannyMap(const Mat& cannyMap);
+	const Mat& getGrayImage() const;
+	void setGrayImage(const Mat& grayImage);
+	int getLocalizerBinthres() const;
+	void setLocalizerBinthres(int localizerBinthres);
+	int getLocalizerDilation1Iterations() const;
+	void setLocalizerDilation1Iterations(int localizerDilation1Iterations);
+	int getLocalizerDilation1Size() const;
+	void setLocalizerDilation1Size(int localizerDilation1Size);
+	int getLocalizerDilation2Size() const;
+	void setLocalizerDilation2Size(int localizerDilation2Size);
+	int getLocalizerErosionSize() const;
+	void setLocalizerErosionSize(int localizerErosionSize);
+	int getLocalizerHcannythres() const;
+	void setLocalizerHcannythres(int localizerHcannythres);
+	int getLocalizerLcannythres() const;
+	void setLocalizerLcannythres(int localizerLcannythres);
+	int getLocalizerMaxtagsize() const;
+	void setLocalizerMaxtagsize(int localizerMaxtagsize);
+	int getLocalizerMintagsize() const;
+	void setLocalizerMintagsize(int localizerMintagsize);
+	const Mat& getSobel() const;
+	void setSobel(const Mat& sobel);
 
+	/**************************************
+	 *
+	 * 			stuff
+	 *
+	 **************************************/
 
+	TagList process(Mat image);
+	void reset();
 };
 
 } /* namespace decoder */

@@ -8,9 +8,9 @@
 #ifndef DECODER_H_
 #define DECODER_H_
 
-#include "Grid.h"
-#include "Ellipse.h"
-#include "Decoding.h"
+#include "./datastructure/Grid.h"
+#include "./datastructure/Ellipse.h"
+#include "./datastructure/Decoding.h"
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>

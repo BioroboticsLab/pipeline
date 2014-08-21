@@ -6,7 +6,7 @@
  */
 
 #include "Decoder.h"
-#include "config.h"
+#include "../config.h"
 #include <iomanip>
 #include <iostream>
 #include <algorithm>

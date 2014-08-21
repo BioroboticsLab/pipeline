@@ -6,8 +6,8 @@
  */
 
 #include "GridFitter.h"
-#include "Timer.h"
-#include "config.h"
+#include "../Timer.h"
+#include "../config.h"
 #include <iostream>
 #include <fstream>
 #include <iomanip>

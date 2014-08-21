@@ -22,6 +22,12 @@ Rect operator*(const Rect rectangle, double scale) {
 
 namespace decoder {
 
+/**************************************
+ *
+ * 			constructor
+ *
+ **************************************/
+
 Localizer::Localizer() {
 	this->loadConfigVars(config::DEFAULT_LOCALIZER_CONFIG);
 
@@ -36,7 +42,127 @@ Localizer::~Localizer() {
 	// TODO Auto-generated destructor stub
 }
 
-vector<BoundingBox> Localizer::process(cv::Mat grayImage) {
+
+/**************************************
+ *
+ * 			getter/setter
+ *
+ **************************************/
+
+const Mat& Localizer::getBlob() const {
+	return blob_;
+}
+
+void Localizer::setBlob(const Mat& blob) {
+	blob_ = blob;
+}
+
+const Mat& Localizer::getCannyMap() const {
+	return canny_map_;
+}
+
+void Localizer::setCannyMap(const Mat& cannyMap) {
+	canny_map_ = cannyMap;
+}
+
+const Mat& Localizer::getGrayImage() const {
+	return gray_image_;
+}
+
+void Localizer::setGrayImage(const Mat& grayImage) {
+	gray_image_ = grayImage;
+}
+
+int Localizer::getLocalizerBinthres() const {
+	return LOCALIZER_BINTHRES;
+}
+
+void Localizer::setLocalizerBinthres(int localizerBinthres) {
+	LOCALIZER_BINTHRES = localizerBinthres;
+}
+
+int Localizer::getLocalizerDilation1Iterations() const {
+	return LOCALIZER_DILATION_1_ITERATIONS;
+}
+
+void Localizer::setLocalizerDilation1Iterations(
+		int localizerDilation1Iterations) {
+	LOCALIZER_DILATION_1_ITERATIONS = localizerDilation1Iterations;
+}
+
+int Localizer::getLocalizerDilation1Size() const {
+	return LOCALIZER_DILATION_1_SIZE;
+}
+
+void Localizer::setLocalizerDilation1Size(int localizerDilation1Size) {
+	LOCALIZER_DILATION_1_SIZE = localizerDilation1Size;
+}
+
+int Localizer::getLocalizerDilation2Size() const {
+	return LOCALIZER_DILATION_2_SIZE;
+}
+
+void Localizer::setLocalizerDilation2Size(int localizerDilation2Size) {
+	LOCALIZER_DILATION_2_SIZE = localizerDilation2Size;
+}
+
+int Localizer::getLocalizerErosionSize() const {
+	return LOCALIZER_EROSION_SIZE;
+}
+
+void Localizer::setLocalizerErosionSize(int localizerErosionSize) {
+	LOCALIZER_EROSION_SIZE = localizerErosionSize;
+}
+
+int Localizer::getLocalizerHcannythres() const {
+	return LOCALIZER_HCANNYTHRES;
+}
+
+void Localizer::setLocalizerHcannythres(int localizerHcannythres) {
+	LOCALIZER_HCANNYTHRES = localizerHcannythres;
+}
+
+int Localizer::getLocalizerLcannythres() const {
+	return LOCALIZER_LCANNYTHRES;
+}
+
+void Localizer::setLocalizerLcannythres(int localizerLcannythres) {
+	LOCALIZER_LCANNYTHRES = localizerLcannythres;
+}
+
+int Localizer::getLocalizerMaxtagsize() const {
+	return LOCALIZER_MAXTAGSIZE;
+}
+
+void Localizer::setLocalizerMaxtagsize(int localizerMaxtagsize) {
+	LOCALIZER_MAXTAGSIZE = localizerMaxtagsize;
+}
+
+int Localizer::getLocalizerMintagsize() const {
+	return LOCALIZER_MINTAGSIZE;
+}
+
+void Localizer::setLocalizerMintagsize(int localizerMintagsize) {
+	LOCALIZER_MINTAGSIZE = localizerMintagsize;
+}
+
+const Mat& Localizer::getSobel() const {
+	return sobel_;
+}
+
+void Localizer::setSobel(const Mat& sobel) {
+	sobel_ = sobel;
+}
+
+
+/**************************************
+ *
+ * 			stuff
+ *
+ **************************************/
+
+
+TagList Localizer::process(cv::Mat grayImage) {
 
 	this->gray_image_ = grayImage;
 
@@ -49,10 +175,10 @@ vector<BoundingBox> Localizer::process(cv::Mat grayImage) {
 	// compute canny edge map. Needed for ellipse detection but needs to be done only once per image.
 	this->canny_map_ = this->computeCannyEdgeMap(grayImage);
 
-	vector<BoundingBox> bounding_boxes = this->locateTagCandidates(this->blob_,
+	TagList taglist = this->locateTagCandidates(this->blob_,
 			this->canny_map_, this->gray_image_);
 
-	return bounding_boxes;
+	return taglist;
 
 }
 
@@ -141,13 +267,11 @@ Mat Localizer::highlightTags(Mat &grayImage) {
  * @return boundingBoxes output vector of size-filtered bounding boxes
  */
 
-vector<BoundingBox> Localizer::locateTagCandidates(Mat blobImage_old,
+TagList Localizer::locateTagCandidates(Mat blobImage_old,
 		Mat cannyEdgeMap, Mat grayImage) {
 
-	vector<BoundingBox> boundingBoxes;
+	TagList  taglist  = TagList();
 	vector<vector<Point2i> > contours;
-
-	boundingBoxes = vector<BoundingBox>();
 
 	Mat blobImage;
 	blobImage_old.copyTo(blobImage);
@@ -197,20 +321,23 @@ vector<BoundingBox> Localizer::locateTagCandidates(Mat blobImage_old,
 			if ((rec.height * rec.width) > 800
 					&& (rec.height * rec.width) < 20000) {
 
-				BoundingBox bb = BoundingBox();
-				bb.box_ = rec;
+				Tag tag = Tag(rec);
+				tag.setId(taglist.size()+1);
 
 				Mat sub_image(cannyEdgeMap, rec);
-				sub_image.copyTo(bb.sub_image_);
+				Mat subImageCanny_cp, subImageOrig_cp;
+				sub_image.copyTo(subImageCanny_cp);
+				tag.setCannySubImage(subImageCanny_cp);
 				Mat sub_image_orig(grayImage, rec);
-				sub_image_orig.copyTo(bb.sub_image_orig_);
+				sub_image_orig.copyTo(subImageOrig_cp);
+				tag.setOrigSubImage(subImageOrig_cp);
 
-				boundingBoxes.push_back(bb);
+				taglist.AddTag(tag);
 			}
 		}
 	}
 
-	return boundingBoxes;
+	return taglist;
 }
 
 /**
@@ -306,7 +433,7 @@ Mat Localizer::computeCannyEdgeMap(Mat grayImage) {
 }
 
 /**
- *
+ * loads param from config
  *
  * @param filename absolute path to the config file
  */

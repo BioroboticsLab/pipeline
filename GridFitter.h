@@ -8,8 +8,8 @@
 #ifndef GRIDFITTER_H_
 #define GRIDFITTER_H_
 
-#include "Ellipse.h"
-#include "Grid.h"
+#include "./datastructure/Ellipse.h"
+#include "./datastructure/Grid.h"
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
