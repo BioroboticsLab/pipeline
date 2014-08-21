@@ -7,6 +7,10 @@
 #include <iostream>
 #include <math.h>
 #include "Ellipse.h"
+#include <algorithm>
+
+#define BINARYCOUNT_INIT (100000) // initial score for binary count method
+#define FISHER_INIT (-1) // initial score for fisher method
 
 // current tag design -- without inner border
 /** outer radius to grid size ratio (tag design constant) */
@@ -39,8 +43,6 @@ enum GridType{
  * grid[2] = grid's x-y angle \n
  * grid[3] = grid's score (given roi)
  */
-
-namespace decoder {
 class Grid {
 public:
 	/**
@@ -48,8 +50,7 @@ public:
 	 */
 	enum ScoringMethod {
 		BINARYCOUNT,
-		FISHER,
-		FASTFISHER
+		FISHER
 	};
 
 	float size;
@@ -180,14 +181,6 @@ private:
 	void init(float size, float angle, float tilt,  int x,  int y, Ellipse ell, bool permutation, ScoringMethod scoringMethod);
 
 	/**
-	 * Returns a orientation correction for a grid as offset.
-	 *
-	 * @param g the grid
-	 * @return offset in cells
-	 */
-	int bestGridAngleCorrection();
-
-	/**
 	 * returns the mean of the intensities along a line
 	 *
 	 * @param xStart x ordinate of the start
@@ -221,5 +214,4 @@ private:
 	// ======
 
 };
-}
 #endif /* GRID_H_ */

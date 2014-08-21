@@ -1,12 +1,7 @@
 #include "Grid.h"
-#include <iterator>
 
-#define BINARYCOUNT_INIT (100000) // initial score for binary count method
-#define FISHER_INIT (-1) // initial score for fisher method
-namespace decoder {
 // === Constructors and initializer ===
-void Grid::init(float size, float angle, float tilt, int x, int y, Ellipse ell,
-		bool permutation, ScoringMethod scoringMethod) {
+void Grid::init(float size, float angle, float tilt, int x, int y, Ellipse ell, bool permutation, ScoringMethod scoringMethod) {
 	this->size = size;
 
 	this->angle = angle;
@@ -27,13 +22,11 @@ void Grid::init(float size, float angle, float tilt, int x, int y, Ellipse ell,
 	this->ell = ell;
 }
 
-Grid::Grid(float size, float angle, float tilt, int x, int y, Ellipse ell,
-		ScoringMethod scoringMethod) {
+Grid::Grid(float size, float angle, float tilt,  int x,  int y, Ellipse ell, ScoringMethod scoringMethod) {
 	init(size, angle, tilt, x, y, ell, false, scoringMethod);
 }
 
-Grid::Grid(float size, float angle, float tilt, int x, int y, Ellipse ell,
-		bool permutation, ScoringMethod scoringMethod) {
+Grid::Grid(float size, float angle, float tilt,  int x,  int y, Ellipse ell, bool permutation, ScoringMethod scoringMethod) {
 	init(size, angle, tilt, x, y, ell, permutation, scoringMethod);
 }
 
@@ -59,28 +52,25 @@ Grid::ScoringMethod Grid::scoringMethod() {
 double Grid::score() {
 
 	// determine whether the grid is a dummy or not
-	if (_score.metric == BINARYCOUNT && _score.value == BINARYCOUNT_INIT
-			&& ell.binarizedImage.total() > 0) {
+	if (_score.metric == BINARYCOUNT && _score.value == BINARYCOUNT_INIT && ell.binarizedImage.total() > 0) {
 		_score.value = binaryCountScore();
-	} else if (_score.metric == FISHER && _score.value == FISHER_INIT
-			&& ell.transformedImage.total() > 0) {
+	} else if (_score.metric == FISHER && _score.value == FISHER_INIT && ell.transformedImage.total() > 0) {
 		_score.value = fisherScore();
 	}
 	return _score.value;
 }
 
 double Grid::binaryCountScore() {
-	int i = this->bestGridAngleCorrection(); // Get right grid orientation as cell offset (maybe flipping needed)
 
 	Mat &binImg = ell.binarizedImage;
 
-	Mat scores(3, 1, CV_64FC1);
+	Mat scores (3, 1, CV_64FC1);
 	// for each cell calculate its size (cell size) and its mean intensity (means)
 	for (int j = 12; j < 15; j++) {
 		Mat mask = Mat(binImg.rows, binImg.cols, binImg.type(), Scalar(0));
 
-		vector<vector<Point> > conts;
-		conts.push_back(renderGridCell(j, i));
+		vector< vector <Point> > conts;
+		conts.push_back(renderGridCell(j));
 		drawContours(mask, conts, 0, Scalar(1), CV_FILLED);
 
 		Mat whiteCellPixel = binImg.mul(mask); // just keep the pixel within the cell
@@ -89,17 +79,12 @@ double Grid::binaryCountScore() {
 
 		if (j == 12 || j == 13) {
 			// white inner half circle or white outer border
-			scores.at<double>(14 - j) = ((double) blackPixelAmount)
-					/ ((double) whitePixelAmount);
+			scores.at<double>(14 - j) =  ((double) blackPixelAmount) / ((double) whitePixelAmount);
 		} else if (j == 14) {
 			//supposed black inner half circle
-			scores.at<double>(14 - j) = ((double) whitePixelAmount)
-					/ ((double) blackPixelAmount);
+			scores.at<double>(14 - j) =  ((double) whitePixelAmount) / ((double) blackPixelAmount);
 		}
-	}
-
-	//adjust grid orientation
-	angle = angle + i * 30;
+    }
 
 	return sum(scores)[0];
 }
@@ -109,7 +94,6 @@ double Grid::fisherScore() {
 	// 41/47 = 89.13% with kind of A scaling
 	// determine best orientation
 	Mat &roi = ell.transformedImage;
-	int i = bestGridAngleCorrection();
 
 	float Sb = 0;
 	float Sw = 0;
@@ -130,8 +114,8 @@ double Grid::fisherScore() {
 	// for each cell calculate its size (cellsize) and its mean intensity (means)
 	for (int j = 0; j < 15; j++) {
 		Mat mask = Mat(roi.rows, roi.cols, roi.type(), Scalar(0));
-		vector<vector<Point> > conts;
-		conts.push_back(renderGridCell(j, i));
+		vector< vector <Point> > conts;
+		conts.push_back(renderGridCell(j));
 		drawContours(mask, conts, 0, Scalar(255), CV_FILLED);
 		masks.push_back(mask);
 
@@ -143,7 +127,7 @@ double Grid::fisherScore() {
 	}
 
 	// assume the color for each cell
-	for (int j = 0; j < 15; j++) {
+	for ( int j = 0; j < 15; j++) {
 		if (abs(black - means.at<float>(j)) < abs(white - means.at<float>(j))) {
 			// cell is assumed black
 			labels.at<int>(j) = 0;
@@ -165,19 +149,18 @@ double Grid::fisherScore() {
 	labels.at<int>(13) = 1;
 	labels.at<int>(14) = 0;
 
+
 	black = centers.at<float>(0, 0);
 	white = centers.at<float>(1, 0);
 
 	if (_score.value != -1) {
 		for (int lab = 0; lab < labels.rows; lab++) {
 			if (labels.at<int>(lab) == 0 && lab < 12) {
-				if (abs(means.at<float>(lab) - white)
-						< abs(means.at<float>(lab) - black)) {
+				if (abs(means.at<float>(lab) - white) < abs(means.at<float>(lab) - black)) {
 					cout << "eh, uppsb" << endl;
 				}
-			} else if (lab < 12) {
-				if (abs(means.at<float>(lab) - white)
-						> abs(means.at<float>(lab) - black)) {
+			} else if (lab < 12){
+				if (abs(means.at<float>(lab) - white) > abs(means.at<float>(lab) - black)) {
 					cout << "eh, uppsw" << endl;
 				}
 			}
@@ -202,12 +185,10 @@ double Grid::fisherScore() {
 			for (int c = 0; c < roi.rows; c++) {
 				if (masks[j].at<unsigned char>(c, r) == 255) {
 					if (labels.at<int>(j) == 0) {
-						vari += (roi.at<unsigned char>(c, r) - black)
-								* (roi.at<unsigned char>(c, r) - black);
+						vari += (roi.at<unsigned char>(c, r) - black) * (roi.at<unsigned char>(c, r) - black);
 						nw_b++;
 					} else if (labels.at<int>(j) == 1) {
-						vari += (roi.at<unsigned char>(c, r) - white)
-								* (roi.at<unsigned char>(c, r) - white);
+						vari += (roi.at<unsigned char>(c, r) - white) * (roi.at<unsigned char>(c, r) - white);
 						nw_w++;
 					} else {
 						cout << "something went wrong" << endl;
@@ -227,7 +208,7 @@ double Grid::fisherScore() {
 		}
 	}
 
-	Sw = Sww / ((float) nw_w) + Swb / ((float) nw_b);
+	Sw = Sww /((float) nw_w) + Swb /((float) nw_b);
 
 	if (Sw == 0) {
 		cout << "Sw=0 - what now?" << endl;
@@ -276,15 +257,11 @@ double Grid::fisherScore() {
 	tagBlack = tagBlack.mul(tagMask);
 
 	Mat matBlack;
-	threshold(roi, matBlack, (black + white) / 2, 255, CV_THRESH_BINARY_INV);
+	threshold(roi, matBlack, (black + white)/2, 255, CV_THRESH_BINARY_INV);
 	matBlack = matBlack.mul(matMask);
 
-	float blackratio = ((float) countNonZero(matBlack))
-			/ ((float) countNonZero(tagBlack));
+	float blackratio = ((float) countNonZero(matBlack)) / ((float) countNonZero(tagBlack));
 	Sb *= blackratio;
-
-	//adjust grid orientation
-	angle = angle + i * 30;
 
 	// use fisher score Sb/Sw
 	return Sb / Sw;
@@ -292,51 +269,8 @@ double Grid::fisherScore() {
 
 // ======
 
-int Grid::bestGridAngleCorrection() {
 
-	// index encoding 30°-step angles ranging from [0,5]
-	int i = 0;
-	Mat &roi = ell.transformedImage;
-
-	float mean1c = 0;
-	float mean2c = 0;
-
-	for (int j = 0; j < 6; j++) {
-		Mat mask1 = Mat(roi.rows, roi.cols, roi.type(), Scalar(0));
-		vector<vector<Point> > conts1;
-		conts1.push_back(renderGridCell(13, j));
-		drawContours(mask1, conts1, 0, Scalar(255), CV_FILLED);
-		Scalar mean1;
-		Scalar std1;
-
-		meanStdDev(roi, mean1, std1, mask1);
-
-		Mat mask2 = Mat(roi.rows, roi.cols, roi.type(), Scalar(0));
-		vector<vector<Point> > conts2;
-		conts2.push_back(renderGridCell(14, j));
-		drawContours(mask2, conts2, 0, Scalar(255), CV_FILLED);
-		Scalar mean2;
-		Scalar std2;
-
-		meanStdDev(roi, mean2, std2, mask2);
-
-		if (abs(mean1c - mean2c) < abs(mean1[0] - mean2[0])) {
-			mean1c = mean1[0];
-			mean2c = mean2[0];
-			i = j;
-		}
-	}
-
-	// 180-flip if supposed white half circle is darker than supposed black half circle
-	if (mean1c < mean2c)
-		i += 6;
-
-	return (i);
-
-}
-
-vector<Point> Grid::renderScaledGridCell(unsigned short cell, double scale,
-		int offset) {
+vector<Point> Grid::renderScaledGridCell(unsigned short cell, double scale, int offset) {
 
 	// TODO caching???
 	vector<Point> cont;
@@ -345,47 +279,33 @@ vector<Point> Grid::renderScaledGridCell(unsigned short cell, double scale,
 	// Outer cells
 	if (cell < 12) {
 		double outerInnerRadiusDiff = ORR * size - IORR * size;
-		double outerCircleRadius = IORR * size + outerInnerRadiusDiff * 0.5
-				+ (outerInnerRadiusDiff * 0.5 * scale);
-		double innerCircleRadius = IORR * size + outerInnerRadiusDiff * 0.5
-				- (outerInnerRadiusDiff * 0.5 * scale);
+		double outerCircleRadius = IORR * size + outerInnerRadiusDiff * 0.5 + (outerInnerRadiusDiff * 0.5 * scale);
+		double innerCircleRadius = IORR * size + outerInnerRadiusDiff * 0.5 - (outerInnerRadiusDiff * 0.5 * scale);
 
 		int arcStart = -180 + cell * 30 + 15 * (1 - scale);
 		int arcEnd = -180 + (cell + 1) * 30 - 15 * (1 - scale);
 		// outer arc
-		ellipse2Poly(Point2f(x, y),
-				Size2f(outerCircleRadius, outerCircleRadius), angle, arcStart,
-				arcEnd, 1, cont);
+		ellipse2Poly(Point2f(x, y), Size2f(outerCircleRadius, outerCircleRadius), angle, arcStart, arcEnd, 1, cont);
 		// inner arc
-		ellipse2Poly(Point2f(x, y),
-				Size2f(innerCircleRadius, innerCircleRadius), angle, arcStart,
-				arcEnd, 1, cont2);
+		ellipse2Poly(Point2f(x, y), Size2f(innerCircleRadius, innerCircleRadius), angle, arcStart, arcEnd, 1, cont2);
 		// join outer and inner arc
 		cont.insert(cont.end(), cont2.rbegin(), cont2.rend());
 		return move(cont);
 	} else if (cell == 13) {
 		// supposed white inner half circle
-		ellipse2Poly(Point2f(x, y),
-				Size2f(IRR * size * scale, IRR * size * scale), angle,
-				-180 + offset * 30, offset * 30, 1, cont);
+		ellipse2Poly(Point2f(x, y), Size2f(IRR * size * scale, IRR * size * scale), angle, -180 + offset * 30, offset * 30, 1, cont);
 	} else if (cell == 14) {
 		//supposed black inner half circle
-		ellipse2Poly(Point2f(x, y),
-				Size2f(IRR * size * scale, IRR * size * scale), angle,
-				180 + offset * 30, offset * 30, 1, cont);
+		ellipse2Poly(Point2f(x, y), Size2f(IRR * size * scale, IRR * size * scale), angle, 180 + offset *30, offset * 30, 1, cont);
 	} else if (cell == 12) {
 		// outer (white) border
 		double outerInnerRadiusDiff = TRR * size - ORR * size;
-		double outerCircleRadius = ORR * size + outerInnerRadiusDiff * 0.5
-				+ (outerInnerRadiusDiff * 0.5 * scale);
-		double innerCircleRadius = ORR * size + outerInnerRadiusDiff * 0.5
-				- (outerInnerRadiusDiff * 0.5 * scale);
+		double outerCircleRadius = ORR * size + outerInnerRadiusDiff * 0.5 + (outerInnerRadiusDiff * 0.5 * scale);
+		double innerCircleRadius = ORR * size + outerInnerRadiusDiff * 0.5 - (outerInnerRadiusDiff * 0.5 * scale);
 
-		vector<Point> cont2;
-		ellipse2Poly(Point2f(x, y), Size(outerCircleRadius, outerCircleRadius),
-				angle + 90, 0, 360, 1, cont);
-		ellipse2Poly(Point2f(x, y), Size(innerCircleRadius, innerCircleRadius),
-				angle + 90, 0, 360, 1, cont2);
+		vector < Point > cont2;
+		ellipse2Poly(Point2f(x, y), Size(outerCircleRadius, outerCircleRadius), angle + 90, 0, 360, 1,cont);
+		ellipse2Poly(Point2f(x, y), Size(innerCircleRadius, innerCircleRadius), angle + 90, 0, 360, 1,cont2);
 		cont.insert(cont.end(), cont2.rbegin(), cont2.rend());
 	}
 
@@ -396,11 +316,12 @@ vector<Point> Grid::renderGridCell(unsigned short cell, int offset) {
 	return renderScaledGridCell(cell, 1, offset);
 }
 
+
 // === operators ===
 
 bool Grid::operator>(Grid &g) {
 	ScoringMethod metric = scoringMethod();
-	assert(g.scoringMethod() == metric); // both grids need the same scoring method
+	assert (g.scoringMethod() == metric); // both grids need the same scoring method
 
 	if (metric == BINARYCOUNT) {
 		return score() < g.score();
@@ -410,7 +331,7 @@ bool Grid::operator>(Grid &g) {
 }
 
 bool Grid::operator<(Grid &g) {
-	assert(g.scoringMethod() == scoringMethod());
+	assert (g.scoringMethod() == scoringMethod());
 
 	if (score() == g.score()) {
 		return false;
@@ -433,20 +354,12 @@ vector<float> Grid::generateEdge(int radius, int width, bool useBinaryImage) {
 	int y = 0;
 	int err = 1 - x;
 
-	vector<vector<float> > subEdges(8);
+	vector< vector<float> > subEdges (8);
 
-	subEdges[0].push_back(
-			getMeanAlongLine(this->x - outerRadius, this->y, this->x, this->y,
-					width, useBinaryImage));
-	subEdges[2].push_back(
-			getMeanAlongLine(this->x, this->y - outerRadius, this->x, this->y,
-					width, useBinaryImage));
-	subEdges[4].push_back(
-			getMeanAlongLine(this->x + outerRadius, this->y, this->x, this->y,
-					width, useBinaryImage));
-	subEdges[6].push_back(
-			getMeanAlongLine(this->x, this->y + outerRadius, this->x, this->y,
-					width, useBinaryImage));
+	subEdges[0].push_back(getMeanAlongLine(this->x - outerRadius, this->y, this->x, this->y, width, useBinaryImage));
+	subEdges[2].push_back(getMeanAlongLine(this->x, this->y - outerRadius, this->x, this->y, width, useBinaryImage));
+	subEdges[4].push_back(getMeanAlongLine(this->x + outerRadius, this->y, this->x, this->y, width, useBinaryImage));
+	subEdges[6].push_back(getMeanAlongLine(this->x, this->y + outerRadius, this->x, this->y, width, useBinaryImage));
 
 	// Generating the octant in clockwise order
 	while (x > y + 1) {
@@ -459,30 +372,14 @@ vector<float> Grid::generateEdge(int radius, int width, bool useBinaryImage) {
 			err += 2 * (y - x + 1);
 		}
 
-		subEdges[0].push_back(
-				getMeanAlongLine(this->x - x, this->y - y, this->x, this->y,
-						width, useBinaryImage));
-		subEdges[1].push_back(
-				getMeanAlongLine(this->x - y, this->y - x, this->x, this->y,
-						width, useBinaryImage));
-		subEdges[2].push_back(
-				getMeanAlongLine(this->x + y, this->y - x, this->x, this->y,
-						width, useBinaryImage));
-		subEdges[3].push_back(
-				getMeanAlongLine(this->x + x, this->y - y, this->x, this->y,
-						width, useBinaryImage));
-		subEdges[4].push_back(
-				getMeanAlongLine(this->x + x, this->y + y, this->x, this->y,
-						width, useBinaryImage));
-		subEdges[5].push_back(
-				getMeanAlongLine(this->x + y, this->y + x, this->x, this->y,
-						width, useBinaryImage));
-		subEdges[6].push_back(
-				getMeanAlongLine(this->x - y, this->y + x, this->x, this->y,
-						width, useBinaryImage));
-		subEdges[7].push_back(
-				getMeanAlongLine(this->x - x, this->y + y, this->x, this->y,
-						width, useBinaryImage));
+		subEdges[0].push_back(getMeanAlongLine(this->x - x, this->y - y, this->x, this->y, width, useBinaryImage));
+		subEdges[1].push_back(getMeanAlongLine(this->x - y, this->y - x, this->x, this->y, width, useBinaryImage));
+		subEdges[2].push_back(getMeanAlongLine(this->x + y, this->y - x, this->x, this->y, width, useBinaryImage));
+		subEdges[3].push_back(getMeanAlongLine(this->x + x, this->y - y, this->x, this->y, width, useBinaryImage));
+		subEdges[4].push_back(getMeanAlongLine(this->x + x, this->y + y, this->x, this->y, width, useBinaryImage));
+		subEdges[5].push_back(getMeanAlongLine(this->x + y, this->y + x, this->x, this->y, width, useBinaryImage));
+		subEdges[6].push_back(getMeanAlongLine(this->x - y, this->y + x, this->x, this->y, width, useBinaryImage));
+		subEdges[7].push_back(getMeanAlongLine(this->x - x, this->y + y, this->x, this->y, width, useBinaryImage));
 
 		// This part is sometimes useful for debugging
 		//image.at<unsigned char>(Point(this->x - x, this->y - y)) = 255;
@@ -494,6 +391,7 @@ vector<float> Grid::generateEdge(int radius, int width, bool useBinaryImage) {
 		//image.at<unsigned char>(Point(this->x - y, this->y + x)) = 255;
 		//image.at<unsigned char>(Point(this->x - x, this->y + y)) = 255;
 	}
+
 
 	// Merge all subedges
 	vector<float> mergedEdges;
@@ -511,8 +409,7 @@ vector<float> Grid::generateEdge(int radius, int width, bool useBinaryImage) {
 	int firstIdx = (int) (a / 360.0 * mergedEdges.size()) % mergedEdges.size();
 	vector<float> edge;
 	edge.insert(edge.end(), mergedEdges.begin() + firstIdx, mergedEdges.end());
-	edge.insert(edge.end(), mergedEdges.begin(),
-			mergedEdges.begin() + firstIdx);
+	edge.insert(edge.end(), mergedEdges.begin(), mergedEdges.begin() + firstIdx);
 
 	return edge;
 }
@@ -520,7 +417,7 @@ vector<float> Grid::generateEdge(int radius, int width, bool useBinaryImage) {
 Mat Grid::generateEdgeAsMat(int radius, int width, bool useBinaryImage) {
 	vector<float> edge = generateEdge(radius, width, useBinaryImage);
 
-	Mat newEdge(edge.size(), 1, CV_32FC1);
+	Mat newEdge (edge.size(), 1, CV_32FC1);
 	for (unsigned int i = 0; i < edge.size(); i++) {
 		newEdge.at<float>(i) = edge[i];
 	}
@@ -528,17 +425,16 @@ Mat Grid::generateEdgeAsMat(int radius, int width, bool useBinaryImage) {
 	return newEdge;
 }
 
-float Grid::getMeanAlongLine(int xStart, int yStart, int xEnd, int yEnd,
-		int size, bool useBinaryImage) {
+float Grid::getMeanAlongLine(int xStart, int yStart, int xEnd, int yEnd, int size, bool useBinaryImage) {
 
 	// It's possibly better just to get the position of the pixel along the line, but lets fuck performance
 	Mat &image = useBinaryImage ? ell.binarizedImage : ell.transformedImage;
 
-	Mat profile(size, 1, CV_8UC1);
+	Mat profile (size, 1, CV_8UC1);
 	int x = xStart;
 	int y = yStart;
 	// Distances according to axis
-	int dx = abs(xEnd - xStart);
+	int dx =  abs(xEnd - xStart);
 	int dy = -abs(yEnd - yStart);
 	// Step size for the directions (because it's a line)
 	int sx = xStart < xEnd ? 1 : -1;
@@ -547,10 +443,10 @@ float Grid::getMeanAlongLine(int xStart, int yStart, int xEnd, int yEnd,
 	int err = dx + dy;
 	int e2;
 
-	for (int i = 0; i < size; i++) {
+	for(int i = 0; i < size; i++){
 		profile.at<unsigned char>(i) = image.at<unsigned char>(Point(x, y));
 
-		e2 = 2 * err;
+		e2 = 2*err;
 		if (e2 > dy) {
 			err += dy;
 			x += sx;
@@ -581,15 +477,14 @@ Mat Grid::drawGrid(double scale, bool useBinaryImage) {
 	}
 
 	// contour vector
-	vector<vector<Point> > conts;
+	vector< vector <Point> > conts;
 
 	int ites = 16;
-	vector<Point> cont;
+	vector < Point > cont;
 
 	// render half of the inner circle (circular matrix design)
-	ellipse2Poly(Point2f(x, y), Size2f(IRR * size, IRR * size), angle, 0, -180,
-			1, cont);
-	vector<Point> cont2;
+	ellipse2Poly(Point2f(x, y), Size2f(IRR * size, IRR * size), angle, 0, -180, 1, cont);
+	vector < Point > cont2;
 
 	// take first and last vertex of the polygon to get the respective diameter of the inner circle
 	cont2.push_back(cont[0]);
@@ -619,5 +514,4 @@ Mat Grid::drawGrid(double scale) {
 
 Mat Grid::drawGrid(bool useBinaryImage) {
 	return drawGrid(1, useBinaryImage);
-}
 }

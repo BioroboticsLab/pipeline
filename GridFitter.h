@@ -8,11 +8,15 @@
 #ifndef GRIDFITTER_H_
 #define GRIDFITTER_H_
 
-#include "./datastructure/Ellipse.h"
-#include "./datastructure/Grid.h"
+#include "datastructure/Ellipse.h"
+#include "datastructure/Grid.h"
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <iostream>
+#include <fstream>
+#include <iomanip>
+#include <cstdlib>
 
 // Constants for optimized detection of the tag center
 // initial step size
@@ -26,7 +30,7 @@
 
 using namespace std;
 using namespace cv;
-namespace decoder {
+
 class GridFitter {
 public:
 
@@ -116,6 +120,14 @@ private:
 	 * @return best grid angle
 	 */
 	Grid fitGridAngle(Ellipse &ellipse, float gsize, double angle, int x, int y);
+
+	/**
+	 * Returns a orientation correction for a grid as offset.
+	 *
+	 * @param g the grid
+	 * @return offset in cells
+	 */
+	int bestGridAngleCorrection(Grid g);
 };
-}
+
 #endif /* GRIDFITTER_H_ */

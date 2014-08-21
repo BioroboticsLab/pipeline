@@ -4,7 +4,6 @@
 #include "Grid.h"
 #include "Ellipse.h"
 
-namespace decoder {
 /**
  * Struct for a tag decoding
  */
@@ -29,5 +28,5 @@ struct Decoding {
      */
     Grid grid;
 };
-}
+
 #endif /* DECODING_H_ */
