@@ -8,6 +8,8 @@
 #include <math.h>
 #include "Ellipse.h"
 #include <algorithm>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
 
 #define BINARYCOUNT_INIT (100000) // initial score for binary count method
 #define FISHER_INIT (-1) // initial score for fisher method
@@ -52,6 +54,15 @@ public:
 		BINARYCOUNT,
 		FISHER
 	};
+
+	/**
+	 * internal score struct (primarily for caching)
+	 * need to put it into the public area because of boost serialization issues
+	 */
+	struct {
+		double value;
+		ScoringMethod metric;
+	} _score;
 
 	float size;
 	float x;
@@ -157,14 +168,6 @@ public:
 	Mat drawGrid();
 	Mat drawGrid(bool useBinaryImage);
 private:
-
-	/**
-	 * internal score struct (primarily for caching)
-	 */
-	struct {
-		double value;
-		ScoringMethod metric;
-	} _score;
 
 	/**
 	 * Initialization method for multiple contructor
