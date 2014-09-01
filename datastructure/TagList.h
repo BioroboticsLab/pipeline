@@ -32,7 +32,7 @@ private:
 public:
 	TagList();
 	virtual ~TagList();
-	void AddTag(Tag t);
+	void addTag(Tag t);
 	int size();
 	Tag getTag(int position);
 	void removeTag(int position);

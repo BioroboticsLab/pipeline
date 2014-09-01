@@ -37,7 +37,7 @@ void TagList::serialize(Archive & ar, const unsigned int version) {
 	ar & this->_tags;
 }
 
-void TagList::AddTag(Tag t) {
+void TagList::addTag(Tag t) {
 	this->_tags.push_back(t);
 }
 

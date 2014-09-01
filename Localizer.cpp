@@ -204,7 +204,7 @@ Mat Localizer::highlightTags(Mat &grayImage) {
 	binarizedImage.copyTo(imageCopy);
 
 
-	if (config::DEBUG_MODE) {
+	if (config::DEBUG_MODE_LOCALIZER) {
 
 		namedWindow("binarized Image", WINDOW_NORMAL);
 		imshow("binarized Image", imageCopy);
@@ -223,7 +223,7 @@ Mat Localizer::highlightTags(Mat &grayImage) {
 	dilate(imageCopy, imageCopy, dilatedImage, Point(-1, -1),
 			this->LOCALIZER_DILATION_1_ITERATIONS);
 
-	if (config::DEBUG_MODE) {
+	if (config::DEBUG_MODE_LOCALIZER) {
 
 		namedWindow("First Dilate", WINDOW_NORMAL);
 		imshow("First Dilate", imageCopy);
@@ -238,7 +238,7 @@ Mat Localizer::highlightTags(Mat &grayImage) {
 			Point(this->LOCALIZER_EROSION_SIZE,
 					this->LOCALIZER_EROSION_SIZE));
 	erode(imageCopy, imageCopy, erodedImage);
-	if (config::DEBUG_MODE) {
+	if (config::DEBUG_MODE_LOCALIZER) {
 		namedWindow("First Erode", WINDOW_NORMAL);
 		imshow("First Erode", imageCopy);
 		waitKey(0);
@@ -251,7 +251,7 @@ Mat Localizer::highlightTags(Mat &grayImage) {
 			Point(this->LOCALIZER_DILATION_2_SIZE,
 					this->LOCALIZER_DILATION_2_SIZE));
 	dilate(imageCopy, imageCopy, dilatedImage);
-	if (config::DEBUG_MODE) {
+	if (config::DEBUG_MODE_LOCALIZER) {
 		namedWindow("My Window", WINDOW_NORMAL);
 		imshow("My Window", imageCopy);
 		waitKey(0);
@@ -332,7 +332,7 @@ TagList Localizer::locateTagCandidates(Mat blobImage_old,
 				sub_image_orig.copyTo(subImageOrig_cp);
 				tag.setOrigSubImage(subImageOrig_cp);
 
-				taglist.AddTag(tag);
+				taglist.addTag(tag);
 			}
 		}
 	}
@@ -373,7 +373,7 @@ Mat Localizer::computeSobelMap(Mat grayImage) {
 
 	/// Total Gradient (approximate)
 	cv::addWeighted(abs_grad_x, 0.5, abs_grad_y, 0.5, 0, sobel);
-	if (config::DEBUG_MODE) {
+	if (config::DEBUG_MODE_LOCALIZER) {
 
 		namedWindow("Sobel", WINDOW_NORMAL);
 		imshow("Sobel", sobel);

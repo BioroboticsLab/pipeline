@@ -42,6 +42,7 @@ private:
 	int RECOGNIZER_MIN_MINOR;
 	int RECOGNIZER_MAX_MINOR;
 	int RECOGNIZER_THRESHOLD_EDGE;
+	int RECOGNIZER_THRESHOLD_VOTE;
 
 	/**************************************
 	 *

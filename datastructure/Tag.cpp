@@ -25,8 +25,8 @@ Tag::Tag() {
 Tag::Tag(Rect rec) {
 	this->_valid = true;
 	this->_candidates = vector<TagCandidate>();
-	BoundingBox bb = BoundingBox(rec);
-	this->_boundingBox = bb;
+
+	this->_box = rec;
 
 }
 
@@ -41,13 +41,7 @@ Tag::~Tag() {
  *
  **************************************/
 
-const BoundingBox& Tag::getBoundingBox() const {
-	return _boundingBox;
-}
 
-void Tag::setBoundingBox(const BoundingBox& boundingBox) {
-	_boundingBox = boundingBox;
-}
 
 const vector<TagCandidate>& Tag::getCandidates() const {
 	return _candidates;
@@ -88,6 +82,16 @@ int Tag::getId() const {
 void Tag::setId(int id) {
 	this->id = id;
 }
+
+
+const Rect& Tag::getBox() const {
+	return _box;
+}
+
+void Tag::setBox(const Rect& box) {
+	_box = box;
+}
+
 
 /**************************************
  *

@@ -32,7 +32,7 @@ private:
 	 *
 	 **************************************/
 
-	BoundingBox _boundingBox;
+	Rect _box;
 
 	Mat _origSubImage;
 
@@ -65,8 +65,7 @@ public:
 	 * 			getter/setter
 	 *
 	 **************************************/
-	const BoundingBox& getBoundingBox() const;
-	void setBoundingBox(const BoundingBox& boundingBox);
+
 	const vector<TagCandidate>& getCandidates() const;
 	void setCandidates(const vector<TagCandidate>& candidates);
 	const Mat& getCannySubImage() const;
@@ -78,6 +77,8 @@ public:
 	int getId() const;
 	void setId(int id);
 	void addCandidate(TagCandidate c);
+	const Rect& getBox() const;
+	void setBox(const Rect& box);
 };
 
 } /* namespace decoder */
