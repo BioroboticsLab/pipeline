@@ -142,8 +142,8 @@ void Recognizer::detectXieEllipse(Tag &tag) {
 						double angle = (alpha * 180) / CV_PI;
 
 						//scoring:
-						float jm = this->RECOGNIZER_MIN_MAJOR + (this->RECOGNIZER_MAX_MAJOR - this->RECOGNIZER_MIN_MAJOR)/2.0;
-						float nm = this->RECOGNIZER_MIN_MINOR + (this->RECOGNIZER_MAX_MINOR - this->RECOGNIZER_MIN_MINOR)/2.0;
+						//float jm = this->RECOGNIZER_MIN_MAJOR + (this->RECOGNIZER_MAX_MAJOR - this->RECOGNIZER_MIN_MAJOR)/2.0;
+						//float nm = this->RECOGNIZER_MIN_MINOR + (this->RECOGNIZER_MAX_MINOR - this->RECOGNIZER_MIN_MINOR)/2.0;
 						float j = cvRound(a);
 						float n = max_ind;
 
@@ -154,7 +154,7 @@ void Recognizer::detectXieEllipse(Tag &tag) {
 						if (candidates.size() == 0) {
 							candidates.push_back(Ellipse(vote_minor, cen, axis, angle));
 						}
-						for (int el = 0; el < candidates.size(); el++) {
+						for (unsigned int el = 0; el < candidates.size(); el++) {
 							if (abs(candidates[el].cen.x - cen.x) < 8 &&
 									abs(candidates[el].cen.y - cen.y) < 8 &&
 									abs(candidates[el].axis.width - j)  < 8 &&
@@ -197,7 +197,7 @@ void Recognizer::detectXieEllipse(Tag &tag) {
 	// sort the candidates list according to their vote
 	std::sort(candidates.begin(), candidates.end());
 
-	for(int i = 0; i < candidates.size(); i++ ){
+	for(unsigned int i = 0; i < candidates.size(); i++ ){
 		TagCandidate c = TagCandidate(candidates[i]);
 		tag.addCandidate(c);
 	}
