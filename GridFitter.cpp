@@ -10,6 +10,8 @@
 using namespace std;
 using namespace cv;
 
+namespace decoder {
+
 GridFitter::GridFitter(int id,  vector<Ellipse> ellipses, Grid::ScoringMethod scoringMethod) {
 	this->ellipses = ellipses;
 	this->id = id;
@@ -276,4 +278,6 @@ int GridFitter::bestGridAngleCorrection(Grid g) {
 	if (mean1c < mean2c) i+=6;
 
 	return (i);
+}
+
 }

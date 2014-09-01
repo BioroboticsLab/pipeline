@@ -1,5 +1,7 @@
 #include "Grid.h"
 
+namespace decoder {
+
 // === Constructors and initializer ===
 void Grid::init(float size, float angle, float tilt, int x, int y, Ellipse ell, bool permutation, ScoringMethod scoringMethod) {
 	this->size = size;
@@ -514,4 +516,6 @@ Mat Grid::drawGrid(double scale) {
 
 Mat Grid::drawGrid(bool useBinaryImage) {
 	return drawGrid(1, useBinaryImage);
+}
+
 }

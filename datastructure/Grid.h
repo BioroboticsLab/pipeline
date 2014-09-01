@@ -30,12 +30,7 @@
 using namespace cv;
 using namespace std;
 
-/** definition of different grid cell types (or cell shapes), which influence scoring */
-enum GridType{
-	SQUARE,
-	CIRCLE,
-	ARC
-};
+namespace decoder {
 
 /**
  * Vec4f type alias for readability
@@ -217,4 +212,6 @@ private:
 	// ======
 
 };
+
+}
 #endif /* GRID_H_ */

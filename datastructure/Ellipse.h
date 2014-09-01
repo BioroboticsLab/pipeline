@@ -8,6 +8,8 @@
 using namespace cv;
 using namespace std;
 
+namespace decoder {
+
 class Ellipse {
 public:
 	// number of edge pixels supporting this ellipse
@@ -49,4 +51,6 @@ public:
 		this->transformedImage = transformedImage;
 	}
 };
+
+}
 #endif /* ELLIPSE_H_ */

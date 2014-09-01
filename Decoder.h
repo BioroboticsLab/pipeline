@@ -24,6 +24,8 @@
 
 #define CELL_SCALE 0.3
 
+namespace decoder {
+
 class Decoder {
 public:
 	// Struct for turning points
@@ -120,4 +122,5 @@ private:
 	vector<Scalar> colorMeans(Grid &g);
 };
 
+}
 #endif /* DECODER_H_ */

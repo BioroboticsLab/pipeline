@@ -10,6 +10,8 @@
 using namespace std;
 using namespace cv;
 
+namespace decoder {
+
 Decoder::Decoder(int id, vector<Grid> grids) {
 	this->id = id;
 	this->grids = grids;
@@ -354,4 +356,5 @@ Decoding Decoder::edgeWalkerDecode(Grid &g) {
 	decoding.score = fisherScore(g, labels, true);
 
 	return decoding;
+}
 }

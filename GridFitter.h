@@ -31,6 +31,8 @@
 using namespace std;
 using namespace cv;
 
+namespace decoder {
+
 class GridFitter {
 public:
 
@@ -130,4 +132,5 @@ private:
 	int bestGridAngleCorrection(Grid g);
 };
 
+}
 #endif /* GRIDFITTER_H_ */
