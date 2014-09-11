@@ -22,6 +22,16 @@ void Grid::init(float size, float angle, float tilt, int x, int y, Ellipse ell, 
 	}
 
 	this->ell = ell;
+
+	// Need to binarize the image, because we need it for scoring
+	if (this->ell.transformedImage.type() != CV_8U) {
+		Mat grayImage;
+		cvtColor(this->ell.transformedImage, grayImage, CV_BGR2GRAY);
+		this->ell.transformedImage = grayImage;
+	}
+
+	// Binarize image first (just for new Scoring)
+	adaptiveThreshold(this->ell.transformedImage, this->ell.binarizedImage, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY, 21, 3);
 }
 
 Grid::Grid(float size, float angle, float tilt,  int x,  int y, Ellipse ell, ScoringMethod scoringMethod) {
