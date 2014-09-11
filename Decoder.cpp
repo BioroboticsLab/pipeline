@@ -6,15 +6,12 @@
  */
 
 #include "Decoder.h"
-#include "../config.h"
-#include <iomanip>
-#include <iostream>
-#include <algorithm>
-#include <cstdlib>
 
 using namespace std;
 using namespace cv;
+
 namespace decoder {
+
 Decoder::Decoder(int id, vector<Grid> grids) {
 	this->id = id;
 	this->grids = grids;

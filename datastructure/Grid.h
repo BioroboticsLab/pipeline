@@ -7,6 +7,12 @@
 #include <iostream>
 #include <math.h>
 #include "Ellipse.h"
+#include <algorithm>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+
+#define BINARYCOUNT_INIT (100000) // initial score for binary count method
+#define FISHER_INIT (-1) // initial score for fisher method
 
 // current tag design -- without inner border
 /** outer radius to grid size ratio (tag design constant) */
@@ -24,12 +30,7 @@
 using namespace cv;
 using namespace std;
 
-/** definition of different grid cell types (or cell shapes), which influence scoring */
-enum GridType{
-	SQUARE,
-	CIRCLE,
-	ARC
-};
+namespace decoder {
 
 /**
  * Vec4f type alias for readability
@@ -39,8 +40,6 @@ enum GridType{
  * grid[2] = grid's x-y angle \n
  * grid[3] = grid's score (given roi)
  */
-
-namespace decoder {
 class Grid {
 public:
 	/**
@@ -48,9 +47,17 @@ public:
 	 */
 	enum ScoringMethod {
 		BINARYCOUNT,
-		FISHER,
-		FASTFISHER
+		FISHER
 	};
+
+	/**
+	 * internal score struct (primarily for caching)
+	 * need to put it into the public area because of boost serialization issues
+	 */
+	struct {
+		double value;
+		ScoringMethod metric;
+	} _score;
 
 	float size;
 	float x;
@@ -158,14 +165,6 @@ public:
 private:
 
 	/**
-	 * internal score struct (primarily for caching)
-	 */
-	struct {
-		double value;
-		ScoringMethod metric;
-	} _score;
-
-	/**
 	 * Initialization method for multiple contructor
 	 *
 	 * @param size size of the grid
@@ -178,14 +177,6 @@ private:
 	 * @param scoringMethod used scoring method
 	 */
 	void init(float size, float angle, float tilt,  int x,  int y, Ellipse ell, bool permutation, ScoringMethod scoringMethod);
-
-	/**
-	 * Returns a orientation correction for a grid as offset.
-	 *
-	 * @param g the grid
-	 * @return offset in cells
-	 */
-	int bestGridAngleCorrection();
 
 	/**
 	 * returns the mean of the intensities along a line
@@ -221,5 +212,6 @@ private:
 	// ======
 
 };
+
 }
 #endif /* GRID_H_ */

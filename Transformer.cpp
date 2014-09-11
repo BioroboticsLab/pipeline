@@ -47,7 +47,7 @@ void Transformer::_transformImages(Tag &tag){
 	Mat originalImage = tag.getOrigSubImage();
 	vector <TagCandidate> candidates = tag.getCandidates();
 
-	for(int i = 0; i < candidates.size(); i++){
+	for(unsigned int i = 0; i < candidates.size(); i++){
 		TagCandidate candidate = candidates[i];
 		Mat transformedImage = this->_ellipseTransform(candidate.getEllipse(), originalImage);
 		candidate.setTransformedImage(transformedImage);

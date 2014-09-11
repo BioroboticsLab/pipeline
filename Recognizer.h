@@ -28,6 +28,7 @@ using namespace cv;
 
 namespace decoder {
 
+
 class Recognizer {
 private:
 
@@ -72,6 +73,15 @@ public:
 
 	void process(TagList &taglist);
 };
+
+
+/**************************************
+ *
+ * 			other stuff
+ *
+ **************************************/
+
+bool compareVote(Ellipse a, Ellipse b);
 
 } /* namespace decoder */
 

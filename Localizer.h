@@ -53,7 +53,7 @@ private:
 	int LOCALIZER_DILATION_1_SIZE;
 	int LOCALIZER_EROSION_SIZE;
 	int LOCALIZER_DILATION_2_SIZE;
-	int LOCALIZER_MAXTAGSIZE;
+	unsigned int LOCALIZER_MAXTAGSIZE;
 	int LOCALIZER_MINTAGSIZE;
 
 	/**************************************

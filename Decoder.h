@@ -8,18 +8,24 @@
 #ifndef DECODER_H_
 #define DECODER_H_
 
-#include "./datastructure/Grid.h"
-#include "./datastructure/Ellipse.h"
-#include "./datastructure/Decoding.h"
+#include "datastructure/Grid.h"
+#include "datastructure/Ellipse.h"
+#include "datastructure/Decoding.h"
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <iostream>
 #include <math.h>
 #include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <algorithm>
+#include <cstdlib>
 
 #define CELL_SCALE 0.3
+
 namespace decoder {
+
 class Decoder {
 public:
 	// Struct for turning points
@@ -115,6 +121,6 @@ private:
 	 */
 	vector<Scalar> colorMeans(Grid &g);
 };
-}
 
+}
 #endif /* DECODER_H_ */
