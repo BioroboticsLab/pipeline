@@ -18,7 +18,7 @@
 #include <vector>
 #include <math.h>
 #include <fstream>
-#include "./datastructure/TagList.h"
+#include "./datastructure/Tag.h"
 #include "../config.h"
 
 #include <boost/property_tree/ptree.hpp>
@@ -57,7 +57,7 @@ public:
 	 *
 	 **************************************/
 
-	void process(TagList &taglist);
+	void process(vector<Tag> &taglist);
 };
 
 } /* namespace decoder */

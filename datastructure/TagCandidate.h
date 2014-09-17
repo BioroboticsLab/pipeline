@@ -12,6 +12,7 @@
 
 #include "Grid.h"
 #include "Ellipse.h"
+#include "Decoding.h"
 
 
 #include <opencv2/opencv.hpp>
@@ -33,7 +34,8 @@ private:
 	//score of the candidate
 	double _score;
 	Ellipse _ellipse;
-	Grid _grid;
+	vector<Grid> _grids;
+	vector <Decoding> _decodings;
 	//decoded Id
 	int _decodedId;
 	Mat _transformedImage;
@@ -76,13 +78,7 @@ public:
 		_ellipse = ellipse;
 	}
 
-	const Grid& getGrid() const {
-		return _grid;
-	}
 
-	void setGrid(const Grid& grid) {
-		_grid = grid;
-	}
 
 	double getScore() const {
 		return _score;
@@ -98,6 +94,22 @@ public:
 
 	void setTransformedImage(const Mat& transformedImage) {
 		_transformedImage = transformedImage;
+	}
+
+	const vector<Grid>& getGrids() const {
+		return _grids;
+	}
+
+	void setGrids(const vector<Grid>& grids) {
+		_grids = grids;
+	}
+
+	const vector<Decoding>& getDecodings() const {
+		return _decodings;
+	}
+
+	void setDecodings(const vector<Decoding>& decodings) {
+		_decodings = decodings;
 	}
 };
 

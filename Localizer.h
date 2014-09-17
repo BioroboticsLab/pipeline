@@ -19,7 +19,7 @@
 #include <math.h>
 #include <fstream>
 #include "./datastructure/BoundingBox.h"
-#include "./datastructure/TagList.h"
+#include "./datastructure/Tag.h"
 #include "../config.h"
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ini_parser.hpp>
@@ -46,8 +46,7 @@ private:
 	/*
 	 * vars that we be filled by an ini file
 	 */
-	int LOCALIZER_LCANNYTHRES;
-	int LOCALIZER_HCANNYTHRES;
+
 	int LOCALIZER_BINTHRES;
 	int LOCALIZER_DILATION_1_ITERATIONS;
 	int LOCALIZER_DILATION_1_SIZE;
@@ -65,9 +64,9 @@ private:
 	Mat computeSobelMap(Mat grayImage);
 	Mat computeBlobs(Mat sobel);
 	Mat highlightTags(Mat &grayImage);
-	TagList locateTagCandidates(Mat blobImage, Mat cannyEdgeMap,
+	vector<Tag> locateTagCandidates(Mat blobImage, Mat cannyEdgeMap,
 			Mat grayImage);
-	Mat computeCannyEdgeMap(Mat grayImage);
+
 	void loadConfigVars(string filename);
 
 public:
@@ -122,7 +121,7 @@ public:
 	 *
 	 **************************************/
 
-	TagList process(Mat image);
+	vector<Tag> process(Mat image);
 	void reset();
 };
 

@@ -31,10 +31,10 @@ Transformer::~Transformer() {
  *
  **************************************/
 
-void Transformer::process(TagList &taglist){
+void Transformer::process(vector<Tag> &taglist){
 
 	for (int i = 0; i < taglist.size(); i ++){
-		Tag tag = taglist.getTag(i);
+		Tag tag = taglist[i];
 		if(tag.isValid()){
 			this->_transformImages(tag);
 		}

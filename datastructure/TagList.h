@@ -34,7 +34,7 @@ public:
 	virtual ~TagList();
 	void addTag(Tag t);
 	int size();
-	Tag getTag(int position);
+	Tag* getTag(int position);
 	void removeTag(int position);
 
 

@@ -17,9 +17,9 @@
 #include <vector>
 #include <math.h>
 #include <fstream>
-#include "./datastructure/TagList.h"
+#include "./datastructure/Tag.h"
 #include "../config.h"
-
+#include <boost/lexical_cast.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 
@@ -38,12 +38,17 @@ private:
 	 *
 	 **************************************/
 
+	int RECOGNIZER_LCANNYTHRES;
+	int RECOGNIZER_HCANNYTHRES;
+
 	int RECOGNIZER_MIN_MAJOR;
 	int RECOGNIZER_MAX_MAJOR;
 	int RECOGNIZER_MIN_MINOR;
 	int RECOGNIZER_MAX_MINOR;
 	int RECOGNIZER_THRESHOLD_EDGE;
 	int RECOGNIZER_THRESHOLD_VOTE;
+	int RECOGNIZER_THRESHOLD_BEST_VOTE;
+
 
 	/**************************************
 	 *
@@ -53,6 +58,7 @@ private:
 
 	void loadConfigVars(string filename);
 	void detectXieEllipse(Tag &tag);
+	Mat computeCannyEdgeMap(Mat grayImage);
 
 public:
 
@@ -71,7 +77,7 @@ public:
 	 *
 	 **************************************/
 
-	void process(TagList &taglist);
+	vector<Tag> process(vector<Tag> taglist);
 };
 
 

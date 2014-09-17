@@ -10,6 +10,7 @@
 
 #include "datastructure/Ellipse.h"
 #include "datastructure/Grid.h"
+#include "datastructure/Tag.h"
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -43,7 +44,7 @@ public:
 	 * @param ellipses a vector with possible ellipses for the roi
 	 * @param scoringMethod method that should be used for scoring (FOR LATER USE MAYBE)
 	 */
-	GridFitter(int id, vector<Ellipse> ellipses, Grid::ScoringMethod scoringMethod = Grid::BINARYCOUNT);
+	GridFitter(Grid::ScoringMethod scoringMethod = Grid::BINARYCOUNT);
 	virtual ~GridFitter();
 
 	/**
@@ -51,18 +52,9 @@ public:
 	 *
 	 * @return possible grids
 	 */
-	virtual vector < Grid > process();
+	virtual void process(vector<Tag> &taglist);
 
 private:
-	/**
-	 * id of the bounding box
-	 */
-	int id;
-
-	/**
-	 * vector of all possible ellipses for this bounding boxes
-	 */
-	vector < Ellipse > ellipses;
 
 	/**
 	 * method used for gridscoring

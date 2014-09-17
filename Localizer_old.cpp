@@ -173,76 +173,43 @@ vector<Tag> Localizer::process(cv::Mat grayImage) {
  * @param grayImage
  * @return image with highlighted tags
  */
-Mat Localizer::highlightTags(Mat &grayImage) {
+Mat Localizer::highlightTags(Mat &Ig) {
+	Mat er_ele;
+	Mat di_ele;
+	Mat Ib,If;
 
-	Mat imageCopy, imageCopy2;
-	//eroded image
-	Mat erodedImage;
-	//dilated image
-	Mat dilatedImage;
-	Mat binarizedImage;
+	/** Canny lower threshold */
+	static int const lowerCannyThreshold = 30;
+	/** Canny higher threshold \see  */
+	static int const higherCannyThreshold = 60;
+	/** binarization threshold for tag locating \see highlightTags */
+	static int const lbin = 29;
+	/** number of erosions \see highlightTags */
+	static int const numberOfErosions = 2;
+	/** number of dilations \see highlightTags */
+	static int const numberOfDilations = 10;
 
 	//binarization
-	threshold(grayImage, binarizedImage, this->LOCALIZER_BINTHRES, 255,
-			CV_THRESH_BINARY);
+		threshold(Ig, Ib, lbin, 255, CV_THRESH_BINARY);
 
-	binarizedImage.copyTo(imageCopy);
+		//fill holes, background point currently hard coded !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		//Ib.copyTo(If);
+		//floodFill(If, Point(370, 99), Scalar(255, 255, 255));
+		//If = Ib + (255 - If);
 
+		Ib.copyTo(If);
 
-	if (config::DEBUG_MODE_LOCALIZER) {
+		//erosion
+		er_ele = getStructuringElement(MORPH_ELLIPSE,
+				Size(2 * numberOfErosions + 1, 2 * numberOfErosions + 1), Point(numberOfErosions, numberOfErosions));
+		erode(If, If, er_ele);
 
-		namedWindow("binarized Image", WINDOW_NORMAL);
-		imshow("binarized Image", imageCopy);
-		waitKey(0);
-		destroyWindow("binarized Image");
-	}
+		//dilation
+		di_ele = getStructuringElement(MORPH_ELLIPSE,
+				Size(2 * numberOfDilations + 1, 2 * numberOfDilations + 1), Point(numberOfDilations, numberOfDilations));
+		dilate(If, If, di_ele);
 
-	binarizedImage.copyTo(imageCopy2);
-
-	//cv::MORPH_OPEN
-	dilatedImage = getStructuringElement(MORPH_ELLIPSE,
-				Size(2 * this->LOCALIZER_DILATION_1_SIZE + 1,
-						2 * this->LOCALIZER_DILATION_1_SIZE + 1),
-				Point(this->LOCALIZER_DILATION_1_SIZE,
-						this->LOCALIZER_DILATION_1_SIZE));
-	dilate(imageCopy, imageCopy, dilatedImage, Point(-1, -1),
-			this->LOCALIZER_DILATION_1_ITERATIONS);
-
-	if (config::DEBUG_MODE_LOCALIZER) {
-
-		namedWindow("First Dilate", WINDOW_NORMAL);
-		imshow("First Dilate", imageCopy);
-		waitKey(0);
-		destroyWindow("First Dilate");
-	}
-
-	//erosion
-	erodedImage = getStructuringElement(MORPH_ELLIPSE,
-			Size(2 * this->LOCALIZER_EROSION_SIZE + 1,
-					2 * this->LOCALIZER_EROSION_SIZE + 1),
-			Point(this->LOCALIZER_EROSION_SIZE,
-					this->LOCALIZER_EROSION_SIZE));
-	erode(imageCopy, imageCopy, erodedImage);
-	if (config::DEBUG_MODE_LOCALIZER) {
-		namedWindow("First Erode", WINDOW_NORMAL);
-		imshow("First Erode", imageCopy);
-		waitKey(0);
-		destroyWindow("First Erode");
-	}
-
-	dilatedImage = getStructuringElement(MORPH_ELLIPSE,
-			Size(2 * this->LOCALIZER_DILATION_2_SIZE + 1,
-					2 * this->LOCALIZER_DILATION_2_SIZE + 1),
-			Point(this->LOCALIZER_DILATION_2_SIZE,
-					this->LOCALIZER_DILATION_2_SIZE));
-	dilate(imageCopy, imageCopy, dilatedImage);
-	if (config::DEBUG_MODE_LOCALIZER) {
-		namedWindow("My Window", WINDOW_NORMAL);
-		imshow("My Window", imageCopy);
-		waitKey(0);
-		destroyWindow("My Window");
-	}
-	return imageCopy;
+	return If;
 }
 
 /**

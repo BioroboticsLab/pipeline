@@ -10,7 +10,8 @@
 
 #include "datastructure/Grid.h"
 #include "datastructure/Ellipse.h"
-#include "datastructure/Decoding.h"
+#include "./datastructure/Decoding.h"
+#include "./datastructure/Tag.h"
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -55,7 +56,7 @@ public:
 	 * @param id the id of the roi
 	 * @param grids a vector of possible grids of the SAME tag/roi
 	 */
-	Decoder(int id, vector<Grid> grids);
+	Decoder();
 
 	virtual ~Decoder();
 
@@ -64,7 +65,7 @@ public:
 	 *
 	 * @return new struct named Decoding(consists of id, tagId, score)
 	 */
-	vector<Decoding> process();
+	void process(vector<Tag> &taglist);
 
 	/**
 	 * generates an circle edge
@@ -75,8 +76,7 @@ public:
 	 */
 	vector<unsigned char> generateEdge(Grid &g, int radius);
 private:
-	int id;
-	vector <Grid> grids;
+
 
 	/**
 	 * decodes a grid

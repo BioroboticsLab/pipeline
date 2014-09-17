@@ -45,8 +45,8 @@ int TagList::size() {
 	return this->_tags.size();
 }
 
-Tag TagList::getTag(int position) {
-	return this->_tags[position];
+Tag * TagList::getTag(int position) {
+	return &this->_tags[position];
 }
 
 void TagList::removeTag(int position){
