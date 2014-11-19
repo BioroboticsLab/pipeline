@@ -293,7 +293,7 @@ Grid GridFitter::getBestGrid(vector<Grid> grids) {
 
 int GridFitter::bestGridAngleCorrection(Grid g) {
 
-	// index encoding 30°-step angles ranging from [0,5]
+	// index encoding 30Â°-step angles ranging from [0,5]
 	int i = 0;
 	Mat &roi = g.ell.transformedImage;
 
