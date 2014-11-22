@@ -20,21 +20,18 @@ Converter::Converter() {
  * @param filename
  */
 Mat Converter::process(const string& filename) {
+    Mat image = cv::imread(filename);
+    return process(image);
+}
 
-	Mat image;
+Mat Converter::process(Mat &image)
+{
+    Mat grayImage;
 
+    // convert image to grayscale (not needed later because images will already be grayscale)
+    cvtColor(image, grayImage, CV_BGR2GRAY);
 
-
-		image = cv::imread(filename);
-
-		Mat grayImage;
-
-		// convert image to grayscale (not needed later because images will already be grayscale)
-		cvtColor(image, grayImage, CV_BGR2GRAY);
-
-		return grayImage;
-
-
+    return grayImage;
 }
 
 Converter::~Converter() {

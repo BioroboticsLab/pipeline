@@ -28,6 +28,7 @@ public:
 	virtual ~Converter();
 
 	cv::Mat process(const string& filename);
+    cv::Mat process(cv::Mat& image);
 
 private:
 	bool checkValidFilename(const string& filename);
