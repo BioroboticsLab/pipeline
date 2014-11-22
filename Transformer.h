@@ -19,10 +19,12 @@
 #include <math.h>
 #include <fstream>
 #include "./datastructure/Tag.h"
-#include "../config.h"
 
+#ifdef PipelineStandalone
+#include "../config.h"
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ini_parser.hpp>
+#endif
 
 using namespace std;
 using namespace cv;

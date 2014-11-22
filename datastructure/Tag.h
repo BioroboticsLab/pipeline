@@ -8,17 +8,21 @@
 #ifndef TAG_H_
 #define TAG_H_
 
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/text_iarchive.hpp>
-#include <boost/serialization/vector.hpp>
 #include "opencv2/highgui/highgui.hpp"
 #include <fstream>
 #include <iostream>
 #include "BoundingBox.h"
 #include "TagCandidate.h"
 
-using namespace std;
+#ifdef PipelineStandalone
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/serialization/vector.hpp>
+
 using namespace boost;
+#endif
+
+using namespace std;
 using namespace cv;
 
 namespace decoder {
@@ -47,12 +51,14 @@ private:
 	//there may be multiple ellipses and grids for this location, so there is a list of candidates
 	vector<TagCandidate> _candidates;
 
-	//needed to serialize all the private members
+#ifdef PipelineStandalone
+    //needed to serialize all the private members
 	friend class boost::serialization::access;
 
 	//needed to serialize class implicit
 	template<class Archive> void serialize(Archive & ar,
 			const unsigned int version);
+#endif
 
 public:
 

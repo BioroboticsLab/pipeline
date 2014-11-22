@@ -20,7 +20,7 @@ namespace decoder {
  **************************************/
 
 Recognizer::Recognizer() {
-	this->loadConfigVars(config::DEFAULT_RECOGNIZER_CONFIG);
+    //TODO:this->loadConfigVars(config::DEFAULT_RECOGNIZER_CONFIG);
 
 }
 
@@ -230,25 +230,24 @@ void Recognizer::detectXieEllipse(Tag &tag) {
 		if (ell.vote >= this->RECOGNIZER_THRESHOLD_VOTE) {
 			TagCandidate c = TagCandidate(ell);
 			tag.addCandidate(c);
-			if (config::DEBUG_MODE_RECOGNIZER) {
+            //TODO:if (config::DEBUG_MODE_RECOGNIZER) {
 				std::cout << "Add Ellipse With Vote " << candidates[i].vote
 						<< std::endl;
 
-			}
-			if (config::DEBUG_MODE_RECOGNIZER_IMAGE) {
+            //}
+            //TODO:if (config::DEBUG_MODE_RECOGNIZER_IMAGE) {
 				Mat subroiTest;
 				tag.getOrigSubImage().copyTo(subroiTest);
 				ellipse(subroiTest, ell.cen, ell.axis, ell.angle, 0, 360,
 						Scalar(0, 0, 255));
-				string text = "Score "
-						+ boost::lexical_cast<std::string>(candidates[i].vote);
+                string text = "Score " + std::to_string(candidates[i].vote);
 				cv::putText(subroiTest, text, Point(10, 30),
 						FONT_HERSHEY_COMPLEX_SMALL, 0.7, Scalar(0, 255, 0));
 				namedWindow("added_ellipse", WINDOW_NORMAL);
 				imshow("added_ellipse", subroiTest);
 				waitKey();
 
-			}
+            //}
 			max++;
 			if (max == 3) {
 				break;
@@ -258,36 +257,35 @@ void Recognizer::detectXieEllipse(Tag &tag) {
 //				std::cout << "Ignore Ellipse With Vote " << candidates[i].vote
 //						<< std::endl;
 //			}
-			if (config::DEBUG_MODE_RECOGNIZER_IMAGE) {
+            //TODO:if (config::DEBUG_MODE_RECOGNIZER_IMAGE) {
 				Mat subroiTest;
 				tag.getOrigSubImage().copyTo(subroiTest);
 				ellipse(subroiTest, ell.cen, ell.axis, ell.angle, 0, 360,
 						Scalar(0, 0, 255));
-				string text = "Score "
-						+ boost::lexical_cast<std::string>(candidates[i].vote);
+                string text = "Score " + std::to_string(candidates[i].vote);
 				cv::putText(subroiTest, text, Point(10, 30),
 						FONT_HERSHEY_COMPLEX_SMALL, 0.7, Scalar(0, 255, 0));
 				namedWindow("ignored_ellipse", WINDOW_NORMAL);
 				imshow("ignored_ellipse", subroiTest);
 				waitKey();
 
-			}
+            //}
 
 		}
 	}
-	if (config::DEBUG_MODE_RECOGNIZER_IMAGE) {
+    //TODO:if (config::DEBUG_MODE_RECOGNIZER_IMAGE) {
 		destroyAllWindows();
-	}
+    //}
 
 	if( tag.getCandidates().size() == 0 ){
 		tag.setValid(false);
 	}
 
-	if (config::DEBUG_MODE_RECOGNIZER) {
+    //TODO:if (config::DEBUG_MODE_RECOGNIZER) {
 		std::cout << "Found " << tag.getCandidates().size()
 				<< " ellipse candidates for" << tag.getId() << std::endl;
 
-	}
+    //}
 
 }
 
@@ -308,13 +306,13 @@ Mat Recognizer::computeCannyEdgeMap(Mat grayImage) {
 	Mat cannyEdgeMap;
 	Canny(localGrayImage, cannyEdgeMap, this->RECOGNIZER_LCANNYTHRES,
 			this->RECOGNIZER_HCANNYTHRES);
-	if (config::DEBUG_MODE_RECOGNIZER_IMAGE) {
+    //TODO:if (config::DEBUG_MODE_RECOGNIZER_IMAGE) {
 
 		namedWindow("Canny", WINDOW_NORMAL);
 		imshow("Canny", cannyEdgeMap);
 		waitKey(0);
 		destroyWindow("Canny");
-	}
+    //}
 
 	return cannyEdgeMap;
 
@@ -333,27 +331,28 @@ vector<Tag> Recognizer::process(vector<Tag> taglist) {
 }
 
 void Recognizer::loadConfigVars(string filename) {
-	boost::property_tree::ptree pt;
-	boost::property_tree::ini_parser::read_ini(filename, pt);
+    //TODO
+//	boost::property_tree::ptree pt;
+//	boost::property_tree::ini_parser::read_ini(filename, pt);
 
-	this->RECOGNIZER_MAX_MAJOR = pt.get<int>(
-			config::APPlICATION_ENVIROMENT + ".max_major_axis");
-	this->RECOGNIZER_MIN_MAJOR = pt.get<int>(
-			config::APPlICATION_ENVIROMENT + ".min_major_axis");
-	this->RECOGNIZER_MAX_MINOR = pt.get<int>(
-			config::APPlICATION_ENVIROMENT + ".max_minor_axis");
-	this->RECOGNIZER_MIN_MINOR = pt.get<int>(
-			config::APPlICATION_ENVIROMENT + ".min_minor_axis");
-	this->RECOGNIZER_THRESHOLD_EDGE = pt.get<int>(
-			config::APPlICATION_ENVIROMENT + ".threshold_edge_pixels");
-	this->RECOGNIZER_THRESHOLD_VOTE = pt.get<int>(
-			config::APPlICATION_ENVIROMENT + ".threshold_vote");
-	this->RECOGNIZER_THRESHOLD_BEST_VOTE = pt.get<int>(
-			config::APPlICATION_ENVIROMENT + ".threshold_best_vote");
-	this->RECOGNIZER_LCANNYTHRES = pt.get<int>(
-			config::APPlICATION_ENVIROMENT + ".canny_threshold_low");
-	this->RECOGNIZER_HCANNYTHRES = pt.get<int>(
-			config::APPlICATION_ENVIROMENT + ".canny_threshold_high");
+//	this->RECOGNIZER_MAX_MAJOR = pt.get<int>(
+//			config::APPlICATION_ENVIROMENT + ".max_major_axis");
+//	this->RECOGNIZER_MIN_MAJOR = pt.get<int>(
+//			config::APPlICATION_ENVIROMENT + ".min_major_axis");
+//	this->RECOGNIZER_MAX_MINOR = pt.get<int>(
+//			config::APPlICATION_ENVIROMENT + ".max_minor_axis");
+//	this->RECOGNIZER_MIN_MINOR = pt.get<int>(
+//			config::APPlICATION_ENVIROMENT + ".min_minor_axis");
+//	this->RECOGNIZER_THRESHOLD_EDGE = pt.get<int>(
+//			config::APPlICATION_ENVIROMENT + ".threshold_edge_pixels");
+//	this->RECOGNIZER_THRESHOLD_VOTE = pt.get<int>(
+//			config::APPlICATION_ENVIROMENT + ".threshold_vote");
+//	this->RECOGNIZER_THRESHOLD_BEST_VOTE = pt.get<int>(
+//			config::APPlICATION_ENVIROMENT + ".threshold_best_vote");
+//	this->RECOGNIZER_LCANNYTHRES = pt.get<int>(
+//			config::APPlICATION_ENVIROMENT + ".canny_threshold_low");
+//	this->RECOGNIZER_HCANNYTHRES = pt.get<int>(
+//			config::APPlICATION_ENVIROMENT + ".canny_threshold_high");
 
 }
 

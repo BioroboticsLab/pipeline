@@ -20,9 +20,12 @@
 #include <fstream>
 #include "./datastructure/BoundingBox.h"
 #include "./datastructure/Tag.h"
+
+#ifdef PipelineStandalone
 #include "../config.h"
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ini_parser.hpp>
+#endif
 
 using namespace std;
 using namespace cv;

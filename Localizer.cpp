@@ -29,7 +29,7 @@ namespace decoder {
  **************************************/
 
 Localizer::Localizer() {
-	this->loadConfigVars(config::DEFAULT_LOCALIZER_CONFIG);
+    //TODO:this->loadConfigVars(config::DEFAULT_LOCALIZER_CONFIG);
 
 }
 
@@ -189,13 +189,13 @@ Mat Localizer::highlightTags(Mat &grayImage) {
 	binarizedImage.copyTo(imageCopy);
 
 
-	if (config::DEBUG_MODE_LOCALIZER) {
+    //TODO:if (config::DEBUG_MODE_LOCALIZER) {
 
 		namedWindow("binarized Image", WINDOW_NORMAL);
 		imshow("binarized Image", imageCopy);
 		waitKey(0);
 		destroyWindow("binarized Image");
-	}
+    //}
 
 	binarizedImage.copyTo(imageCopy2);
 
@@ -208,13 +208,13 @@ Mat Localizer::highlightTags(Mat &grayImage) {
 	dilate(imageCopy, imageCopy, dilatedImage, Point(-1, -1),
 			this->LOCALIZER_DILATION_1_ITERATIONS);
 
-	if (config::DEBUG_MODE_LOCALIZER) {
+    //TODO:if (config::DEBUG_MODE_LOCALIZER) {
 
 		namedWindow("First Dilate", WINDOW_NORMAL);
 		imshow("First Dilate", imageCopy);
 		waitKey(0);
 		destroyWindow("First Dilate");
-	}
+    //}
 
 	//erosion
 	erodedImage = getStructuringElement(MORPH_ELLIPSE,
@@ -223,12 +223,12 @@ Mat Localizer::highlightTags(Mat &grayImage) {
 			Point(this->LOCALIZER_EROSION_SIZE,
 					this->LOCALIZER_EROSION_SIZE));
 	erode(imageCopy, imageCopy, erodedImage);
-	if (config::DEBUG_MODE_LOCALIZER) {
+    //TODO:if (config::DEBUG_MODE_LOCALIZER) {
 		namedWindow("First Erode", WINDOW_NORMAL);
 		imshow("First Erode", imageCopy);
 		waitKey(0);
 		destroyWindow("First Erode");
-	}
+    //}
 
 	dilatedImage = getStructuringElement(MORPH_ELLIPSE,
 			Size(2 * this->LOCALIZER_DILATION_2_SIZE + 1,
@@ -236,12 +236,12 @@ Mat Localizer::highlightTags(Mat &grayImage) {
 			Point(this->LOCALIZER_DILATION_2_SIZE,
 					this->LOCALIZER_DILATION_2_SIZE));
 	dilate(imageCopy, imageCopy, dilatedImage);
-	if (config::DEBUG_MODE_LOCALIZER) {
+    //TODO:if (config::DEBUG_MODE_LOCALIZER) {
 		namedWindow("My Window", WINDOW_NORMAL);
 		imshow("My Window", imageCopy);
 		waitKey(0);
 		destroyWindow("My Window");
-	}
+    //}
 	return imageCopy;
 }
 
@@ -356,13 +356,13 @@ Mat Localizer::computeSobelMap(Mat grayImage) {
 
 	/// Total Gradient (approximate)
 	cv::addWeighted(abs_grad_x, 0.5, abs_grad_y, 0.5, 0, sobel);
-	if (config::DEBUG_MODE_LOCALIZER) {
+    //TODO:if (config::DEBUG_MODE_LOCALIZER) {
 
 		namedWindow("Sobel", WINDOW_NORMAL);
 		imshow("Sobel", sobel);
 		waitKey(0);
 		destroyWindow("Sobel");
-	}
+    //}
 
 	return sobel;
 
@@ -400,24 +400,25 @@ Mat Localizer::computeBlobs(Mat sobel) {
  * @param filename absolute path to the config file
  */
 void Localizer::loadConfigVars(string filename) {
-	boost::property_tree::ptree pt;
-	boost::property_tree::ini_parser::read_ini(filename, pt);
+    //TODO
+//	boost::property_tree::ptree pt;
+//	boost::property_tree::ini_parser::read_ini(filename, pt);
 
 
-		 this->LOCALIZER_BINTHRES= pt.get<int>(
-			config::APPlICATION_ENVIROMENT + ".binary_threshold");
-		 this->LOCALIZER_DILATION_1_ITERATIONS= pt.get<int>(
-			config::APPlICATION_ENVIROMENT + ".dilation_1_interation_number");
-		 this->LOCALIZER_DILATION_1_SIZE= pt.get<int>(
-			config::APPlICATION_ENVIROMENT + ".dilation_1_size");
-		 this->LOCALIZER_EROSION_SIZE= pt.get<int>(
-			config::APPlICATION_ENVIROMENT + ".erosion_size");
-		 this->LOCALIZER_DILATION_2_SIZE= pt.get<int>(
-			config::APPlICATION_ENVIROMENT + ".dilation_2_size");
-		 this->LOCALIZER_MAXTAGSIZE= pt.get<int>(
-			config::APPlICATION_ENVIROMENT + ".max_tag_size");
-		 this->LOCALIZER_MINTAGSIZE= pt.get<int>(
-			config::APPlICATION_ENVIROMENT + ".min_tag_size");
+//		 this->LOCALIZER_BINTHRES= pt.get<int>(
+//			config::APPlICATION_ENVIROMENT + ".binary_threshold");
+//		 this->LOCALIZER_DILATION_1_ITERATIONS= pt.get<int>(
+//			config::APPlICATION_ENVIROMENT + ".dilation_1_interation_number");
+//		 this->LOCALIZER_DILATION_1_SIZE= pt.get<int>(
+//			config::APPlICATION_ENVIROMENT + ".dilation_1_size");
+//		 this->LOCALIZER_EROSION_SIZE= pt.get<int>(
+//			config::APPlICATION_ENVIROMENT + ".erosion_size");
+//		 this->LOCALIZER_DILATION_2_SIZE= pt.get<int>(
+//			config::APPlICATION_ENVIROMENT + ".dilation_2_size");
+//		 this->LOCALIZER_MAXTAGSIZE= pt.get<int>(
+//			config::APPlICATION_ENVIROMENT + ".max_tag_size");
+//		 this->LOCALIZER_MINTAGSIZE= pt.get<int>(
+//			config::APPlICATION_ENVIROMENT + ".min_tag_size");
 
 
 

@@ -11,11 +11,14 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/core.hpp>
 
+#include <fstream>
+#include <iostream>
+
+#ifdef PipelineStandalone
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
-#include <fstream>
 #include <boost/serialization/vector.hpp>
-#include <iostream>
+#endif
 
 using namespace cv;
 
@@ -31,8 +34,11 @@ private:
 	 **************************************/
 
 	Rect _box;
-	//needed to serialize all the private members
+
+#ifdef PipelineStandalone
+    //needed to serialize all the private members
 	friend class boost::serialization::access;
+#endif
 
 	/**************************************
 	 *
@@ -84,14 +90,15 @@ public:
 				&& p.y >= centery - tolerance && p.y <= (centery + tolerance));
 	}
 
-	/**
-	 * serialization via boost
-	 */
-	template<class Archive>
-		void serialize(Archive & ar, const unsigned int version){
-		ar & this->_box.x & this->_box.y & this->_box.width & this->_box.height;
-	}
-
+#ifdef PipelineStandalone
+    /**
+     * serialization via boost
+     */
+    template<class Archive>
+        void serialize(Archive & ar, const unsigned int version){
+        ar & this->_box.x & this->_box.y & this->_box.width & this->_box.height;
+    }
+#endif
 };
 
 } /* namespace decoder */

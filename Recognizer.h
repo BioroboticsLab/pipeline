@@ -18,10 +18,12 @@
 #include <math.h>
 #include <fstream>
 #include "./datastructure/Tag.h"
+
+#ifdef PipelineStandalone
 #include "../config.h"
-#include <boost/lexical_cast.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ini_parser.hpp>
+#endif
 
 using namespace std;
 using namespace cv;

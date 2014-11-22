@@ -8,8 +8,11 @@
 #include <math.h>
 #include "Ellipse.h"
 #include <algorithm>
+
+#ifdef PipelineStandalone
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
+#endif
 
 #define BINARYCOUNT_INIT (100000) // initial score for binary count method
 #define FISHER_INIT (-1) // initial score for fisher method
