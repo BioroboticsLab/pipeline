@@ -31,6 +31,8 @@ namespace decoder {
 Localizer::Localizer() {
 #ifdef PipelineStandalone
     this->loadConfigVars(config::DEFAULT_LOCALIZER_CONFIG);
+#else
+    loadConfigVars();
 #endif
 }
 
@@ -432,9 +434,17 @@ void Localizer::loadConfigVars(string filename) {
   this->LOCALIZER_MINTAGSIZE =
       pt.get<int>(config::APPlICATION_ENVIROMENT + ".min_tag_size");
 #endif
+}
 
-
-
+void Localizer::loadConfigVars()
+{
+    LOCALIZER_BINTHRES = LocalizerParams::binary_threshold;
+    LOCALIZER_DILATION_1_ITERATIONS = LocalizerParams::dilation_1_interation_number;
+    LOCALIZER_DILATION_1_SIZE = LocalizerParams::dilation_1_size;
+    LOCALIZER_DILATION_2_SIZE = LocalizerParams::dilation_2_size;
+    LOCALIZER_EROSION_SIZE = LocalizerParams::erosion_size;
+    LOCALIZER_MAXTAGSIZE = LocalizerParams::max_tag_size;
+    LOCALIZER_MINTAGSIZE = LocalizerParams::min_tag_size;
 }
 
 }

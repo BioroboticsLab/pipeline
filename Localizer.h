@@ -32,6 +32,30 @@ using namespace cv;
 
 namespace decoder {
 
+//TODO
+namespace LocalizerParams {
+// Threshold for binarisation
+static const int binary_threshold = 29;
+
+// number of first dilation iterations
+static const int dilation_1_interation_number = 4;
+
+// size of dilation-radius
+static const int dilation_1_size= 2;
+
+// erosion-size
+static const int erosion_size = 25;
+
+// second dilation-size
+static const int dilation_2_size = 2;
+
+// maximal size of a possible tag
+static const int max_tag_size =  250;
+
+// minimal size of bounding box
+static const int min_tag_size =  100;
+}
+
 class Localizer {
 
 private:
@@ -71,6 +95,7 @@ private:
 			Mat grayImage);
 
 	void loadConfigVars(string filename);
+    void loadConfigVars();
 
 public:
 

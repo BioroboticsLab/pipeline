@@ -30,6 +30,35 @@ using namespace cv;
 
 namespace decoder {
 
+//TODO
+namespace RecognizerParams {
+// Lower Threshold for Canny
+static const int canny_threshold_low = 70;
+
+// Higher Threshold for Canny
+static const int canny_threshold_high = 90;
+
+// major axis' minimum length
+static const int min_major_axis = 42;
+
+// major axis' maximum length
+static const int max_major_axis = 54;
+
+// minor axis' minimum length
+static const int min_minor_axis = 30;
+
+// minor axis' maximum length
+static const int max_minor_axis = 54;
+
+// threshold minimum number of edge pixels required to support an ellipse
+static const int threshold_edge_pixels = 25;
+
+// threshold vote
+static const int threshold_vote = 1800;
+
+// threshold best vote: if this vote is reached, the algorithm stops searching for other ellipses
+static const int threshold_best_vote = 3000;
+}
 
 class Recognizer {
 private:
@@ -58,9 +87,11 @@ private:
 	 *
 	 **************************************/
 
-	void loadConfigVars(string filename);
 	void detectXieEllipse(Tag &tag);
 	Mat computeCannyEdgeMap(Mat grayImage);
+
+    void loadConfigVars(string filename);
+    void loadConfigVars();
 
 public:
 

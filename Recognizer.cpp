@@ -22,6 +22,8 @@ namespace decoder {
 Recognizer::Recognizer() {
 #ifdef PipelineStandalone
     this->loadConfigVars(config::DEFAULT_RECOGNIZER_CONFIG);
+#else
+    loadConfigVars();
 #endif
 }
 
@@ -368,6 +370,19 @@ void Recognizer::loadConfigVars(string filename) {
     this->RECOGNIZER_HCANNYTHRES = pt.get<int>(
             config::APPlICATION_ENVIROMENT + ".canny_threshold_high");
 #endif
+}
+
+void Recognizer::loadConfigVars()
+{
+    RECOGNIZER_MAX_MAJOR = RecognizerParams::max_major_axis;
+    RECOGNIZER_MIN_MAJOR = RecognizerParams::min_major_axis;
+    RECOGNIZER_MAX_MINOR = RecognizerParams::max_minor_axis;
+    RECOGNIZER_MIN_MINOR = RecognizerParams::min_minor_axis;
+    RECOGNIZER_THRESHOLD_BEST_VOTE = RecognizerParams::threshold_best_vote;
+    RECOGNIZER_THRESHOLD_EDGE = RecognizerParams::threshold_edge_pixels;
+    RECOGNIZER_THRESHOLD_VOTE = RecognizerParams::threshold_vote;
+    RECOGNIZER_HCANNYTHRES = RecognizerParams::canny_threshold_high;
+    RECOGNIZER_LCANNYTHRES = RecognizerParams::canny_threshold_low;
 }
 
 bool compareVote(Ellipse a, Ellipse b) {
