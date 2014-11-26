@@ -91,10 +91,10 @@ double Grid::binaryCountScore() {
 
 		if (j == 12 || j == 13) {
 			// white inner half circle or white outer border
-			scores.at<double>(14 - j) =  ((double) blackPixelAmount) / ((double) whitePixelAmount);
+            scores.at<double>(14 - j) =  (static_cast<double>(blackPixelAmount)) / (static_cast<double>(whitePixelAmount));
 		} else if (j == 14) {
 			//supposed black inner half circle
-			scores.at<double>(14 - j) =  ((double) whitePixelAmount) / ((double) blackPixelAmount);
+            scores.at<double>(14 - j) =  (static_cast<double>(whitePixelAmount)) / (static_cast<double>(blackPixelAmount));
 		}
     }
 
@@ -220,7 +220,7 @@ double Grid::fisherScore() {
 		}
 	}
 
-	Sw = Sww /((float) nw_w) + Swb /((float) nw_b);
+    Sw = Sww /(static_cast<float>(nw_w)) + Swb /(static_cast<float>(nw_b));
 
 	if (Sw == 0) {
 		cout << "Sw=0 - what now?" << endl;
@@ -250,8 +250,8 @@ double Grid::fisherScore() {
 	}
 
 	//Sb /= 15;
-	mb /= (float) nb;
-	mw /= (float) nw;
+    mb /= static_cast<float>(nb);
+    mw /= static_cast<float>(nw);
 
 	Sb = abs(mb - mw) * abs(mb - mw);
 
@@ -259,10 +259,10 @@ double Grid::fisherScore() {
 
 	Mat tagMask = Mat(roi.rows, roi.cols, CV_8UC1, Scalar(0));
 	// different center!! ellipse stuff!!!
-	circle(tagMask, ell.cen, (int) (size * TRR), Scalar(1), CV_FILLED);
+    circle(tagMask, ell.cen, static_cast<int>(size * TRR), Scalar(1), CV_FILLED);
 
 	Mat matMask = Mat(roi.rows, roi.cols, CV_8UC1, Scalar(0));
-	circle(matMask, Point(x, y), (int) (size * ORR), Scalar(1), CV_FILLED);
+    circle(matMask, Point(x, y), static_cast<int>(size * ORR), Scalar(1), CV_FILLED);
 
 	Mat tagBlack;
 	threshold(roi, tagBlack, (black + white) / 2, 255, CV_THRESH_BINARY_INV);
@@ -272,7 +272,7 @@ double Grid::fisherScore() {
 	threshold(roi, matBlack, (black + white)/2, 255, CV_THRESH_BINARY_INV);
 	matBlack = matBlack.mul(matMask);
 
-	float blackratio = ((float) countNonZero(matBlack)) / ((float) countNonZero(tagBlack));
+    float blackratio = (static_cast<float>(countNonZero(matBlack))) / (static_cast<float>(countNonZero(tagBlack)));
 	Sb *= blackratio;
 
 	// use fisher score Sb/Sw
@@ -417,8 +417,8 @@ vector<float> Grid::generateEdge(int radius, int width, bool useBinaryImage) {
 	}
 
 	// Move the beginning of the Edge, depending on the angle
-	int a = (int) (angle + 360) % 360;
-	int firstIdx = (int) (a / 360.0 * mergedEdges.size()) % mergedEdges.size();
+    int a = static_cast<int>(angle + 360) % 360;
+    int firstIdx = static_cast<int>(a / 360.0 * mergedEdges.size()) % mergedEdges.size();
 	vector<float> edge;
 	edge.insert(edge.end(), mergedEdges.begin() + firstIdx, mergedEdges.end());
 	edge.insert(edge.end(), mergedEdges.begin(), mergedEdges.begin() + firstIdx);

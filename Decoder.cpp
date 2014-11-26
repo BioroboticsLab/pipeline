@@ -22,7 +22,7 @@ Decoder::~Decoder() {
 
 void Decoder::process(vector<Tag> &taglist) {
 
-	for (int i = 0; i < taglist.size(); i++) {
+    for (size_t i = 0; i < taglist.size(); i++) {
 		Tag tag = taglist[i];
 
 		if (tag.isValid()) {
@@ -168,7 +168,7 @@ Decoding Decoder::includeExcludeDecode(Grid &g) {
 
 	unsigned int res = 0;
 	for (int i = 0; i < 12; i++) {
-		res += ((int) labels.at<unsigned char>(i)) << (11 - i);
+        res += (static_cast<int>(labels.at<unsigned char>(i))) << (11 - i);
 	}
 
 	// Pack it into the decoding
@@ -217,7 +217,7 @@ double Decoder::fisherScore(Grid &g, Mat &labels, bool useBinaryImage) {
 Decoding Decoder::edgeWalkerDecode(Grid &g) {
 
 	Mat edge = g.generateEdgeAsMat(
-			(int) (IORR * g.size + (ORR * g.size - IORR * g.size) * 0.5), 1);
+            static_cast<int>(IORR * g.size + (ORR * g.size - IORR * g.size) * 0.5), 1);
 	int edgeSize = edge.size().height;
 	double cellSize = edgeSize / 12.0;
 
@@ -310,9 +310,9 @@ Decoding Decoder::edgeWalkerDecode(Grid &g) {
 			int leftPos, rightPos;
 			float leftVal, rightVal;
 			for (int j = 1;; j++) {
-				leftPos = ((int) leftPoint.position + j) % edgeSize;
+                leftPos = (static_cast<int>(leftPoint.position) + j) % edgeSize;
 				leftVal = edge.at<float>(leftPos);
-				rightPos = ((int) rightPoint.position - j + edgeSize)
+                rightPos = (static_cast<int>(rightPoint.position) - j + edgeSize)
 						% edgeSize;
 				rightVal = edge.at<float>(rightPos);
 
@@ -374,7 +374,7 @@ Decoding Decoder::edgeWalkerDecode(Grid &g) {
 
 		for (int j = 0; j < (rightCellId - leftCellId + 12) % 12; j++) {
 			labels.at<unsigned char>((leftCellId + j) % 12) =
-					(unsigned char) curBit;
+                    static_cast<unsigned char>(curBit);
 		}
 	}
 

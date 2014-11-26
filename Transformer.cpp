@@ -33,7 +33,7 @@ Transformer::~Transformer() {
 
 void Transformer::process(vector<Tag> &taglist){
 
-	for (int i = 0; i < taglist.size(); i ++){
+    for (size_t i = 0; i < taglist.size(); i ++){
 		Tag tag = taglist[i];
 		if(tag.isValid()){
 			this->_transformImages(tag);
@@ -63,7 +63,7 @@ Mat Transformer::_ellipseTransform( Ellipse ell, Mat originalImage) {
 	double a = (ell.angle*CV_PI)/180.0;
 
 	// scale factor in y-direction
-	double s = ((double)ell.axis.width)/ ((double) ell.axis.height);
+    double s = (static_cast<double>(ell.axis.width)) / (static_cast<double>(ell.axis.height));
 
 	//center of the transformation
 	float x0 = ell.cen.x;

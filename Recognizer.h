@@ -90,7 +90,9 @@ private:
 	void detectXieEllipse(Tag &tag);
 	Mat computeCannyEdgeMap(Mat grayImage);
 
+#ifdef PipelineStandalone
     void loadConfigVars(string filename);
+#endif
     void loadConfigVars();
 
 public:
@@ -101,7 +103,9 @@ public:
 	 *
 	 **************************************/
 	Recognizer();
-	Recognizer(string configFile);
+#ifdef PipelineStandalone
+    Recognizer(string configFile);
+#endif
 	virtual ~Recognizer();
 
 	/**************************************

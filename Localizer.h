@@ -94,7 +94,9 @@ private:
 	vector<Tag> locateTagCandidates(Mat blobImage, Mat cannyEdgeMap,
 			Mat grayImage);
 
-	void loadConfigVars(string filename);
+#ifdef PipelineStandalone
+    void loadConfigVars(string filename);
+#endif
     void loadConfigVars();
 
 public:
@@ -106,7 +108,9 @@ public:
 	 **************************************/
 
 	Localizer();
-	Localizer(string configFile);
+#ifdef PipelineStandalone
+    Localizer(string configFile);
+#endif
 
 	virtual ~Localizer();
 

@@ -23,7 +23,7 @@ GridFitter::~GridFitter() {
 
 void GridFitter::process(vector<Tag> &taglist) {
 
-	for (int k = 0; k < taglist.size(); k++) {
+    for (size_t k = 0; k < taglist.size(); k++) {
 		Tag tag = taglist[k];
 
 		if (tag.isValid()) {
@@ -90,7 +90,7 @@ Grid GridFitter::fitGrid(Ellipse ellipse) {
 	}
 
 	// Run multiple Grid Fittings with several start positions
-	Grid bestGrid = fitGridGradient(ellipse, (double) alph, ellipse.cen.x,
+    Grid bestGrid = fitGridGradient(ellipse, static_cast<double>(alph), ellipse.cen.x,
 			ellipse.cen.y);
 	int offsetX, offsetY;
 	srand(time(NULL)); // Seed the random generator
@@ -99,7 +99,7 @@ Grid GridFitter::fitGrid(Ellipse ellipse) {
 		// Calculate offset to the center of the ellipse
 		offsetX = rand() % ellipse.axis.width - (ellipse.axis.width / 2);
 		offsetY = rand() % ellipse.axis.width - (ellipse.axis.width / 2);
-		Grid grid = fitGridGradient(ellipse, (double) alph,
+        Grid grid = fitGridGradient(ellipse, static_cast<double>(alph),
 				ellipse.cen.x + offsetX, ellipse.cen.y + offsetY);
 
 		if (grid > bestGrid) {
@@ -188,7 +188,7 @@ Grid GridFitter::fitGridGradient(Ellipse &ellipse, double angle, int startX,
 
 		// right
 		if (sqrt(
-				(float) ((ellipse.cen.x - (x + step_size))
+                static_cast<float> ((ellipse.cen.x - (x + step_size))
 						* (ellipse.cen.x - (x + step_size))
 						+ (ellipse.cen.y - y) * (ellipse.cen.y - y))) <= gs) {
 			grids.push_back(
@@ -196,7 +196,7 @@ Grid GridFitter::fitGridGradient(Ellipse &ellipse, double angle, int startX,
 		}
 		// left
 		if (sqrt(
-				(float) ((ellipse.cen.x - (x - step_size))
+                static_cast<float> ((ellipse.cen.x - (x - step_size))
 						* (ellipse.cen.x - (x - step_size))
 						+ (ellipse.cen.y - y) * (ellipse.cen.y - y))) <= gs) {
 			grids.push_back(
@@ -204,7 +204,7 @@ Grid GridFitter::fitGridGradient(Ellipse &ellipse, double angle, int startX,
 		}
 		// down
 		if (sqrt(
-				(float) ((ellipse.cen.x - x) * (ellipse.cen.x - x)
+                static_cast<float> ((ellipse.cen.x - x) * (ellipse.cen.x - x)
 						+ (ellipse.cen.y - (y + step_size))
 								* (ellipse.cen.y - (y + step_size)))) <= gs) {
 			grids.push_back(
@@ -212,7 +212,7 @@ Grid GridFitter::fitGridGradient(Ellipse &ellipse, double angle, int startX,
 		}
 		// up
 		if (sqrt(
-				(float) ((ellipse.cen.x - x) * (ellipse.cen.x - x)
+                static_cast<float> ((ellipse.cen.x - x) * (ellipse.cen.x - x)
 						+ (ellipse.cen.y - (y - step_size))
 								* (ellipse.cen.y - (y - step_size)))) <= gs) {
 			grids.push_back(
@@ -224,9 +224,9 @@ Grid GridFitter::fitGridGradient(Ellipse &ellipse, double angle, int startX,
 		// the < is for the new score
 		if (best_neighbor > best) {
 			best = best_neighbor;
-			step_size = (int) ceil(step_size * UP_SPEED);
+            step_size = static_cast<int>(ceil(step_size * UP_SPEED));
 		} else {
-			step_size = (int) (step_size * DOWN_SPEED);
+            step_size = static_cast<int>(step_size * DOWN_SPEED);
 		}
 	}
 

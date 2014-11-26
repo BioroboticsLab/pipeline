@@ -36,10 +36,11 @@ Localizer::Localizer() {
 #endif
 }
 
+#ifdef PipelineStandalone
 Localizer::Localizer(string configFile) {
 	this->loadConfigVars(configFile);
-
 }
+#endif
 
 Localizer::~Localizer() {
 	// TODO Auto-generated destructor stub
@@ -407,7 +408,7 @@ Mat Localizer::computeBlobs(Mat sobel) {
 	return blob;
 }
 
-
+#ifdef PipelineStandalone
 /**
  * loads param from config
  *
@@ -415,7 +416,6 @@ Mat Localizer::computeBlobs(Mat sobel) {
  */
 void Localizer::loadConfigVars(string filename) {
     //TODO
-#ifdef PipelineStandalone
   boost::property_tree::ptree pt;
   boost::property_tree::ini_parser::read_ini(filename, pt);
 
@@ -433,8 +433,8 @@ void Localizer::loadConfigVars(string filename) {
       pt.get<int>(config::APPlICATION_ENVIROMENT + ".max_tag_size");
   this->LOCALIZER_MINTAGSIZE =
       pt.get<int>(config::APPlICATION_ENVIROMENT + ".min_tag_size");
-#endif
 }
+#endif
 
 void Localizer::loadConfigVars()
 {

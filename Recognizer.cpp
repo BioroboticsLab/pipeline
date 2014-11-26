@@ -27,10 +27,11 @@ Recognizer::Recognizer() {
 #endif
 }
 
+#ifdef PipelineStandalone
 Recognizer::Recognizer(string configFile) {
 	this->loadConfigVars(configFile);
-
 }
+#endif
 
 Recognizer::~Recognizer() {
 	// TODO Auto-generated destructor stub
@@ -50,7 +51,6 @@ void Recognizer::detectXieEllipse(Tag &tag) {
 	Mat cannyImage;
 	Mat subImage = tag.getOrigSubImage();
 	cannyImage = this->computeCannyEdgeMap(subImage);
-	bool search = true;
 
 	tag.setCannySubImage(cannyImage);
 
@@ -336,7 +336,7 @@ Mat Recognizer::computeCannyEdgeMap(Mat grayImage) {
 vector<Tag> Recognizer::process(vector<Tag> taglist) {
 
 	vector <Tag> editedTags  = vector <Tag>();
-	for (int i = 0; i < taglist.size(); i++) {
+    for (size_t i = 0; i < taglist.size(); i++) {
 		Tag t = taglist[i];
 		this->detectXieEllipse(t);
 		editedTags.push_back(t);
@@ -345,9 +345,9 @@ vector<Tag> Recognizer::process(vector<Tag> taglist) {
 
 }
 
+#ifdef PipelineStandalone
 void Recognizer::loadConfigVars(string filename) {
     //TODO: add config in Tracker
-#ifdef PipelineStandalone
     boost::property_tree::ptree pt;
     boost::property_tree::ini_parser::read_ini(filename, pt);
 
@@ -369,8 +369,8 @@ void Recognizer::loadConfigVars(string filename) {
             config::APPlICATION_ENVIROMENT + ".canny_threshold_low");
     this->RECOGNIZER_HCANNYTHRES = pt.get<int>(
             config::APPlICATION_ENVIROMENT + ".canny_threshold_high");
-#endif
 }
+#endif
 
 void Recognizer::loadConfigVars()
 {
