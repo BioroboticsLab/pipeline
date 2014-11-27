@@ -38,7 +38,6 @@ private:
 	vector <Decoding> _decodings;
 	//decoded Id
 	int _decodedId;
-	Mat _transformedImage;
 public:
 	/**************************************
 	 *
@@ -89,11 +88,11 @@ public:
 	}
 
 	const Mat& getTransformedImage() const {
-		return _transformedImage;
+        return _ellipse.getTransformedImage();
 	}
 
 	void setTransformedImage(const Mat& transformedImage) {
-		_transformedImage = transformedImage;
+        _ellipse.setTransformedImage(transformedImage);
 	}
 
 	const vector<Grid>& getGrids() const {
