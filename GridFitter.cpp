@@ -59,7 +59,9 @@ Grid GridFitter::fitGrid(Ellipse ellipse) {
 	// Convert image to gray scale (maybe obsolete)
 	Mat grayImage;
 	if(ellipse.transformedImage.channels()> 2){
-}
+	cvtColor(ellipse.transformedImage, grayImage, CV_BGR2GRAY);
+	ellipse.transformedImage = grayImage;
+	}
 
 
 	// Binarize image first (just for new Scoring)
