@@ -27,11 +27,11 @@ vector<Tag> Decoder::process(vector<Tag> const& taglist) {
 
 		if (tag.isValid()) {
 			vector<Decoding> decodings;
-			Vector<TagCandidate> candidates = tag.getCandidates();
+			vector<TagCandidate> candidates = tag.getCandidates();
 
 			//iterate over the candidates of the tag
-			for (unsigned int j = 0; j < candidates.size(); j++) {
-				TagCandidate candidate = candidates[j];
+			for (TagCandidate& candidate: candidates) {
+				//TagCandidate candidate = candidates[j];
 
 				vector<Grid> grids = candidate.getGrids();
 
@@ -79,6 +79,8 @@ vector<Tag> Decoder::process(vector<Tag> const& taglist) {
 				}
 				candidate.setDecodings(res);
 			}
+
+			tag.setCandidates(std::move(candidates));
 			editedTags.push_back(tag);
 		}
 	}
