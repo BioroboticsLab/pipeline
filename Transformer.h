@@ -59,7 +59,7 @@ public:
 	 *
 	 **************************************/
 
-	vector<Tag> process(vector<Tag> taglist);
+    vector<Tag> process(const vector<Tag> &taglist);
 };
 
 } /* namespace decoder */

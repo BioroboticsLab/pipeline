@@ -21,7 +21,7 @@ GridFitter::~GridFitter() {
 	// TODO Auto-generated destructor stub
 }
 
-vector<Tag> GridFitter::process(vector<Tag> taglist) {
+vector<Tag> GridFitter::process(vector<Tag> const& taglist) {
 	vector <Tag> editedTags  = vector <Tag>();
     for (size_t k = 0; k < taglist.size(); k++) {
 		Tag tag = taglist[k];

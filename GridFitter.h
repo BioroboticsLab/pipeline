@@ -52,7 +52,7 @@ public:
 	 *
 	 * @return possible grids
 	 */
-	virtual vector<Tag> process(vector<Tag> taglist);
+    virtual vector<Tag> process(const vector<Tag> &taglist);
 
 private:
 

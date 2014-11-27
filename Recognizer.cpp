@@ -335,7 +335,7 @@ Mat Recognizer::computeCannyEdgeMap(Mat grayImage) {
 
 }
 
-vector<Tag> Recognizer::process(vector<Tag> taglist) {
+vector<Tag> Recognizer::process(vector<Tag> const& taglist) {
 
 	vector <Tag> editedTags  = vector <Tag>();
     for (size_t i = 0; i < taglist.size(); i++) {
