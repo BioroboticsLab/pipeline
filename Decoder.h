@@ -65,7 +65,7 @@ public:
 	 *
 	 * @return new struct named Decoding(consists of id, tagId, score)
 	 */
-	void process(vector<Tag> &taglist);
+	vector<Tag> process(vector<Tag> taglist);
 
 	/**
 	 * generates an circle edge

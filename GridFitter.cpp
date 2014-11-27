@@ -21,8 +21,8 @@ GridFitter::~GridFitter() {
 	// TODO Auto-generated destructor stub
 }
 
-void GridFitter::process(vector<Tag> &taglist) {
-
+vector<Tag> GridFitter::process(vector<Tag> taglist) {
+	vector <Tag> editedTags  = vector <Tag>();
     for (size_t k = 0; k < taglist.size(); k++) {
 		Tag tag = taglist[k];
 
@@ -46,32 +46,21 @@ void GridFitter::process(vector<Tag> &taglist) {
 				candidate.setGrids(grids);
 
 			}
-
+			 editedTags.push_back(tag);
 		}
+
 	}
-//
-//	for (unsigned int i = 0; i < this->ellipses.size(); i++) {
-//
-//		Grid grid = this->fitGrid(this->ellipses[i]);
-//
-//		grids.push_back(grid);
-//		// Rotation by half cell (in both directions), because in some cases it's all you need to get a correct decoding
-//		grids.push_back(
-//				Grid(grid.size, grid.angle + 15, 0, grid.x, grid.y, grid.ell,
-//						true, scoringMethod));
-//		grids.push_back(
-//				Grid(grid.size, grid.angle - 15, 0, grid.x, grid.y, grid.ell,
-//						true, scoringMethod));
-//	}
-//
-//	return grids;
+
+
+    		return editedTags;
 }
 
 Grid GridFitter::fitGrid(Ellipse ellipse) {
 	// Convert image to gray scale (maybe obsolete)
 	Mat grayImage;
-	cvtColor(ellipse.transformedImage, grayImage, CV_BGR2GRAY);
-	ellipse.transformedImage = grayImage;
+	if(ellipse.transformedImage.channels()> 2){
+}
+
 
 	// Binarize image first (just for new Scoring)
 	//threshold(ellipse.transformedImage, ellipse.binarizedImage, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
@@ -127,7 +116,9 @@ vector<Point2f> GridFitter::getOrientationVector(Ellipse &ellipse) {
 	//double otsut = getOtsuThreshold(roi);
 
 	Mat hcWhite = roi.mul(circMask);
+
 	Mat hcBlack = circMask.mul(255 - hcWhite);
+
 
 	// Calculate moment => orientation of the tag
 	Moments momw = moments(hcWhite, true);

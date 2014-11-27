@@ -7,6 +7,8 @@
 
 #include "Recognizer.h"
 
+
+
 double pointDistance(Point2d p, Point2d q) {
 	return (sqrt((q.y - p.y) * (q.y - p.y) + (q.x - p.x) * (q.x - p.x)));
 }

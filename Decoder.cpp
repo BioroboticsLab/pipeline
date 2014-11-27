@@ -20,8 +20,8 @@ Decoder::~Decoder() {
 	// TODO Auto-generated destructor stub
 }
 
-void Decoder::process(vector<Tag> &taglist) {
-
+vector<Tag> Decoder::process(vector<Tag> taglist) {
+	vector <Tag> editedTags  = vector <Tag>();
     for (size_t i = 0; i < taglist.size(); i++) {
 		Tag tag = taglist[i];
 
@@ -79,9 +79,10 @@ void Decoder::process(vector<Tag> &taglist) {
 				}
 				candidate.setDecodings(res);
 			}
-
+			editedTags.push_back(tag);
 		}
 	}
+    return editedTags;
 }
 
 Decoding Decoder::decode(Grid &g) {

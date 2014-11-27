@@ -31,14 +31,16 @@ Transformer::~Transformer() {
  *
  **************************************/
 
-void Transformer::process(vector<Tag> &taglist){
-
+vector<Tag> Transformer::process(vector<Tag> taglist){
+	vector <Tag> editedTags  = vector <Tag>();
     for (size_t i = 0; i < taglist.size(); i ++){
 		Tag tag = taglist[i];
 		if(tag.isValid()){
 			this->_transformImages(tag);
+			editedTags.push_back(tag);
 		}
 	}
+    return editedTags;
 }
 
 
