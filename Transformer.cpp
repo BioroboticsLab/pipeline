@@ -36,7 +36,7 @@ vector<Tag> Transformer::process(vector<Tag> const& taglist){
     for (size_t i = 0; i < taglist.size(); i ++){
 		Tag tag = taglist[i];
 		if(tag.isValid()){
-			this->_transformImages(tag);
+            _transformImages(tag);
 			editedTags.push_back(tag);
 		}
 	}
@@ -54,7 +54,7 @@ void Transformer::_transformImages(Tag &tag){
 		candidate.setTransformedImage(transformedImage);
 	}
 
-    tag.setCandidates(candidates);
+    tag.setCandidates(std::move(candidates));
 }
 
 
@@ -86,7 +86,7 @@ Mat Transformer::_ellipseTransform( Ellipse ell, Mat originalImage) {
 	originalImage.copyTo(transformedImage);
 
 
-    cv::warpAffine(transformedImage, transformedImage, rot, transformedImage.size());
+    cv::warpAffine(originalImage, transformedImage, rot, transformedImage.size());
 
 	return transformedImage;
 }

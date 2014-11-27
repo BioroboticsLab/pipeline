@@ -27,13 +27,12 @@ vector<Tag> GridFitter::process(vector<Tag> const& taglist) {
 		Tag tag = taglist[k];
 
 		if (tag.isValid()) {
-			Vector<TagCandidate> candidates = tag.getCandidates();
+            vector<TagCandidate> candidates = tag.getCandidates();
 
-			//iterate over the candidates of the tag
-			for (unsigned int i = 0; i < candidates.size(); i++) {
-				vector<Grid> grids;
-				TagCandidate candidate = candidates[i];
-				Grid grid = this->fitGrid(candidate.getEllipse());
+            //iterate over the candidates of the tag
+            for (TagCandidate& candidate : candidates) {
+                vector<Grid> grids;
+                Grid grid = this->fitGrid(candidate.getEllipse());
 				grids.push_back(grid);
 
 				// Rotation by half cell (in both directions), because in some cases it's all you need to get a correct decoding
@@ -44,23 +43,20 @@ vector<Tag> GridFitter::process(vector<Tag> const& taglist) {
 						Grid(grid.size, grid.angle - 15, 0, grid.x, grid.y,
 								grid.ell, true, scoringMethod));
 				candidate.setGrids(grids);
-
 			}
-			 editedTags.push_back(tag);
+
+            tag.setCandidates(std::move(candidates));
+            editedTags.push_back(tag);
 		}
-
 	}
-
-
-    		return editedTags;
+    return editedTags;
 }
 
 Grid GridFitter::fitGrid(Ellipse ellipse) {
 	// Convert image to gray scale (maybe obsolete)
 	Mat grayImage;
 	if(ellipse.transformedImage.channels()> 2){
-}
-
+    }
 
 	// Binarize image first (just for new Scoring)
 	//threshold(ellipse.transformedImage, ellipse.binarizedImage, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);

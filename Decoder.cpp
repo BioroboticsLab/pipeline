@@ -48,7 +48,7 @@ vector<Tag> Decoder::process(vector<Tag> const& taglist) {
 
 					stringstream binDigits;
 					for (int j = 0; j < 12; j++) {
-						binDigits << (int) ((tagId >> (11 - j)) & 1);
+                        binDigits << static_cast<int>((tagId >> (11 - j)) & 1);
 					}
 
 					Mat draw = decodings[i].grid.drawGrid();

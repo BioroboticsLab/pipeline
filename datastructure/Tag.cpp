@@ -47,7 +47,7 @@ const vector<TagCandidate>& Tag::getCandidates() const {
 	return _candidates;
 }
 
-void Tag::setCandidates(const vector<TagCandidate>& candidates) {
+void Tag::setCandidates(vector<TagCandidate>&& candidates) {
 	_candidates = candidates;
 }
 
