@@ -20,7 +20,7 @@ Decoder::~Decoder() {
 	// TODO Auto-generated destructor stub
 }
 
-vector<Tag> Decoder::process(vector<Tag> taglist) {
+vector<Tag> Decoder::process(vector<Tag> const& taglist) {
 	vector <Tag> editedTags  = vector <Tag>();
     for (size_t i = 0; i < taglist.size(); i++) {
 		Tag tag = taglist[i];

@@ -7,10 +7,30 @@
 
 #include "Recognizer.h"
 
+namespace {
 
+inline double pointDistance(Point2d p, Point2d q)
+{
+    return (sqrt((q.y - p.y) * (q.y - p.y) + (q.x - p.x) * (q.x - p.x)));
+}
 
-double pointDistance(Point2d p, Point2d q) {
-	return (sqrt((q.y - p.y) * (q.y - p.y) + (q.x - p.x) * (q.x - p.x)));
+inline double pointDistance(double px, double py, double qx, double qy)
+{
+    return (sqrt((qy - py) * (qy - py) + (qx - px) * (qx - px)));
+}
+
+inline double pointDistanceNoSqrt(double px, double py, double qx, double qy)
+{
+    return (((qy - py) * (qy - py) + (qx - px) * (qx - px)));
+}
+
+struct compareVote {
+    inline bool operator()(decoder::Ellipse const& a, decoder::Ellipse const& b)
+    {
+        return a.vote > b.vote;
+    }
+};
+
 }
 
 namespace decoder {
@@ -49,113 +69,97 @@ Recognizer::~Recognizer() {
  * @param tag for which ellipses should be detected
  */
 void Recognizer::detectXieEllipse(Tag &tag) {
+    const double recognizer_max_minor = RECOGNIZER_MAX_MINOR;
+    const double recognizer_max_major = RECOGNIZER_MAX_MAJOR;
+    const double recognizer_min_major = RECOGNIZER_MIN_MAJOR;
+    const double recognizer_min_minor = RECOGNIZER_MIN_MINOR;
 
-	Mat cannyImage;
-	Mat subImage = tag.getOrigSubImage();
-	cannyImage = this->computeCannyEdgeMap(subImage);
+    const Mat& subImage = tag.getOrigSubImage();
+    const Mat cannyImage = computeCannyEdgeMap(subImage);
 
-	tag.setCannySubImage(cannyImage);
+    tag.setCannySubImage(cannyImage);
 
 	//edge_pixel array, all edge pixels are stored in this array
 	vector<Point2i> ep;
 	ep.reserve(cv::countNonZero(cannyImage) + 1);
 
-	vector<Ellipse>::iterator cand;
-	int max_ind;
-
-	double a, b, tau, d, f, alpha, costau, sintau;
-
-	Point2d p, p1, p2, center;
 	vector<Ellipse> candidates;
 
-	// (1) all white (being edge) pixels are written into the ep array
-	MatIterator_<char> mit, end;
-	for (mit = cannyImage.begin<char>(), end = cannyImage.end<char>();
-			mit != end; mit++) {
-		if (*mit.ptr == 255) {
-			ep.push_back(mit.pos());
-		}
-	}
+    // (1) all white (being edge) pixels are written into the ep array
+    MatConstIterator_<unsigned char> mit, end;
+    for (mit = cannyImage.begin<unsigned char>(), end = cannyImage.end<unsigned char>();
+         mit != end; ++mit) {
+        if (*mit.ptr == 255) {
+            ep.push_back(mit.pos());
+        }
+    }
 
 	// (2) initiate the accumulator array
 	std::vector<int> accu((this->RECOGNIZER_MAX_MINOR) / 2 + 1);
-	int vote_minor;
 
-	// (3) loop through each edge pixel in ep
-	for (std::vector<Point2i>::iterator it = ep.begin(); it != ep.end(); it++) {
+    // (3) loop through each edge pixel in ep
+    const size_t epsize = ep.size();
+    for (size_t lc1 = 0; lc1 < epsize; ++lc1) {
+        const int p1x = ep[lc1].x;
+        const int p1y = ep[lc1].y;
+        const double p1xf = static_cast<double>(ep[lc1].x);
+        const double p1yf = static_cast<double>(ep[lc1].y);
 
-		p1.x = (*it).x;
-		p1.y = (*it).y;
+        // (4) loop through each other edge pixel in ep and propose a major axis between p1 and p2
+        for (size_t lc2 = 0; lc2 < epsize; ++lc2) {
+            const int p2x = ep[lc2].x;
+            const int p2y = ep[lc2].y;
+            const double p2xf = static_cast<double>(ep[lc2].x);
+            const double p2yf = static_cast<double>(ep[lc2].y);
+            if ((lc2 > lc1) && ((p1x != p2x) || (p1y != p2y))) {
+                // the proposed ellipse' length of the major axis lies between this->RECOGNIZER_MIN_MAJOR and this->RECOGNIZER_MAX_MAJOR
+                const double dist = pointDistance(p1xf, p1yf, p2xf, p2yf);
+                if (dist > recognizer_min_major && dist < recognizer_max_major) {
+                    // (5) calculate the ellipse' center, half length of the major axis (a) and orientation (alpha) based on p1 and p2
+                    const double centerx = (p1xf + p2xf) / 2;
+                    const double centery = (p1yf + p2yf) / 2;
+                    const double a = dist / 2.;
+                    const double alpha = atan2((p2yf - p1yf), (p2xf - p1xf));
+                    // (6) loop through each third edge pixel eventually lying on the ellipse
+                    for (size_t lc3 = 0; lc3 < epsize; ++lc3) {
+                        const int px = ep[lc3].x;
+                        const int py = ep[lc3].y;
+                        const double pxf = static_cast<double>(ep[lc3].x);
+                        const double pyf = static_cast<double>(ep[lc3].y);
+                        if (((px != p2x) || (py != p2y)) && ((px != p1x) || (py != p1y))) {
+                            const double d = pointDistance(pxf, pyf, centerx, centery);
+                            if (d <= a && d > recognizer_min_minor / 2.0) {
+                                // (7) estimate the half length of the minor axis (b)
+                                const double f = pointDistanceNoSqrt(pxf, pyf, p2xf, p2yf);
+                                const double costau = (a * a + d * d - f) / (2 * a * d);
+                                const double tau = acos(costau);
+                                const double sintau = sin(tau);
+                                const double b = (a * d * sintau) / sqrt(((a * a) - (d * d * costau * costau)));
+                                const double b2 = 2.0 * b;
+                                // (8) increment the accumulator for the minor axis' half length (b) just estimated
+                                if (b2 <= recognizer_max_minor && b2 >= recognizer_min_minor) {
+                                    //accu[cvRound(b) - 1] += 1;
+                                    accu[static_cast<int>(b + 0.5) - 1] += 1;
+                                    //support[cvRound(b) - 1].push_back((*it3));
+                                }
+                            }
+                        }
+                    }
 
-		// (4) loop through each other edge pixel in ep and propose a major axis between p1 and p2
-		for (std::vector<Point2i>::iterator it2 = ep.begin(); it2 != ep.end();
-				it2++) {
-			if ((it2 > it) && (*it) != (*it2)) {
-				p2.x = (*it2).x;
-				p2.y = (*it2).y;
+                    // (10) find the maximum within the accumulator, is it above the threshold?
+                    const auto max_it = std::max_element(accu.begin(), accu.end());
+                    const auto max_ind = std::distance(accu.begin(), max_it);
+                    size_t vote_minor = *max_it;
 
-				// the proposed ellipse' length of the major axis lies between this->RECOGNIZER_MIN_MAJOR and this->RECOGNIZER_MAX_MAJOR
-				if (pointDistance(p1, p2) > this->RECOGNIZER_MIN_MAJOR
-						&& pointDistance(p1, p2) < this->RECOGNIZER_MAX_MAJOR) {
-					// (5) calculate the ellipse' center, half length of the major axis (a) and orientation (alpha) based on p1 and p2
-					center.x = (p1.x + p2.x) / 2;
-					center.y = (p1.y + p2.y) / 2;
-					a = pointDistance(p1, p2) / 2;
-					alpha = atan2((p2.y - p1.y), (p2.x - p1.x));
-					// (6) loop through each third edge pixel eventually lying on the ellipse
-					for (std::vector<Point2i>::iterator it3 = ep.begin();
-							it3 != ep.end(); it3++) {
+                    if (vote_minor >= RECOGNIZER_THRESHOLD_EDGE) {
 
-						if ((*it3) != (*it2) && (*it3) != (*it)) {
-							p.x = (*it3).x;
-							p.y = (*it3).y;
-							d = pointDistance(p, center);
+                        // (11) save ellipse parameters
+                        const Point2i cen(cvRound(centerx), cvRound(centery));
+                        const Size axis(cvRound(a), max_ind);
+                        const double angle = (alpha * 180) / CV_PI;
 
-							if (d > this->RECOGNIZER_MIN_MINOR / 2.0
-									&& d <= a) {
-								// (7) estimate the half length of the minor axis (b)
-								f = pointDistance(p, p2);
-								costau = (a * a + d * d - f * f) / (2 * a * d);
-								tau = acos(costau);
-								sintau = sin(tau);
-								b = sqrt(
-										(a * a * d * d * sintau * sintau)
-												/ ((a * a)
-														- (d * d * costau
-																* costau)));
-
-								// (8) increment the accumulator for the minor axis' half length (b) just estimated
-								if (b <= this->RECOGNIZER_MAX_MINOR / 2.0
-										&& b
-												>= this->RECOGNIZER_MIN_MINOR
-														/ 2.0) {
-									accu[cvRound(b) - 1] += 1;
-									//support[cvRound(b) - 1].push_back((*it3));
-								}
-							}
-						}
-					}
-
-					// (10) find the maximum within the accumulator, is it above the threshold?
-					max_ind = std::max_element(accu.begin(), accu.end())
-							- accu.begin() + 1;
-					vote_minor = (*(max_ind + accu.begin() - 1));
-
-					if (vote_minor >= this->RECOGNIZER_THRESHOLD_EDGE) {
-
-						// (11) save ellipse parameters
-						Point2i cen = Point2i(cvRound(center.x),
-								cvRound(center.y));
-
-						Size axis = Size(cvRound(a), max_ind);
-
-						double angle = (alpha * 180) / CV_PI;
-
-						//scoring:
-						//float jm = this->RECOGNIZER_MIN_MAJOR + (this->RECOGNIZER_MAX_MAJOR - this->RECOGNIZER_MIN_MAJOR)/2.0;
-						//float nm = this->RECOGNIZER_MIN_MINOR + (this->RECOGNIZER_MAX_MINOR - this->RECOGNIZER_MIN_MINOR)/2.0;
-						float j = cvRound(a);
-						float n = max_ind;
+                        const float j = cvRound(a);
+                        const float n = max_ind;
 
 						// more "circular" ellipses are weighted more than very thin ellipses
 						//std::cout << n/j << std::endl;
@@ -163,10 +167,8 @@ void Recognizer::detectXieEllipse(Tag &tag) {
 
 						if (candidates.size() == 0) {
 
-							candidates.push_back(
-									Ellipse(vote_minor, cen, axis, angle));
-							if (vote_minor
-									>= this->RECOGNIZER_THRESHOLD_BEST_VOTE) {
+                            candidates.emplace_back(vote_minor, cen, axis, angle);
+                            if (vote_minor >= this->RECOGNIZER_THRESHOLD_BEST_VOTE) {
 								goto foundEllipse;
 							}
 						}
@@ -196,8 +198,7 @@ void Recognizer::detectXieEllipse(Tag &tag) {
 							}
 							if (el == candidates.size() - 1) {
 
-								candidates.push_back(
-										Ellipse(vote_minor, cen, axis, angle));
+                                candidates.emplace_back(vote_minor, cen, axis, angle);
 
 								if (vote_minor
 										>= this->RECOGNIZER_THRESHOLD_BEST_VOTE) {
@@ -213,11 +214,8 @@ void Recognizer::detectXieEllipse(Tag &tag) {
 					}
 
 					// (13) clear accumulator anyway
-					for (std::vector<int>::iterator ini = accu.begin();
-							ini != accu.end(); ini++) {
-						(*ini) = 0;
-					}
-				}
+                    std::fill(accu.begin(), accu.end(), 0);
+                 }
 			}
 		}
 		//if (it != ep.end()) ep.erase(it);
@@ -226,7 +224,7 @@ void Recognizer::detectXieEllipse(Tag &tag) {
 	foundEllipse:
 
 	// sort the candidates list according to their vote
-	std::sort(candidates.begin(), candidates.end(), compareVote);
+    std::sort(candidates.begin(), candidates.end(), compareVote{});
 
 	int max = 3;
 
@@ -335,7 +333,7 @@ Mat Recognizer::computeCannyEdgeMap(Mat grayImage) {
 
 }
 
-vector<Tag> Recognizer::process(vector<Tag> taglist) {
+vector<Tag> Recognizer::process(vector<Tag> const& taglist) {
 
 	vector <Tag> editedTags  = vector <Tag>();
     for (size_t i = 0; i < taglist.size(); i++) {
@@ -385,10 +383,6 @@ void Recognizer::loadConfigVars()
     RECOGNIZER_THRESHOLD_VOTE = RecognizerParams::threshold_vote;
     RECOGNIZER_HCANNYTHRES = RecognizerParams::canny_threshold_high;
     RECOGNIZER_LCANNYTHRES = RecognizerParams::canny_threshold_low;
-}
-
-bool compareVote(Ellipse a, Ellipse b) {
-	return a.vote > b.vote;
 }
 
 } /* namespace decoder */

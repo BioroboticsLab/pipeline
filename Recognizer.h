@@ -118,18 +118,8 @@ public:
 	 *
 	 **************************************/
 
-	vector<Tag> process(vector<Tag> taglist);
+    vector<Tag> process(const vector<Tag> &taglist);
 };
-
-
-/**************************************
- *
- * 			other stuff
- *
- **************************************/
-
-bool compareVote(Ellipse a, Ellipse b);
-
 } /* namespace decoder */
 
 #endif /* RECOGNIZER_H_ */
