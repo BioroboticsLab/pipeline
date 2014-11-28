@@ -10,9 +10,7 @@
 #include <string>
 
 namespace decoder {
-
 Converter::Converter() {
-
 }
 
 /**
@@ -35,7 +33,7 @@ Mat Converter::process(Mat &image)
 }
 
 Converter::~Converter() {
-	// TODO Auto-generated destructor stub
+    // TODO Auto-generated destructor stub
 }
 
 /**
@@ -45,27 +43,24 @@ Converter::~Converter() {
  * @return
  */
 bool Converter::checkValidFilename(const string& filename) {
+    //check if filename is given
+    if (filename.size() == 0) {
+        return false;
+    }
 
-	//check if filename is given
-	if (filename.size() == 0) {
-		return false;
-	}
+    //check if file exists
+    ifstream f(filename.c_str());
+    if (!f.good()) {
+        f.close();
+        return false;
+    }
+    f.close();
 
-	//check if file exists
-	ifstream f(filename.c_str());
-	if (!f.good()) {
-
-		f.close();
-		return false;
-	}
-	f.close();
-
-	//check if file has the right extension
-	if (filename.substr(filename.find_last_of(".") + 1) != "png" ||
-			filename.substr(filename.find_last_of(".") + 1) != "jpeg") {
-		return false;
-	}
-	return true;
+    //check if file has the right extension
+    if (filename.substr(filename.find_last_of(".") + 1) != "png" ||
+      filename.substr(filename.find_last_of(".") + 1) != "jpeg") {
+        return false;
+    }
+    return true;
 }
-
 } /* namespace decoder_interface */

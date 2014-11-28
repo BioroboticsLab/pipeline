@@ -12,28 +12,27 @@
 #ifndef RECOGNIZER_H_
 #define RECOGNIZER_H_
 
-#include <stdio.h>
-#include <unistd.h>
-#include <opencv2/opencv.hpp>
+#include "./datastructure/Tag.h"
+#include <fstream>
+#include <iostream>
+#include <math.h>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
-#include <iostream>
+#include <opencv2/opencv.hpp>
+#include <stdio.h>
+#include <unistd.h>
 #include <vector>
-#include <math.h>
-#include <fstream>
-#include "./datastructure/Tag.h"
 
 #ifdef PipelineStandalone
 #include "../config.h"
-#include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ini_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
 #endif
 
 using namespace std;
 using namespace cv;
 
 namespace decoder {
-
 //TODO
 namespace RecognizerParams {
 // Lower Threshold for Canny
@@ -67,32 +66,31 @@ static const int threshold_best_vote = 3000;
 class Recognizer {
 private:
 
-	/**************************************
-	 *
-	 * 			members
-	 *
-	 **************************************/
+    /**************************************
+    *
+    *           members
+    *
+    **************************************/
 
-	int RECOGNIZER_LCANNYTHRES;
-	int RECOGNIZER_HCANNYTHRES;
+    int RECOGNIZER_LCANNYTHRES;
+    int RECOGNIZER_HCANNYTHRES;
 
-	int RECOGNIZER_MIN_MAJOR;
-	int RECOGNIZER_MAX_MAJOR;
-	int RECOGNIZER_MIN_MINOR;
-	int RECOGNIZER_MAX_MINOR;
-	int RECOGNIZER_THRESHOLD_EDGE;
-	int RECOGNIZER_THRESHOLD_VOTE;
-	int RECOGNIZER_THRESHOLD_BEST_VOTE;
+    int RECOGNIZER_MIN_MAJOR;
+    int RECOGNIZER_MAX_MAJOR;
+    int RECOGNIZER_MIN_MINOR;
+    int RECOGNIZER_MAX_MINOR;
+    int RECOGNIZER_THRESHOLD_EDGE;
+    int RECOGNIZER_THRESHOLD_VOTE;
+    int RECOGNIZER_THRESHOLD_BEST_VOTE;
 
+    /**************************************
+    *
+    *           stuff
+    *
+    **************************************/
 
-	/**************************************
-	 *
-	 * 			stuff
-	 *
-	 **************************************/
-
-	void detectXieEllipse(Tag &tag);
-	Mat computeCannyEdgeMap(Mat grayImage);
+    void detectXieEllipse(Tag &tag);
+    Mat computeCannyEdgeMap(Mat grayImage);
 
 #ifdef PipelineStandalone
     void loadConfigVars(string filename);
@@ -101,22 +99,22 @@ private:
 
 public:
 
-	/**************************************
-	 *
-	 * 			constructor
-	 *
-	 **************************************/
-	Recognizer();
+    /**************************************
+    *
+    *           constructor
+    *
+    **************************************/
+    Recognizer();
 #ifdef PipelineStandalone
     Recognizer(string configFile);
 #endif
-	virtual ~Recognizer();
+    virtual ~Recognizer();
 
-	/**************************************
-	 *
-	 * 			stuff
-	 *
-	 **************************************/
+    /**************************************
+    *
+    *           stuff
+    *
+    **************************************/
 
     vector<Tag> process(const vector<Tag> &taglist);
 };

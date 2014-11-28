@@ -11,13 +11,13 @@
 #include "datastructure/Ellipse.h"
 #include "datastructure/Grid.h"
 #include "datastructure/Tag.h"
-#include <opencv2/opencv.hpp>
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <iostream>
+#include <cstdlib>
 #include <fstream>
 #include <iomanip>
-#include <cstdlib>
+#include <iostream>
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/opencv.hpp>
 
 // Constants for optimized detection of the tag center
 // initial step size
@@ -33,96 +33,94 @@ using namespace std;
 using namespace cv;
 
 namespace decoder {
-
 class GridFitter {
 public:
 
-	/**
-	 * constructor
-	 *
-	 * @param id id of the roi
-	 * @param ellipses a vector with possible ellipses for the roi
-	 * @param scoringMethod method that should be used for scoring (FOR LATER USE MAYBE)
-	 */
-	GridFitter(Grid::ScoringMethod scoringMethod = Grid::BINARYCOUNT);
-	virtual ~GridFitter();
+    /**
+     * constructor
+     *
+     * @param id id of the roi
+     * @param ellipses a vector with possible ellipses for the roi
+     * @param scoringMethod method that should be used for scoring (FOR LATER USE MAYBE)
+     */
+    GridFitter(Grid::ScoringMethod scoringMethod = Grid::BINARYCOUNT);
+    virtual ~GridFitter();
 
-	/**
-	 * processes all ellipses and returns the grids which fit to the given ellipses
-	 *
-	 * @return possible grids
-	 */
+    /**
+     * processes all ellipses and returns the grids which fit to the given ellipses
+     *
+     * @return possible grids
+     */
     virtual vector<Tag> process(const vector<Tag> &taglist);
 
 private:
 
-	/**
-	 * method used for gridscoring
-	 */
-	Grid::ScoringMethod scoringMethod;
+    /**
+     * method used for gridscoring
+     */
+    Grid::ScoringMethod scoringMethod;
 
-	/**
-	 * performs the grit fitting step for a given ellipse
-	 *
-	 * @param ellipse the ellipse the grid should belong to
-	 * @return the hopefully best grid
-	 */
-	virtual Grid fitGrid(Ellipse ellipse);
+    /**
+     * performs the grit fitting step for a given ellipse
+     *
+     * @param ellipse the ellipse the grid should belong to
+     * @return the hopefully best grid
+     */
+    virtual Grid fitGrid(Ellipse ellipse);
 
-	/**
-	 * guesses orientation of the tag
-	 *
-	 * @param roi part of the image where the tag is
-	 * @param circle Point3f object with position and radius of the tag circle
-	 */
-	vector<Point2f> getOrientationVector(Ellipse &ellipse);
+    /**
+     * guesses orientation of the tag
+     *
+     * @param roi part of the image where the tag is
+     * @param circle Point3f object with position and radius of the tag circle
+     */
+    vector<Point2f> getOrientationVector(Ellipse &ellipse);
 
-	/** Otsu binarization to reduce grey scale
-	 *
-	 * @param srcMat grayscale source image
-	 * @return Otsu-threshold of the masked input image
-	 */
-	double getOtsuThreshold(Mat &srcMat);
+    /** Otsu binarization to reduce grey scale
+     *
+     * @param srcMat grayscale source image
+     * @return Otsu-threshold of the masked input image
+     */
+    double getOtsuThreshold(Mat &srcMat);
 
-	/**
-	 * Tries to get the best grid according to the given ellipse with a gradient approach
-	 *
-	 * @param ellipse the ellipse
-	 * @param angle initial orientation angle
-	 * @param startX x part of the start coordinate
-	 * @param startY y part of the start coordinate
-	 * @return the best grid
-	 */
-	Grid fitGridGradient(Ellipse &ellipse, double angle, int startX, int startY);
+    /**
+     * Tries to get the best grid according to the given ellipse with a gradient approach
+     *
+     * @param ellipse the ellipse
+     * @param angle initial orientation angle
+     * @param startX x part of the start coordinate
+     * @param startY y part of the start coordinate
+     * @return the best grid
+     */
+    Grid fitGridGradient(Ellipse &ellipse, double angle, int startX, int startY);
 
-	/**
-	 * Returns the grid with the highest score
-	 *
-	 * @param grids a vector of grids
-	 * @return the grid with the highest score
-	 */
-	Grid getBestGrid(vector<Grid> grids);
+    /**
+     * Returns the grid with the highest score
+     *
+     * @param grids a vector of grids
+     * @return the grid with the highest score
+     */
+    Grid getBestGrid(vector<Grid> grids);
 
-	/**
-	 * Tries to get the best angle of a grid at the given position
-	 *
-	 * @param ellipse the ellipse the grid belongs to
-	 * @param gsize size of the grid
-	 * @param angle initial angle for fitting
-	 * @param x horizontal part of grid position
-	 * @param y vertical part of grid position
-	 * @return best grid angle
-	 */
-	Grid fitGridAngle(Ellipse &ellipse, float gsize, double angle, int x, int y);
+    /**
+     * Tries to get the best angle of a grid at the given position
+     *
+     * @param ellipse the ellipse the grid belongs to
+     * @param gsize size of the grid
+     * @param angle initial angle for fitting
+     * @param x horizontal part of grid position
+     * @param y vertical part of grid position
+     * @return best grid angle
+     */
+    Grid fitGridAngle(Ellipse &ellipse, float gsize, double angle, int x, int y);
 
-	/**
-	 * Returns a orientation correction for a grid as offset.
-	 *
-	 * @param g the grid
-	 * @return offset in cells
-	 */
-	int bestGridAngleCorrection(Grid g);
+    /**
+     * Returns a orientation correction for a grid as offset.
+     *
+     * @param g the grid
+     * @return offset in cells
+     */
+    int bestGridAngleCorrection(Grid g);
 };
-
 }
 #endif /* GRIDFITTER_H_ */

@@ -8,60 +8,57 @@
 #ifndef TRANSFORMER_H_
 #define TRANSFORMER_H_
 
-
-#include <stdio.h>
-#include <unistd.h>
-#include <opencv2/opencv.hpp>
+#include "./datastructure/Tag.h"
+#include <fstream>
+#include <iostream>
+#include <math.h>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
-#include <iostream>
+#include <opencv2/opencv.hpp>
+#include <stdio.h>
+#include <unistd.h>
 #include <vector>
-#include <math.h>
-#include <fstream>
-#include "./datastructure/Tag.h"
 
 #ifdef PipelineStandalone
 #include "../config.h"
-#include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ini_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
 #endif
 
 using namespace std;
 using namespace cv;
 
 namespace decoder {
-
 class Transformer {
 private:
 
-	/**************************************
-	 *
-	 * 			stuff
-	 *
-	 **************************************/
+    /**************************************
+    *
+    *           stuff
+    *
+    **************************************/
 
-	Mat _ellipseTransform( Ellipse ell, Mat originalImage);
-	void _transformImages(Tag &t);
+    Mat _ellipseTransform(Ellipse ell, Mat originalImage);
+    void _transformImages(Tag &t);
 
 public:
 
-	/**************************************
-	 *
-	 * 			constructor
-	 *
-	 **************************************/
-	Transformer();
-	virtual ~Transformer();
+    /**************************************
+    *
+    *           constructor
+    *
+    **************************************/
+    Transformer();
+    virtual ~Transformer();
 
-	/**************************************
-	 *
-	 * 			stuff
-	 *
-	 **************************************/
+    /**************************************
+    *
+    *           stuff
+    *
+    **************************************/
 
     vector<Tag> process(const vector<Tag> &taglist);
 };
-
 } /* namespace decoder */
 
 #endif /* TRANSFORMER_H_ */
