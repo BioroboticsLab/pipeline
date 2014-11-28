@@ -7,6 +7,8 @@
 
 #include "Recognizer.h"
 
+#include "util/ThreadPool.h"
+
 namespace {
 inline double pointDistance(Point2d p, Point2d q)
 {
@@ -320,9 +322,16 @@ Mat Recognizer::computeCannyEdgeMap(Mat grayImage) {
 }
 
 vector<Tag> Recognizer::process(vector<Tag>&& taglist) {
+    static const size_t numThreads = 4;
+    ThreadPool pool(numThreads);
+    std::vector<std::future<void>> results;
     for (Tag& tag : taglist) {
-        detectXieEllipse(tag);
+        results.emplace_back(
+           pool.enqueue([&] {
+               detectXieEllipse(tag);
+        }));
     }
+    for(auto && result: results) result.get();
     return taglist;
 }
 
