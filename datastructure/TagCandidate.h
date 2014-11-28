@@ -60,7 +60,7 @@ public:
         _decodedId = decodedId;
     }
 
-    const Ellipse& getEllipse() const {
+    Ellipse& getEllipse() {
         return _ellipse;
     }
 
@@ -84,11 +84,11 @@ public:
         _ellipse.setTransformedImage(transformedImage);
     }
 
-    const vector<Grid>& getGrids() const {
+    vector<Grid>& getGrids() {
         return _grids;
     }
 
-    void setGrids(const vector<Grid>& grids) {
+    void setGrids(vector<Grid>&& grids) {
         _grids = grids;
     }
 

@@ -51,7 +51,7 @@ public:
      *
      * @return possible grids
      */
-    virtual vector<Tag> process(const vector<Tag> &taglist);
+    virtual vector<Tag> process(vector<Tag> &&taglist);
 
 private:
 
@@ -66,7 +66,7 @@ private:
      * @param ellipse the ellipse the grid should belong to
      * @return the hopefully best grid
      */
-    virtual Grid fitGrid(Ellipse ellipse);
+    virtual Grid fitGrid(Ellipse &ellipse);
 
     /**
      * guesses orientation of the tag

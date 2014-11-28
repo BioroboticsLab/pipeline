@@ -19,38 +19,24 @@ GridFitter::~GridFitter() {
     // TODO Auto-generated destructor stub
 }
 
-vector<Tag> GridFitter::process(vector<Tag> const& taglist) {
-    vector <Tag> editedTags = vector <Tag>();
-    for (size_t k = 0; k < taglist.size(); k++) {
-        Tag tag = taglist[k];
-
-        if (tag.isValid()) {
-            vector<TagCandidate> candidates = tag.getCandidates();
-
-            //iterate over the candidates of the tag
-            for (TagCandidate& candidate : candidates) {
-                vector<Grid> grids;
-                Grid grid = this->fitGrid(candidate.getEllipse());
-                grids.push_back(grid);
-
-                // Rotation by half cell (in both directions), because in some cases it's all you need to get a correct decoding
-                grids.push_back(
-                    Grid(grid.size, grid.angle + 15, 0, grid.x, grid.y,
-                    grid.ell, true, scoringMethod));
-                grids.push_back(
-                    Grid(grid.size, grid.angle - 15, 0, grid.x, grid.y,
-                    grid.ell, true, scoringMethod));
-                candidate.setGrids(grids);
-            }
-
-            tag.setCandidates(std::move(candidates));
-            editedTags.push_back(tag);
+vector<Tag> GridFitter::process(vector<Tag>&& taglist) {
+    // remove invalid tags
+    taglist.erase(std::remove_if(taglist.begin(), taglist.end(), [](Tag& tag) { return !tag.isValid(); }), taglist.end());
+    for (Tag& tag : taglist) {
+        for (TagCandidate& candidate : tag.getCandidates()) {
+            const Grid grid = fitGrid(candidate.getEllipse());
+            std::vector<Grid> grids;
+            grids.push_back(grid);
+            // Rotation by half cell (in both directions), because in some cases it's all you need to get a correct decoding
+            grids.emplace_back(grid.size, grid.angle + 15, 0, grid.x, grid.y, grid.ell, true, scoringMethod);
+            grids.emplace_back(grid.size, grid.angle - 15, 0, grid.x, grid.y, grid.ell, true, scoringMethod);
+            candidate.setGrids(std::move(grids));
         }
     }
-    return editedTags;
+    return taglist;
 }
 
-Grid GridFitter::fitGrid(Ellipse ellipse) {
+Grid GridFitter::fitGrid(Ellipse& ellipse) {
     // Convert image to gray scale (maybe obsolete)
     Mat grayImage;
     if (ellipse.transformedImage.channels() > 2) {

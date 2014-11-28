@@ -71,7 +71,7 @@ public:
     *
     **************************************/
 
-    const vector<TagCandidate>& getCandidates() const;
+    vector<TagCandidate> &getCandidates();
     void setCandidates(vector<TagCandidate>&& candidates);
     const Mat& getCannySubImage() const;
     void setCannySubImage(const Mat& cannySubImage);

@@ -8,50 +8,28 @@
 #include "Transformer.h"
 
 namespace decoder {
-/**************************************
-*
-*           constructor
-*
-**************************************/
-Transformer::Transformer() {
-    // TODO Auto-generated constructor stub
-}
-
-Transformer::~Transformer() {
-    // TODO Auto-generated destructor stub
-}
-
-/**************************************
-*
-*           stuff
-*
-**************************************/
-
-vector<Tag> Transformer::process(vector<Tag> const& taglist){
-    vector <Tag> editedTags = vector <Tag>();
-    for (size_t i = 0; i < taglist.size(); i++) {
-        Tag tag = taglist[i];
-        if (tag.isValid()) {
-            _transformImages(tag);
-            editedTags.push_back(tag);
-        }
+vector<Tag> Transformer::process(vector<Tag>&& taglist){
+    // remove invalid tags
+    taglist.erase(std::remove_if(taglist.begin(), taglist.end(), [](Tag& tag) { return !tag.isValid(); }), taglist.end());
+    for (Tag& tag : taglist) {
+        transformImages(tag);
     }
-    return editedTags;
+    return taglist;
 }
 
-void Transformer::_transformImages(Tag &tag){
+void Transformer::transformImages(Tag &tag){
     Mat originalImage = tag.getOrigSubImage();
     vector<TagCandidate> candidates = tag.getCandidates();
 
     for (TagCandidate& candidate : candidates) {
-        Mat transformedImage = _ellipseTransform(candidate.getEllipse(), originalImage);
+        Mat transformedImage = ellipseTransform(candidate.getEllipse(), originalImage);
         candidate.setTransformedImage(transformedImage);
     }
 
     tag.setCandidates(std::move(candidates));
 }
 
-Mat Transformer::_ellipseTransform(Ellipse ell, Mat originalImage) {
+Mat Transformer::ellipseTransform(Ellipse ell, Mat originalImage) {
     Mat rot = Mat(2, 3, CV_64F);
 
     // rotation angle is the ellipse' orientation

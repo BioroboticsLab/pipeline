@@ -151,7 +151,7 @@ public:
     *
     **************************************/
 
-    vector<Tag> process(Mat image);
+    vector<Tag> process(Mat &&image);
     void reset();
 };
 } /* namespace decoder */

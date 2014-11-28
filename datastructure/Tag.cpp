@@ -36,7 +36,7 @@ Tag::~Tag() {
 *
 **************************************/
 
-const vector<TagCandidate>& Tag::getCandidates() const {
+vector<TagCandidate>& Tag::getCandidates() {
     return _candidates;
 }
 

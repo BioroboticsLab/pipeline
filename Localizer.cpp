@@ -146,7 +146,7 @@ void Localizer::setSobel(const Mat& sobel) {
 *
 **************************************/
 
-vector<Tag> Localizer::process(cv::Mat grayImage) {
+vector<Tag> Localizer::process(cv::Mat&& grayImage) {
     this->gray_image_ = grayImage;
 
     // compute the sobel derivative first

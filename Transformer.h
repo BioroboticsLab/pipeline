@@ -31,33 +31,14 @@ using namespace cv;
 namespace decoder {
 class Transformer {
 private:
-
-    /**************************************
-    *
-    *           stuff
-    *
-    **************************************/
-
-    Mat _ellipseTransform(Ellipse ell, Mat originalImage);
-    void _transformImages(Tag &t);
+    Mat ellipseTransform(Ellipse ell, Mat originalImage);
+    void transformImages(Tag &t);
 
 public:
+    Transformer() {}
+    virtual ~Transformer() {}
 
-    /**************************************
-    *
-    *           constructor
-    *
-    **************************************/
-    Transformer();
-    virtual ~Transformer();
-
-    /**************************************
-    *
-    *           stuff
-    *
-    **************************************/
-
-    vector<Tag> process(const vector<Tag> &taglist);
+    vector<Tag> process(vector<Tag> &&taglist);
 };
 } /* namespace decoder */
 

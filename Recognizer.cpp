@@ -319,14 +319,11 @@ Mat Recognizer::computeCannyEdgeMap(Mat grayImage) {
     return cannyEdgeMap;
 }
 
-vector<Tag> Recognizer::process(vector<Tag> const& taglist) {
-    vector <Tag> editedTags = vector <Tag>();
-    for (size_t i = 0; i < taglist.size(); i++) {
-        Tag t = taglist[i];
-        this->detectXieEllipse(t);
-        editedTags.push_back(t);
+vector<Tag> Recognizer::process(vector<Tag>&& taglist) {
+    for (Tag& tag : taglist) {
+        detectXieEllipse(tag);
     }
-    return editedTags;
+    return taglist;
 }
 
 #ifdef PipelineStandalone

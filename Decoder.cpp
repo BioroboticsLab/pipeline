@@ -18,70 +18,51 @@ Decoder::~Decoder() {
     // TODO Auto-generated destructor stub
 }
 
-vector<Tag> Decoder::process(vector<Tag> const& taglist) {
-    vector <Tag> editedTags = vector <Tag>();
-    for (size_t i = 0; i < taglist.size(); i++) {
-        Tag tag = taglist[i];
-
-        if (tag.isValid()) {
-            vector<Decoding> decodings;
-            vector<TagCandidate> candidates = tag.getCandidates();
-
-            //iterate over the candidates of the tag
-            for (TagCandidate& candidate : candidates) {
-                //TagCandidate candidate = candidates[j];
-
-                vector<Grid> grids = candidate.getGrids();
-
-                for (unsigned int k = 0; k < grids.size(); k++) {
-                    decodings.push_back(includeExcludeDecode(grids[k]));
-                    decodings.push_back(edgeWalkerDecode(grids[k]));
-                }
+vector<Tag> Decoder::process(vector<Tag>&& taglist) {
+    // remove invalid tags
+    taglist.erase(std::remove_if(taglist.begin(), taglist.end(), [](Tag& tag) { return !tag.isValid(); }), taglist.end());
+    for (Tag& tag : taglist) {
+        for (TagCandidate& candidate : tag.getCandidates()) {
+            std::vector<Decoding> decodings(candidate.getGrids().size() * 2);
+            for (Grid& grid : candidate.getGrids()) {
+                decodings.push_back(includeExcludeDecode(grid));
+                decodings.push_back(edgeWalkerDecode(grid));
+            }
+            // Just keep the best three decodings, determined by fisher score
+            std::partial_sort(decodings.begin(), decodings.begin() + 3, decodings.end(),
+                              [](Decoding const& d1, Decoding const& d2) {
+                                return d1.score > d2.score;
+                              });
+            // remove remaining decodings
+            if (decodings.size() > 3) decodings.erase(decodings.begin() + 3, decodings.end());
 
 #ifdef DEBUG_SHOW_DECODED_GRID
-                // Show the grids for debug propose
-                for (unsigned int i = 0; i < decodings.size(); i++) {
-                    unsigned int tagId = decodings[i].tagId;
+            // Show the grids for debug propose
+            size_t cnt = 0;
+            for (Decoding& decoding : decodings) {
+                uint tagId = decoding.tagId;
 
-                    stringstream binDigits;
-                    for (int j = 0; j < 12; j++) {
-                        binDigits << static_cast<int>((tagId >> (11 - j)) & 1);
-                    }
-
-                    Mat draw = decodings[i].grid.drawGrid();
-                    stringstream ss;
-                    ss << "Grid " << i << " | Decoding: " << decodings[i].tagId << " | Binary Digits: " << binDigits.str();
-                    string windowName = ss.str();
-                    namedWindow(windowName, WINDOW_NORMAL);
-                    imshow(windowName, draw);
+                stringstream binDigits;
+                for (int j = 0; j < 12; j++) {
+                    binDigits << static_cast<int>((tagId >> (11 - j)) & 1);
                 }
-                waitKey();
-                destroyAllWindows();
+
+                Mat draw = decoding.grid.drawGrid();
+                stringstream ss;
+                ss << "Grid " << cnt << " | Decoding: " << decoding.tagId << " | Binary Digits: " << binDigits.str();
+                string windowName = ss.str();
+                namedWindow(windowName, WINDOW_NORMAL);
+                imshow(windowName, draw);
+                ++cnt;
+            }
+            waitKey();
+            destroyAllWindows();
 #endif
 
-                // Just keep the best three decodings, determined by fisher score
-                vector<Decoding> res(3);
-                int worstId = 0;
-                for (unsigned int l = 0; l < decodings.size(); l++) {
-                    Decoding cur = decodings[l];
-                    if (res[worstId].score < cur.score) {
-                        res[worstId] = cur;
-                        // Get new decoding with worst score
-                        for (unsigned int k = 0; k < res.size(); k++) {
-                            if (res[worstId].score > res[k].score) {
-                                worstId = k;
-                            }
-                        }
-                    }
-                }
-                candidate.setDecodings(res);
-            }
-
-            tag.setCandidates(std::move(candidates));
-            editedTags.push_back(tag);
+            candidate.setDecodings(decodings);
         }
     }
-    return editedTags;
+    return taglist;
 }
 
 Decoding Decoder::decode(Grid &g) {
