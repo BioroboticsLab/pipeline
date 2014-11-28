@@ -23,7 +23,7 @@ GridFitter::~GridFitter() {
 vector<Tag> GridFitter::process(vector<Tag>&& taglist) {
     // remove invalid tags
     taglist.erase(std::remove_if(taglist.begin(), taglist.end(), [](Tag& tag) { return !tag.isValid(); }), taglist.end());
-    static const size_t numThreads = 4;
+    static const size_t numThreads = 8;
     ThreadPool pool(numThreads);
     std::vector<std::future<void>> results;
     for (Tag& tag : taglist) {

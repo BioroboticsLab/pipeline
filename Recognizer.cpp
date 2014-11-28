@@ -10,11 +10,6 @@
 #include "util/ThreadPool.h"
 
 namespace {
-inline double pointDistance(Point2d p, Point2d q)
-{
-    return (sqrt((q.y - p.y) * (q.y - p.y) + (q.x - p.x) * (q.x - p.x)));
-}
-
 inline double pointDistance(double px, double py, double qx, double qy)
 {
     return (sqrt((qy - py) * (qy - py) + (qx - px) * (qx - px)));
@@ -148,7 +143,7 @@ void Recognizer::detectXieEllipse(Tag &tag) {
                     // (10) find the maximum within the accumulator, is it above the threshold?
                     const auto max_it  = std::max_element(accu.begin(), accu.end());
                     const auto max_ind = std::distance(accu.begin(), max_it);
-                    size_t vote_minor  = *max_it;
+                    int vote_minor  = *max_it;
 
                     if (vote_minor >= RECOGNIZER_THRESHOLD_EDGE) {
                         // (11) save ellipse parameters
@@ -322,7 +317,7 @@ Mat Recognizer::computeCannyEdgeMap(Mat grayImage) {
 }
 
 vector<Tag> Recognizer::process(vector<Tag>&& taglist) {
-    static const size_t numThreads = 4;
+    static const size_t numThreads = 8;
     ThreadPool pool(numThreads);
     std::vector<std::future<void>> results;
     for (Tag& tag : taglist) {
@@ -331,7 +326,7 @@ vector<Tag> Recognizer::process(vector<Tag>&& taglist) {
                detectXieEllipse(tag);
         }));
     }
-    for(auto && result: results) result.get();
+    for (auto && result: results) result.get();
     return taglist;
 }
 

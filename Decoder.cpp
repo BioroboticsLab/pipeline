@@ -7,6 +7,8 @@
 
 #include "Decoder.h"
 
+#include <bitset>
+
 using namespace std;
 using namespace cv;
 
@@ -29,27 +31,23 @@ vector<Tag> Decoder::process(vector<Tag>&& taglist) {
                 decodings.push_back(edgeWalkerDecode(grid));
             }
             // Just keep the best three decodings, determined by fisher score
-            std::partial_sort(decodings.begin(), decodings.begin() + 3, decodings.end(),
+            const size_t num = std::min<size_t>(decodings.size(), 3);
+            std::partial_sort(decodings.begin(), decodings.begin() + num, decodings.end(),
                               [](Decoding const& d1, Decoding const& d2) {
                                 return d1.score > d2.score;
                               });
             // remove remaining decodings
-            if (decodings.size() > 3) decodings.erase(decodings.begin() + 3, decodings.end());
+            decodings.erase(decodings.begin() + num, decodings.end());
 
 #ifdef DEBUG_SHOW_DECODED_GRID
             // Show the grids for debug propose
             size_t cnt = 0;
             for (Decoding& decoding : decodings) {
                 uint tagId = decoding.tagId;
-
-                stringstream binDigits;
-                for (int j = 0; j < 12; j++) {
-                    binDigits << static_cast<int>((tagId >> (11 - j)) & 1);
-                }
-
+                std::bitset<12> binDigits(tagId);
                 Mat draw = decoding.grid.drawGrid();
                 stringstream ss;
-                ss << "Grid " << cnt << " | Decoding: " << decoding.tagId << " | Binary Digits: " << binDigits.str();
+                ss << "Grid " << cnt << " | Decoding: " << decoding.tagId << " | Binary Digits: " << binDigits;
                 string windowName = ss.str();
                 namedWindow(windowName, WINDOW_NORMAL);
                 imshow(windowName, draw);
