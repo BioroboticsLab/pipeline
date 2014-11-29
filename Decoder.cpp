@@ -107,39 +107,39 @@ Decoding Decoder::includeExcludeDecode(Grid &g) {
     double score = fisherScore(g, labels);
     double blackMovedScore = -1;
     double whiteMovedScore = -1;
-    int blackMaxIdx;
-    int whiteMinIdx;
+    int blackMaxIdx[2];
+    int whiteMinIdx[2];
     while (true) {
         blackMovedScore = -1;
         whiteMovedScore = -1;
 
         // Get the brightest black cell and the darkest white cell
-        minMaxIdx(means, NULL, NULL, NULL, &blackMaxIdx,
+        minMaxIdx(means, NULL, NULL, NULL, blackMaxIdx,
           Mat::ones(12, 1, CV_8U) - labels);
-        minMaxIdx(means, NULL, NULL, &whiteMinIdx, NULL, labels);
+        minMaxIdx(means, NULL, NULL, whiteMinIdx, NULL, labels);
 
         // Change class of the cell, but just if there is one
-        if (blackMaxIdx != -1) {
-            labels.at<unsigned char>(blackMaxIdx) = 1;
+        if (blackMaxIdx[1] != -1) {
+            labels.at<unsigned char>(blackMaxIdx[1]) = 1;
             blackMovedScore = fisherScore(g, labels);
-            labels.at<unsigned char>(blackMaxIdx) = 0;
+            labels.at<unsigned char>(blackMaxIdx[1]) = 0;
         }
 
         // Well moving a white cell doesn't do anything, but maybe it will with other data
-        if (whiteMinIdx != -1) {
-            labels.at<unsigned char>(whiteMinIdx) = 0;
+        if (whiteMinIdx[1] != -1) {
+            labels.at<unsigned char>(whiteMinIdx[1]) = 0;
             whiteMovedScore = fisherScore(g, labels);
-            labels.at<unsigned char>(whiteMinIdx) = 1;
+            labels.at<unsigned char>(whiteMinIdx[1]) = 1;
         }
 
         if (blackMovedScore > score && blackMovedScore > whiteMovedScore
-          && blackMaxIdx != -1) {
+          && blackMaxIdx[1] != -1) {
             score = blackMovedScore;
-            labels.at<unsigned char>(blackMaxIdx) = 1;
+            labels.at<unsigned char>(blackMaxIdx[1]) = 1;
         } else if (whiteMovedScore > score && whiteMovedScore > blackMovedScore
-          && whiteMinIdx != -1) {
+          && whiteMinIdx[1] != -1) {
             score = whiteMovedScore;
-            labels.at<unsigned char>(whiteMinIdx) = 0;
+            labels.at<unsigned char>(whiteMinIdx[1]) = 0;
         } else {
             break;
         }
