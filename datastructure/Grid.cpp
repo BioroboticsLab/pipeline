@@ -83,15 +83,15 @@ double Grid::binaryCountScore() {
         drawContours(mask, conts, 0, Scalar(1), CV_FILLED);
 
         Mat whiteCellPixel   = binImg.mul(mask);       // just keep the pixel within the cell
-        int whitePixelAmount = countNonZero(whiteCellPixel);
-        int blackPixelAmount = countNonZero(mask - whiteCellPixel);
+        const double whitePixelAmount = static_cast<double>(countNonZero(whiteCellPixel));
+        const double blackPixelAmount = static_cast<double>(countNonZero(mask - whiteCellPixel));
 
         if (j == 12 || j == 13) {
             // white inner half circle or white outer border
-            scores.at<double>(14 - j) =  (static_cast<double>(blackPixelAmount)) / (static_cast<double>(whitePixelAmount));
+            scores.at<double>(14 - j) =  whitePixelAmount == 0. ? blackPixelAmount : blackPixelAmount / whitePixelAmount;
         } else if (j == 14) {
             //supposed black inner half circle
-            scores.at<double>(14 - j) =  (static_cast<double>(whitePixelAmount)) / (static_cast<double>(blackPixelAmount));
+            scores.at<double>(14 - j) =  blackPixelAmount == 0. ? whitePixelAmount : whitePixelAmount / blackPixelAmount;
         }
     }
 
