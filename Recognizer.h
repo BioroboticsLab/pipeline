@@ -61,13 +61,6 @@ static const int threshold_best_vote = 3000;
 
 class Recognizer {
 private:
-
-    /**************************************
-    *
-    *           members
-    *
-    **************************************/
-
     int RECOGNIZER_LCANNYTHRES;
     int RECOGNIZER_HCANNYTHRES;
 
@@ -79,12 +72,6 @@ private:
     int RECOGNIZER_THRESHOLD_VOTE;
     int RECOGNIZER_THRESHOLD_BEST_VOTE;
 
-    /**************************************
-    *
-    *           stuff
-    *
-    **************************************/
-
     void detectXieEllipse(Tag &tag);
     Mat computeCannyEdgeMap(Mat grayImage);
 
@@ -94,25 +81,14 @@ private:
     void loadConfigVars();
 
 public:
-
-    /**************************************
-    *
-    *           constructor
-    *
-    **************************************/
     Recognizer();
 #ifdef PipelineStandalone
     Recognizer(string configFile);
 #endif
-    virtual ~Recognizer();
-
-    /**************************************
-    *
-    *           stuff
-    *
-    **************************************/
+    virtual ~Recognizer() {}
 
     vector<Tag> process(vector<Tag> &&taglist);
+    void visualizeEllipse(Tag const& tag , Ellipse const& ell, std::string const& title);
 };
 } /* namespace decoder */
 
