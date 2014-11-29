@@ -29,12 +29,6 @@ struct compareVote {
 }
 
 namespace decoder {
-/**************************************
-*
-*           constructor
-*
-**************************************/
-
 Recognizer::Recognizer() {
 #ifdef PipelineStandalone
     this->loadConfigVars(config::DEFAULT_RECOGNIZER_CONFIG);
@@ -48,16 +42,6 @@ Recognizer::Recognizer(string configFile) {
     this->loadConfigVars(configFile);
 }
 #endif
-
-Recognizer::~Recognizer() {
-    // TODO Auto-generated destructor stub
-}
-
-/**************************************
-*
-*           stuff
-*
-**************************************/
 
 /**
  * @param tag for which ellipses should be detected
@@ -98,7 +82,6 @@ void Recognizer::detectXieEllipse(Tag &tag) {
         const int p1y     = ep[lc1].y;
         const double p1xf = static_cast<double>(ep[lc1].x);
         const double p1yf = static_cast<double>(ep[lc1].y);
-
         // (4) loop through each other edge pixel in ep and propose a major axis between p1 and p2
         for (size_t lc2 = 0; lc2 < epsize; ++lc2) {
             const int p2x     = ep[lc2].x;
@@ -132,9 +115,7 @@ void Recognizer::detectXieEllipse(Tag &tag) {
                                 const double b2     = 2.0 * b;
                                 // (8) increment the accumulator for the minor axis' half length (b) just estimated
                                 if (b2 <= recognizer_max_minor && b2 >= recognizer_min_minor) {
-                                    //accu[cvRound(b) - 1] += 1;
-                                    accu[static_cast<int>(b + 0.5) - 1] += 1;
-                                    //support[cvRound(b) - 1].push_back((*it3));
+                                    accu[cvRound(b) - 1] += 1;
                                 }
                             }
                         }
@@ -143,7 +124,7 @@ void Recognizer::detectXieEllipse(Tag &tag) {
                     // (10) find the maximum within the accumulator, is it above the threshold?
                     const auto max_it  = std::max_element(accu.begin(), accu.end());
                     const auto max_ind = std::distance(accu.begin(), max_it);
-                    int vote_minor  = *max_it;
+                    int vote_minor     = *max_it;
 
                     if (vote_minor >= RECOGNIZER_THRESHOLD_EDGE) {
                         // (11) save ellipse parameters
@@ -155,43 +136,37 @@ void Recognizer::detectXieEllipse(Tag &tag) {
                         const float n = max_ind;
 
                         // more "circular" ellipses are weighted more than very thin ellipses
-                        //std::cout << n/j << std::endl;
                         vote_minor = vote_minor * (50 * n / j);
 
                         if (candidates.size() == 0) {
                             candidates.emplace_back(vote_minor, cen, axis, angle);
-                            if (vote_minor >= this->RECOGNIZER_THRESHOLD_BEST_VOTE) {
+                            if (vote_minor >= RECOGNIZER_THRESHOLD_BEST_VOTE) {
                                 goto foundEllipse;
                             }
                         }
-                        for (unsigned int el = 0; el < candidates.size();
-                          el++) {
-                            if (abs(candidates[el].cen.x - cen.x) < 8
-                              && abs(candidates[el].cen.y - cen.y) < 8
-                              && abs(candidates[el].axis.width - j) < 8
-                              && abs(candidates[el].axis.height - n) < 8
+                        for (size_t idx = 0; idx < candidates.size(); idx++) {
+                            Ellipse const& ell = candidates[idx];
+                            if (abs(ell.cen.x - cen.x) < 8
+                              && abs(ell.cen.y - cen.y) < 8
+                              && abs(ell.axis.width - j) < 8
+                              && abs(ell.axis.height - n) < 8
                               &&
-
                               //check angle in relation to minor/major axis
-                              abs(candidates[el].angle - angle)
-                              < (180.0
-                              * candidates[el].axis.height)
-                              / candidates[el].axis.width) {
-                                if (candidates[el].vote < vote_minor) {
-                                    candidates[el].cen.x       = cen.x;
-                                    candidates[el].cen.y       = cen.y;
-                                    candidates[el].axis.width  = j;
-                                    candidates[el].axis.height = n;
-                                    candidates[el].angle       = angle;
-                                    candidates[el].vote        = vote_minor;
+                              abs(ell.angle - angle) < (180.0 * ell.axis.height) / ell.axis.width) {
+                                if (ell.vote < vote_minor) {
+                                    ell.cen.x       = cen.x;
+                                    ell.cen.y       = cen.y;
+                                    ell.axis.width  = j;
+                                    ell.axis.height = n;
+                                    ell.angle       = angle;
+                                    ell.vote        = vote_minor;
                                 }
                                 break;
                             }
-                            if (el == candidates.size() - 1) {
+                            if (idx == candidates.size() - 1) {
                                 candidates.emplace_back(vote_minor, cen, axis, angle);
 
-                                if (vote_minor
-                                  >= this->RECOGNIZER_THRESHOLD_BEST_VOTE) {
+                                if (vote_minor >= RECOGNIZER_THRESHOLD_BEST_VOTE) {
                                     goto foundEllipse;
                                 }
                             }
@@ -207,79 +182,53 @@ void Recognizer::detectXieEllipse(Tag &tag) {
                 }
             }
         }
-        //if (it != ep.end()) ep.erase(it);
     }
 
 foundEllipse:
-
-    // sort the candidates list according to their vote
-    std::sort(candidates.begin(), candidates.end(), compareVote {});
-
-    int max = 3;
-
-    for (unsigned int i = 0; i < candidates.size(); i++) {
-        Ellipse ell = candidates[i];
-        if (ell.vote >= this->RECOGNIZER_THRESHOLD_VOTE) {
-            TagCandidate c = TagCandidate(ell);
-            tag.addCandidate(c);
+    static const size_t num = std::min<size_t>(3, candidates.size());
+    // sort the candidates, so that the num-best candidates are at the
+    // beginning of the list
+    std::partial_sort(candidates.begin(), candidates.begin() + num,
+      candidates.end(), compareVote {});
 #ifdef PipelineStandalone
-            if (config::DEBUG_MODE_RECOGNIZER) {
-                std::cout << "Add Ellipse With Vote " << candidates[i].vote
-                          << std::endl;
+    if (config::DEBUG_MODE_RECOGNIZER) {
+        for (size_t i = 0; i < candidates.end(); ++i) {
+            Ellipse const& ell = candidates[i];
+            if ((i >= num) || (ell.vote < RECOGNIZER_THRESHOLD_VOTE)) {
+                if (config::DEBUG_MODE_RECOGNIZER) {
+                    std::cout << "Ignore Ellipse With Vote " << ell.vote << std::endl;
+                    if (config::DEBUG_MODE_RECOGNIZER_IMAGE) {
+                        visualizeEllipse(ell, "ignored_ellipse");
+                    }
+                }
             }
-#endif
-#ifdef PipelineStandalone
-            if (config::DEBUG_MODE_RECOGNIZER_IMAGE) {
-                Mat subroiTest;
-                tag.getOrigSubImage().copyTo(subroiTest);
-                ellipse(subroiTest, ell.cen, ell.axis, ell.angle, 0, 360,
-                  Scalar(0, 0, 255));
-                string text = "Score " + std::to_string(candidates[i].vote);
-                cv::putText(subroiTest, text, Point(10, 30),
-                  FONT_HERSHEY_COMPLEX_SMALL, 0.7, Scalar(0, 255, 0));
-                namedWindow("added_ellipse", WINDOW_NORMAL);
-                imshow("added_ellipse", subroiTest);
-                waitKey();
-            }
-#endif
-            max++;
-            if (max == 3) {
-                break;
-            }
-        } else {
-#ifdef PipelineStandalone
-            if (config::DEBUG_MODE_RECOGNIZER) {
-                std::cout << "Ignore Ellipse With Vote " << candidates[i].vote
-                          << std::endl;
-            }
-#endif
-#ifdef PipelineStandalone
-            if (config::DEBUG_MODE_RECOGNIZER_IMAGE) {
-                Mat subroiTest;
-                tag.getOrigSubImage().copyTo(subroiTest);
-                ellipse(subroiTest, ell.cen, ell.axis, ell.angle, 0, 360,
-                  Scalar(0, 0, 255));
-                string text = "Score " + std::to_string(candidates[i].vote);
-                cv::putText(subroiTest, text, Point(10, 30),
-                  FONT_HERSHEY_COMPLEX_SMALL, 0.7, Scalar(0, 255, 0));
-                namedWindow("ignored_ellipse", WINDOW_NORMAL);
-                imshow("ignored_ellipse", subroiTest);
-                waitKey();
-            }
-#endif
         }
+    }
+#endif
+    // remove remaining candidates
+    candidates.erase(candidates.begin() + num, candidates.end());
+    // remove all candidates with vote < RECOGNIZER_THRESHOLD_VOTE
+    candidates.erase(std::remove_if(candidates.begin(), candidates.end(),
+      [&](Ellipse& ell) { return ell.vote < RECOGNIZER_THRESHOLD_VOTE; }));
+    // add remaining candidates to tag
+    for (Ellipse const& ell : candidates) {
+#ifdef PipelineStandalone
+        if (config::DEBUG_MODE_RECOGNIZER) {
+            std::cout << "Add Ellipse With Vote " << ell.vote << std::endl;
+            if (config::DEBUG_MODE_RECOGNIZER_IMAGE) {
+                visualizeEllipse(ell, "added_ellipse");
+            }
+        }
+#endif
+        tag.addCandidate(TagCandidate(ell));
+    }
+    if (tag.getCandidates().size() == 0) {
+        tag.setValid(false);
     }
 #ifdef PipelineStandalone
     if (config::DEBUG_MODE_RECOGNIZER_IMAGE) {
         destroyAllWindows();
     }
-#endif
-
-    if (tag.getCandidates().size() == 0) {
-        tag.setValid(false);
-    }
-
-#ifdef PipelineStandalone
     if (config::DEBUG_MODE_RECOGNIZER) {
         std::cout << "Found " << tag.getCandidates().size()
                   << " ellipse candidates for" << tag.getId() << std::endl;
@@ -287,13 +236,20 @@ foundEllipse:
 #endif
 }
 
-/**
- *
- *
- *
- * @param grayImage
- * @return
- */
+#ifdef PipelineStandalone
+void visualizeEllipse(Ellipse const& ell, std::string const& title) {
+    Mat subroiTest;
+    tag.getOrigSubImage().copyTo(subroiTest);
+    ellipse(subroiTest, ell.cen, ell.axis, ell.angle, 0, 360, Scalar(0, 0, 255));
+    string text = "Score " + std::to_string(candidates[i].vote);
+    cv::putText(subroiTest, text, Point(10, 30), FONT_HERSHEY_COMPLEX_SMALL,
+      0.7, Scalar(0, 255, 0));
+    namedWindow(title, WINDOW_NORMAL);
+    imshow(title, subroiTest);
+    waitKey();
+}
+#endif
+
 Mat Recognizer::computeCannyEdgeMap(Mat grayImage) {
     Mat localGrayImage;
     grayImage.copyTo(localGrayImage);
@@ -319,14 +275,14 @@ Mat Recognizer::computeCannyEdgeMap(Mat grayImage) {
 vector<Tag> Recognizer::process(vector<Tag>&& taglist) {
     static const size_t numThreads = 8;
     ThreadPool pool(numThreads);
-    std::vector<std::future<void>> results;
+    std::vector < std::future < void >> results;
     for (Tag& tag : taglist) {
         results.emplace_back(
-           pool.enqueue([&] {
-               detectXieEllipse(tag);
-        }));
+            pool.enqueue([&] {
+                detectXieEllipse(tag);
+            }));
     }
-    for (auto && result: results) result.get();
+    for (auto && result : results) result.get();
     return taglist;
 }
 
