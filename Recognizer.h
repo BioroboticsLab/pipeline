@@ -77,6 +77,7 @@ private:
 
 #ifdef PipelineStandalone
     void loadConfigVars(string filename);
+    void visualizeEllipse(Ellipse const& ell, std::string const& title);
 #endif
     void loadConfigVars();
 
