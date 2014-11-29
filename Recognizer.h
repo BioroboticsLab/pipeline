@@ -5,10 +5,6 @@
  *      Author: mareikeziese
  */
 
-#ifndef PipelineStandalone
-#define PipelineStandalone
-#endif
-
 #ifndef RECOGNIZER_H_
 #define RECOGNIZER_H_
 
