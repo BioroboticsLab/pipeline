@@ -8,6 +8,7 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/opencv.hpp>
+#include <vector>
 
 #ifdef PipelineStandalone
 #include <boost/archive/text_iarchive.hpp>
@@ -31,7 +32,6 @@
 #define STD_EPS 10
 
 using namespace cv;
-using namespace std;
 
 namespace decoder {
 /**
@@ -101,7 +101,7 @@ public:
      * @param offset angle offset to draw inner half circles with different angles 1 offset = 30°
      * @return a vector with the contours of the cell
      */
-    vector<Point> renderGridCell(unsigned short cell, int offset = 0);
+    std::vector<Point> renderGridCell(unsigned short cell, int offset = 0);
 
     /**
      * Render a grid cell of the given type and ID
@@ -111,7 +111,7 @@ public:
      * @param offset angle offset to draw inner half circles with different angles 1 offset = 30°
      * @return a vector with the contours of the cell
      */
-    vector<Point> renderScaledGridCell(unsigned short cell, double scale, int offset = 0);
+    std::vector<Point> renderScaledGridCell(unsigned short cell, double scale, int offset = 0);
 
     /**
      * Determines whether the given grid is worser than itself (depending on the score).
@@ -141,7 +141,7 @@ public:
      * @param useBinaryImage determines whether the binarized image should be used or the grayscale one
      * @return a vector with the intensities along the edge
      */
-    vector<float> generateEdge(int radius, int width = 1, bool useBinaryImage = false);
+    std::vector<float> generateEdge(int radius, int width = 1, bool useBinaryImage = false);
 
     /**
      * @see generateEdge

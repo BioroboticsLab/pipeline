@@ -9,7 +9,6 @@
 
 #include <bitset>
 
-using namespace std;
 using namespace cv;
 
 namespace decoder {
@@ -20,7 +19,7 @@ Decoder::~Decoder() {
     // TODO Auto-generated destructor stub
 }
 
-vector<Tag> Decoder::process(vector<Tag>&& taglist) {
+std::vector<Tag> Decoder::process(std::vector<Tag>&& taglist) {
     // remove invalid tags
     taglist.erase(std::remove_if(taglist.begin(), taglist.end(), [](Tag& tag) { return !tag.isValid(); }), taglist.end());
     for (Tag& tag : taglist) {
@@ -72,7 +71,7 @@ Decoding Decoder::includeExcludeDecode(Grid &g) {
 
     Mat whiteMask = Mat(image.rows, image.cols, image.type(), Scalar(0));
     Mat blackMask = Mat(image.rows, image.cols, image.type(), Scalar(0));
-    vector<vector<Point> > conts(1);
+    std::vector<std::vector<Point> > conts(1);
     conts[0] = g.renderScaledGridCell(13, CELL_SCALE);
     drawContours(whiteMask, conts, 0, Scalar(1), CV_FILLED);
     conts[0] = g.renderScaledGridCell(14, CELL_SCALE);
@@ -162,7 +161,7 @@ Decoding Decoder::includeExcludeDecode(Grid &g) {
 
 double Decoder::fisherScore(Grid &g, Mat &labels, bool useBinaryImage) {
     Mat &image = useBinaryImage ? g.ell.binarizedImage : g.ell.transformedImage;
-    vector<vector<Point> > conts(1);
+    std::vector<std::vector<Point> > conts(1);
     Mat whiteMask = Mat(image.rows, image.cols, image.type(), Scalar(0));
     Mat blackMask = Mat(image.rows, image.cols, image.type(), Scalar(0));
     conts[0] = g.renderScaledGridCell(13, CELL_SCALE);
@@ -209,7 +208,7 @@ Decoding Decoder::edgeWalkerDecode(Grid &g) {
     // Indicate the direction of the curve
     EdgePoint::Direction leftDir  = EdgePoint::PLAIN;
     EdgePoint::Direction rightDir = EdgePoint::PLAIN;
-    vector<EdgePoint> turningPoints;
+    std::vector<EdgePoint> turningPoints;
     for (int i = 0; i < edgeSize; i++) {
         EdgePoint turningPoint;
         turningPoint.value    = edge.at<float>(i);
@@ -258,17 +257,17 @@ Decoding Decoder::edgeWalkerDecode(Grid &g) {
         }
     }
 
-    ofstream turningPointsFile(
+    std::ofstream turningPointsFile(
         "../../../arbeit/data/decoding/edgeWalker/turning_points_003_001.txt");
     for (unsigned int k = 0; k < turningPoints.size(); k++) {
         turningPointsFile << turningPoints[k].position << " "
-                          << turningPoints[k].value << endl;
+                          << turningPoints[k].value << std::endl;
     }
     turningPointsFile.close();
 
     // Find transition points
 #define TP_EPS 0 // interval a turning point can move
-    vector<EdgePoint> transitionPoints;
+    std::vector<EdgePoint> transitionPoints;
     for (unsigned int i = 0; i < turningPoints.size(); i++) {
         EdgePoint leftPoint  = turningPoints[i];
         EdgePoint rightPoint = turningPoints[(i + 1) % turningPoints.size()];
@@ -314,11 +313,11 @@ Decoding Decoder::edgeWalkerDecode(Grid &g) {
         }
     }
 
-    ofstream transitionPointsFile(
+    std::ofstream transitionPointsFile(
         "../../../arbeit/data/decoding/edgeWalker/transition_points_003_001.txt");
     for (unsigned int k = 0; k < transitionPoints.size(); k++) {
         transitionPointsFile << transitionPoints[k].position << " "
-                             << transitionPoints[k].value << endl;
+                             << transitionPoints[k].value << std::endl;
     }
     transitionPointsFile.close();
 
@@ -355,7 +354,7 @@ Decoding Decoder::edgeWalkerDecode(Grid &g) {
         }
     }
 
-    //cout << labels << endl;
+    //std::cout << labels << std::endl;
     unsigned int res = 0;
     for (int i = 0; i < 12; i++) {
         res += labels.at<unsigned char>(i) << (11 - i);

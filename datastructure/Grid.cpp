@@ -78,7 +78,7 @@ double Grid::binaryCountScore() {
     for (int j = 12; j < 15; j++) {
         Mat mask = Mat(binImg.rows, binImg.cols, binImg.type(), Scalar(0));
 
-        vector< vector <Point> > conts;
+        std::vector< std::vector <Point> > conts;
         conts.push_back(renderGridCell(j));
         drawContours(mask, conts, 0, Scalar(1), CV_FILLED);
 
@@ -118,12 +118,12 @@ double Grid::fisherScore() {
     Mat labels = Mat(15, 1, CV_32S);
     TermCriteria max_it = TermCriteria(TermCriteria::COUNT, 3, 2);
     Mat centers;
-    vector<Mat> masks;
+    std::vector<Mat> masks;
 
     // for each cell calculate its size (cellsize) and its mean intensity (means)
     for (int j = 0; j < 15; j++) {
         Mat mask = Mat(roi.rows, roi.cols, roi.type(), Scalar(0));
-        vector< vector <Point> > conts;
+        std::vector< std::vector <Point> > conts;
         conts.push_back(renderGridCell(j));
         drawContours(mask, conts, 0, Scalar(255), CV_FILLED);
         masks.push_back(mask);
@@ -165,19 +165,19 @@ double Grid::fisherScore() {
         for (int lab = 0; lab < labels.rows; lab++) {
             if (labels.at<int>(lab) == 0 && lab < 12) {
                 if (abs(means.at<float>(lab) - white) < abs(means.at<float>(lab) - black)) {
-                    cout << "eh, uppsb" << endl;
+                    std::cout << "eh, uppsb" << std::endl;
                 }
             } else if (lab < 12) {
                 if (abs(means.at<float>(lab) - white) > abs(means.at<float>(lab) - black)) {
-                    cout << "eh, uppsw" << endl;
+                    std::cout << "eh, uppsw" << std::endl;
                 }
             }
-            cout << labels.at<int>(lab);
+            std::cout << labels.at<int>(lab);
             if (lab == 11) {
-                cout << " | ";
+                std::cout << " | ";
             }
         }
-        cout << endl;
+        std::cout << std::endl;
         return -1;
     }
 
@@ -199,7 +199,7 @@ double Grid::fisherScore() {
                         vari += (roi.at<unsigned char>(c, r) - white) * (roi.at<unsigned char>(c, r) - white);
                         nw_w++;
                     } else {
-                        cout << "something went wrong" << endl;
+                        std::cout << "something went wrong" << std::endl;
                     }
                 }
             }
@@ -219,7 +219,7 @@ double Grid::fisherScore() {
     Sw = Sww / (static_cast<float>(nw_w)) + Swb / (static_cast<float>(nw_b));
 
     if (Sw == 0) {
-        cout << "Sw=0 - what now?" << endl;
+        std::cout << "Sw=0 - what now?" << std::endl;
     }
 
     // calculate inter variance (Score between - Sb)
@@ -238,7 +238,7 @@ double Grid::fisherScore() {
             mb += means.at<float>(j);
             nb++;
         } else {
-            cout << "something went wrong" << endl;
+            std::cout << "something went wrong" << std::endl;
         }
         //Sb += (means.at<float>(j,0) - muinter) * (means.at<float>(j,0) - muinter);
     }
@@ -275,10 +275,10 @@ double Grid::fisherScore() {
 
 // ======
 
-vector<Point> Grid::renderScaledGridCell(unsigned short cell, double scale, int offset) {
+std::vector<Point> Grid::renderScaledGridCell(unsigned short cell, double scale, int offset) {
     // TODO caching???
-    vector<Point> cont;
-    vector<Point> cont2;
+	std::vector<Point> cont;
+	std::vector<Point> cont2;
 
     // Outer cells
     if (cell < 12) {
@@ -307,16 +307,16 @@ vector<Point> Grid::renderScaledGridCell(unsigned short cell, double scale, int 
         double outerCircleRadius    = ORR * size + outerInnerRadiusDiff * 0.5 + (outerInnerRadiusDiff * 0.5 * scale);
         double innerCircleRadius    = ORR * size + outerInnerRadiusDiff * 0.5 - (outerInnerRadiusDiff * 0.5 * scale);
 
-        vector < Point > cont2;
+        std::vector < Point > cont2;
         ellipse2Poly(Point2f(x, y), Size(outerCircleRadius, outerCircleRadius), angle + 90, 0, 360, 1,cont);
         ellipse2Poly(Point2f(x, y), Size(innerCircleRadius, innerCircleRadius), angle + 90, 0, 360, 1,cont2);
         cont.insert(cont.end(), cont2.rbegin(), cont2.rend());
     }
 
-    return move(cont);
+    return cont;
 }
 
-vector<Point> Grid::renderGridCell(unsigned short cell, int offset) {
+std::vector<Point> Grid::renderGridCell(unsigned short cell, int offset) {
     return renderScaledGridCell(cell, 1, offset);
 }
 
@@ -343,7 +343,7 @@ bool Grid::operator<(Grid &g) {
     }
 }
 
-vector<float> Grid::generateEdge(int radius, int width, bool useBinaryImage) {
+std::vector<float> Grid::generateEdge(int radius, int width, bool useBinaryImage) {
     // Uses some kind of super resolution with getMeanAlongLine
 
     Mat &image = useBinaryImage ? ell.binarizedImage : ell.transformedImage;
@@ -355,7 +355,7 @@ vector<float> Grid::generateEdge(int radius, int width, bool useBinaryImage) {
     int y   = 0;
     int err = 1 - x;
 
-    vector< vector<float> > subEdges (8);
+    std::vector< std::vector<float> > subEdges (8);
 
     subEdges[0].push_back(getMeanAlongLine(this->x - outerRadius, this->y, this->x, this->y, width, useBinaryImage));
     subEdges[2].push_back(getMeanAlongLine(this->x, this->y - outerRadius, this->x, this->y, width, useBinaryImage));
@@ -393,9 +393,9 @@ vector<float> Grid::generateEdge(int radius, int width, bool useBinaryImage) {
     }
 
     // Merge all subedges
-    vector<float> mergedEdges;
+    std::vector<float> mergedEdges;
     for (int i = 0; i < 8; i++) {
-        vector<float> subEdge = subEdges[i];
+    	std::vector<float> subEdge = subEdges[i];
         // Reverse some octant to get the wished order (some octant has anti-clockwise order)
         if (i % 2 == 1) {
             reverse(subEdge.begin(), subEdge.end());
@@ -406,7 +406,7 @@ vector<float> Grid::generateEdge(int radius, int width, bool useBinaryImage) {
     // Move the beginning of the Edge, depending on the angle
     int a        = static_cast<int>(angle + 360) % 360;
     int firstIdx = static_cast<int>(a / 360.0 * mergedEdges.size()) % mergedEdges.size();
-    vector<float> edge;
+    std::vector<float> edge;
     edge.insert(edge.end(), mergedEdges.begin() + firstIdx, mergedEdges.end());
     edge.insert(edge.end(), mergedEdges.begin(), mergedEdges.begin() + firstIdx);
 
@@ -414,7 +414,7 @@ vector<float> Grid::generateEdge(int radius, int width, bool useBinaryImage) {
 }
 
 Mat Grid::generateEdgeAsMat(int radius, int width, bool useBinaryImage) {
-    vector<float> edge = generateEdge(radius, width, useBinaryImage);
+	std::vector<float> edge = generateEdge(radius, width, useBinaryImage);
 
     Mat newEdge (edge.size(), 1, CV_32FC1);
     for (unsigned int i = 0; i < edge.size(); i++) {
@@ -475,14 +475,14 @@ Mat Grid::drawGrid(double scale, bool useBinaryImage) {
     }
 
     // contour vector
-    vector< vector <Point> > conts;
+    std::vector< std::vector <Point> > conts;
 
     int ites = 16;
-    vector < Point > cont;
+    std::vector < Point > cont;
 
     // render half of the inner circle (circular matrix design)
     ellipse2Poly(Point2f(x, y), Size2f(IRR * size, IRR * size), angle, 0, -180, 1, cont);
-    vector < Point > cont2;
+    std::vector < Point > cont2;
 
     // take first and last vertex of the polygon to get the respective diameter of the inner circle
     cont2.push_back(cont[0]);

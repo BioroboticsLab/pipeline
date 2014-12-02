@@ -27,7 +27,6 @@
 #include <boost/property_tree/ptree.hpp>
 #endif
 
-using namespace std;
 using namespace cv;
 
 namespace decoder {
@@ -89,7 +88,7 @@ private:
     Mat computeSobelMap(Mat grayImage);
     Mat computeBlobs(Mat sobel);
     Mat highlightTags(Mat &grayImage);
-    vector<Tag> locateTagCandidates(Mat blobImage, Mat cannyEdgeMap,
+    std::vector<Tag> locateTagCandidates(Mat blobImage, Mat cannyEdgeMap,
       Mat grayImage);
 
 #ifdef PipelineStandalone
@@ -151,7 +150,7 @@ public:
     *
     **************************************/
 
-    vector<Tag> process(Mat &&image);
+    std::vector<Tag> process(Mat &&image);
     void reset();
 };
 } /* namespace decoder */

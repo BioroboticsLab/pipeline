@@ -25,7 +25,6 @@
 #include <boost/property_tree/ptree.hpp>
 #endif
 
-using namespace std;
 using namespace cv;
 
 namespace decoder {
@@ -88,7 +87,7 @@ public:
 #endif
     virtual ~Recognizer() {}
 
-    vector<Tag> process(vector<Tag> &&taglist);
+    std::vector<Tag> process(std::vector<Tag> &&taglist);
     void visualizeEllipse(Tag const& tag , Ellipse const& ell, std::string const& title);
 };
 } /* namespace decoder */

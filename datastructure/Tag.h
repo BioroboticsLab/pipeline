@@ -22,7 +22,6 @@
 using namespace boost;
 #endif
 
-using namespace std;
 using namespace cv;
 
 namespace decoder {
@@ -48,7 +47,7 @@ private:
     int id;
 
     //there may be multiple ellipses and grids for this location, so there is a list of candidates
-    vector<TagCandidate> _candidates;
+    std::vector<TagCandidate> _candidates;
 
 #ifdef PipelineStandalone
     //needed to serialize all the private members
@@ -71,9 +70,9 @@ public:
     *
     **************************************/
 
-    vector<TagCandidate> &getCandidates();
-    vector<TagCandidate> const& getCandidatesConst() const;
-    void setCandidates(vector<TagCandidate>&& candidates);
+    std::vector<TagCandidate> &getCandidates();
+    std::vector<TagCandidate> const& getCandidatesConst() const;
+    void setCandidates(std::vector<TagCandidate>&& candidates);
     const Mat& getCannySubImage() const;
     void setCannySubImage(const Mat& cannySubImage);
     const Mat& getOrigSubImage() const;

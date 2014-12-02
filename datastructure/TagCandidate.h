@@ -28,7 +28,7 @@ private:
     //score of the candidate
     double _score;
     Ellipse _ellipse;
-    vector<Grid> _grids;
+    std::vector<Grid> _grids;
     vector <Decoding> _decodings;
     //decoded Id
     int _decodedId;
@@ -84,19 +84,19 @@ public:
         _ellipse.setTransformedImage(transformedImage);
     }
 
-    vector<Grid>& getGrids() {
+    std::vector<Grid>& getGrids() {
         return _grids;
     }
 
-    void setGrids(vector<Grid>&& grids) {
+    void setGrids(std::vector<Grid>&& grids) {
         _grids = grids;
     }
 
-    const vector<Decoding>& getDecodings() const {
+    const std::vector<Decoding>& getDecodings() const {
         return _decodings;
     }
 
-    void setDecodings(const vector<Decoding>& decodings) {
+    void setDecodings(const std::vector<Decoding>& decodings) {
         _decodings = decodings;
     }
 };

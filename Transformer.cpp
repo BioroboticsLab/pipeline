@@ -8,7 +8,7 @@
 #include "Transformer.h"
 
 namespace decoder {
-vector<Tag> Transformer::process(vector<Tag>&& taglist){
+std::vector<Tag> Transformer::process(std::vector<Tag>&& taglist){
     // remove invalid tags
     taglist.erase(std::remove_if(taglist.begin(), taglist.end(), [](Tag& tag) { return !tag.isValid(); }), taglist.end());
     for (Tag& tag : taglist) {
@@ -19,7 +19,7 @@ vector<Tag> Transformer::process(vector<Tag>&& taglist){
 
 void Transformer::transformImages(Tag &tag){
     Mat originalImage = tag.getOrigSubImage();
-    vector<TagCandidate> candidates = tag.getCandidates();
+    std::vector<TagCandidate> candidates = tag.getCandidates();
 
     for (TagCandidate& candidate : candidates) {
         Mat transformedImage = ellipseTransform(candidate.getEllipse(), originalImage);

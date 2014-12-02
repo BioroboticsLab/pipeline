@@ -1,7 +1,6 @@
 #include "Ellipse.h"
 
 using namespace cv;
-using namespace std;
 
 namespace decoder {
 Ellipse::Ellipse() {

@@ -29,7 +29,6 @@
 // speed decrease for step size (on position stay)
 #define DOWN_SPEED 0.5
 
-using namespace std;
 using namespace cv;
 
 namespace decoder {
@@ -51,7 +50,7 @@ public:
      *
      * @return possible grids
      */
-    virtual vector<Tag> process(vector<Tag> &&taglist);
+    virtual std::vector<Tag> process(std::vector<Tag> &&taglist);
 
 private:
 
@@ -74,7 +73,7 @@ private:
      * @param roi part of the image where the tag is
      * @param circle Point3f object with position and radius of the tag circle
      */
-    vector<Point2f> getOrientationVector(Ellipse &ellipse);
+    std::vector<Point2f> getOrientationVector(Ellipse &ellipse);
 
     /** Otsu binarization to reduce grey scale
      *
@@ -100,7 +99,7 @@ private:
      * @param grids a vector of grids
      * @return the grid with the highest score
      */
-    Grid getBestGrid(vector<Grid> grids);
+    Grid getBestGrid(std::vector<Grid> grids);
 
     /**
      * Tries to get the best angle of a grid at the given position

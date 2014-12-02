@@ -64,7 +64,7 @@ public:
      *
      * @return new struct named Decoding(consists of id, tagId, score)
      */
-    vector<Tag> process(vector<Tag> &&taglist);
+    std::vector<Tag> process(std::vector<Tag> &&taglist);
 
     /**
      * generates an circle edge
@@ -73,7 +73,7 @@ public:
      * @param radius the radius of the circle
      * @return the vector with the brightness levels of the edge
      */
-    vector<unsigned char> generateEdge(Grid &g, int radius);
+    std::vector<unsigned char> generateEdge(Grid &g, int radius);
 private:
 
     /**
@@ -117,7 +117,7 @@ private:
      * @return a vector with the means and standard deviation of the white and black color (format:
      * [0]: white mean, [1]: white stddev, [2]: black mean, [3]: black stddev)
      */
-    vector<Scalar> colorMeans(Grid &g);
+    std::vector<Scalar> colorMeans(Grid &g);
 };
 }
 #endif /* DECODER_H_ */
