@@ -341,8 +341,7 @@ void Localizer::loadConfigVars(string filename) {
 	_settings.binary_threshold =
 			pt.get<int>(config::APPlICATION_ENVIROMENT + ".binary_threshold");
 	_settings.dilation_1_iteration_number =
-			this->LOCALIZER_DILATION_1_ITERATIONS = pt.get<int>(
-				config::APPlICATION_ENVIROMENT + ".dilation_1_interation_number");
+			pt.get<int>(config::APPlICATION_ENVIROMENT + ".dilation_1_interation_number");
 	_settings.dilation_1_size =
 			pt.get<int>(config::APPlICATION_ENVIROMENT + ".dilation_1_size");
 	_settings.erosion_size =

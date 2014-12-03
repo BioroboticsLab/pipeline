@@ -8,18 +8,19 @@
 #ifndef LOCALIZER_H_
 #define LOCALIZER_H_
 
-#include "./datastructure/BoundingBox.h"
-#include "./datastructure/Tag.h"
-#include "opencv2/imgproc/imgproc.hpp"
 #include <fstream>
 #include <iostream>
-#include <math.h>
+#include <cmath>
+#include <cstdio>
+#include <vector>
+
+#include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/opencv.hpp>
-#include <stdio.h>
-#include <unistd.h>
-#include <vector>
+
+#include "datastructure/BoundingBox.h"
+#include "datastructure/Tag.h"
 
 #ifdef PipelineStandalone
 #include "../config.h"
