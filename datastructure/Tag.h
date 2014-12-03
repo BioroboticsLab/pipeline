@@ -60,9 +60,8 @@ private:
 
 public:
 
-    Tag();
-    Tag(Rect rec);
-    virtual ~Tag();
+    explicit Tag(Rect rec, int id);
+    ~Tag();
 
     /**************************************
     *

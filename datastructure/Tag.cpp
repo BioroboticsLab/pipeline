@@ -6,6 +6,7 @@
  */
 
 #include "Tag.h"
+#include <utility> // std::move
 
 namespace decoder {
 /**************************************
@@ -14,21 +15,14 @@ namespace decoder {
 *
 **************************************/
 
-Tag::Tag() {
-    this->_valid      = true;
-    this->_candidates = std::vector<TagCandidate>();
+Tag::Tag(Rect rec, int id)
+	: _box(rec)
+	, _valid(true)
+	, id(id)
+{
 }
 
-Tag::Tag(Rect rec) {
-    this->_valid      = true;
-    this->_candidates = std::vector<TagCandidate>();
-
-    this->_box = rec;
-}
-
-Tag::~Tag() {
-    // TODO Auto-generated destructor stub
-}
+Tag::~Tag() = default;
 
 /**************************************
 *
@@ -46,7 +40,7 @@ const std::vector<TagCandidate> &Tag::getCandidatesConst() const
 }
 
 void Tag::setCandidates(std::vector<TagCandidate>&& candidates) {
-    _candidates = candidates;
+    _candidates = std::move(candidates);
 }
 
 const Mat& Tag::getCannySubImage() const {
