@@ -19,9 +19,9 @@ GridFitter::~GridFitter() {
     // TODO Auto-generated destructor stub
 }
 
-std::vector<Tag> GridFitter::process(std::vector<Tag>&& taglist) {
+std::vector<Tag> GridFitter::process(std::vector<Tag>&& taglist) const {
     // remove invalid tags
-    taglist.erase(std::remove_if(taglist.begin(), taglist.end(), [](Tag& tag) { return !tag.isValid(); }), taglist.end());
+    taglist.erase(std::remove_if(taglist.begin(), taglist.end(), [](const Tag& tag) { return !tag.isValid(); }), taglist.end());
     static const size_t numThreads = 8;
     ThreadPool pool(numThreads);
     std::vector<std::future<void>> results;
@@ -40,10 +40,10 @@ std::vector<Tag> GridFitter::process(std::vector<Tag>&& taglist) {
         }));
     }
     for(auto && result: results) result.get();
-    return taglist;
+    return std::move(taglist);
 }
 
-Grid GridFitter::fitGrid(Ellipse& ellipse) {
+Grid GridFitter::fitGrid(Ellipse& ellipse) const {
     // Convert image to gray scale (maybe obsolete)
     Mat grayImage;
     if (ellipse.transformedImage.channels() > 2) {
@@ -58,8 +58,8 @@ Grid GridFitter::fitGrid(Ellipse& ellipse) {
       ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY, 21, 3);
 
     // Get ellipse orientation
-    std::vector<Point2f> orient = getOrientationVector(ellipse);
-    Vec2f v    = Vec2f(orient[1].x - orient[0].x, orient[1].y - orient[0].y);
+    const auto &orient = getOrientationVector(ellipse);
+    const Vec2f v = orient[1] - orient[0];
     float alph = atan2(v[1], v[0]) * 180 / CV_PI + 90;
 
     //check for NaN values
@@ -70,13 +70,12 @@ Grid GridFitter::fitGrid(Ellipse& ellipse) {
     // Run multiple Grid Fittings with several start positions
     Grid bestGrid = fitGridGradient(ellipse, static_cast<double>(alph), ellipse.cen.x,
         ellipse.cen.y);
-    int offsetX, offsetY;
     srand(time(NULL));     // Seed the random generator
     // TODO 16 ist besser als 4
     for (int i = 0; i < 16; i++) {
         // Calculate offset to the center of the ellipse
-        offsetX = rand() % ellipse.axis.width - (ellipse.axis.width / 2);
-        offsetY = rand() % ellipse.axis.width - (ellipse.axis.width / 2);
+        const int offsetX = rand() % ellipse.axis.width - (ellipse.axis.width / 2);
+        const int offsetY = rand() % ellipse.axis.width - (ellipse.axis.width / 2);
         Grid grid = fitGridGradient(ellipse, static_cast<double>(alph),
             ellipse.cen.x + offsetX, ellipse.cen.y + offsetY);
 
@@ -88,15 +87,14 @@ Grid GridFitter::fitGrid(Ellipse& ellipse) {
     return bestGrid;
 }
 
-std::vector<Point2f> GridFitter::getOrientationVector(Ellipse &ellipse) {
-    std::vector<Point2f> res(2, Point());
+std::array<Point2f, 2> GridFitter::getOrientationVector(const Ellipse &ellipse) const {
 
-    Point3f circle = Point3f(ellipse.cen.x, ellipse.cen.y,
+    const Point3f circle(ellipse.cen.x, ellipse.cen.y,
         (ellipse.axis.width / 3.0));
-    Mat &roi = ellipse.binarizedImage;
+    const Mat &roi = ellipse.binarizedImage;
 
     // create circular cutout
-    Mat circMask = Mat(roi.rows, roi.cols, CV_8UC1, Scalar(0));
+    Mat circMask(roi.rows, roi.cols, CV_8UC1, Scalar(0));
     cv::circle(circMask, Point(circle.x, circle.y), circle.z, Scalar(1),
       CV_FILLED);
 
@@ -108,23 +106,22 @@ std::vector<Point2f> GridFitter::getOrientationVector(Ellipse &ellipse) {
     Mat hcBlack = circMask.mul(255 - hcWhite);
 
     // Calculate moment => orientation of the tag
-    Moments momw = moments(hcWhite, true);
-    Moments momb = moments(hcBlack, true);
+    const Moments momw = moments(hcWhite, true);
+    const Moments momb = moments(hcBlack, true);
 
-    res[0].x = momb.m10 / momb.m00;
-    res[0].y = momb.m01 / momb.m00;
+    const auto p0_x = momb.m10 / momb.m00;
+    const auto p0_y = momb.m01 / momb.m00;
 
-    res[1].x = momw.m10 / momw.m00;
-    res[1].y = momw.m01 / momw.m00;
+    const auto p1_x = momw.m10 / momw.m00;
+    const auto p1_y = momw.m01 / momw.m00;
 
-    return (res);
+    return {Point2f(p0_x, p0_y), Point2f(p1_x, p1_y)};
 }
 
-double GridFitter::getOtsuThreshold(Mat &srcMat) {
+double GridFitter::getOtsuThreshold(const Mat &srcMat) const {
     //Code Snippet from
     //http://stackoverflow.com/questions/12953993/otsu-thresholding-for-depth-image
-    Mat copyImg;
-    srcMat.copyTo(copyImg);
+    Mat copyImg = srcMat.clone();
     uchar* ptr     = copyImg.datastart;
     uchar* ptr_end = copyImg.dataend;
     while (ptr < ptr_end) {
@@ -142,14 +139,14 @@ double GridFitter::getOtsuThreshold(Mat &srcMat) {
     Mat nz = Mat(std::vector<uchar>(copyImg.datastart, ptr_end), true);
 
     // compute  Otsu threshold
-    double thresh = threshold(nz, nz, 0, 255,
+    const double thresh = threshold(nz, nz, 0, 255,
         CV_THRESH_BINARY | CV_THRESH_OTSU);
 
-    return (thresh);
+    return thresh;
 }
 
-Grid GridFitter::fitGridGradient(Ellipse &ellipse, double angle, int startX,
-  int startY) {
+Grid GridFitter::fitGridGradient(const Ellipse &ellipse, double angle, int startX,
+  int startY) const {
     int step_size = INITIAL_STEP_SIZE;     // Amount of pixel the walk should jump
 
     float gsize = (ellipse.axis.width / 3.0);
@@ -210,8 +207,8 @@ Grid GridFitter::fitGridGradient(Ellipse &ellipse, double angle, int startX,
     return (best);
 }
 
-Grid GridFitter::fitGridAngle(Ellipse &ellipse, float gsize, double angle,
-  int x, int y) {
+Grid GridFitter::fitGridAngle(const Ellipse &ellipse, float gsize, double angle,
+  int x, int y) const {
     Grid cur(scoringMethod);
     Grid best(gsize, scoringMethod);
 
@@ -252,31 +249,25 @@ Grid GridFitter::fitGridAngle(Ellipse &ellipse, float gsize, double angle,
     return best;
 }
 
-Grid GridFitter::getBestGrid(std::vector<Grid> grids) {
+Grid GridFitter::getBestGrid(const std::vector<Grid> &grids) const {
+    const auto it = std::max_element(grids.cbegin(), grids.cend());
     Grid best(scoringMethod);
-    Grid cur(scoringMethod);
-
-    while (grids.size() > 0) {
-        cur = grids.back();
-        grids.pop_back();
-        if (cur > best) {
-            best = cur;
-        }
+    if (it != grids.cend() && *it > best) {
+    	best = *it;
     }
-
     return best;
 }
 
-int GridFitter::bestGridAngleCorrection(Grid g) {
+int GridFitter::bestGridAngleCorrection(Grid g) const {
     // index encoding 30Â°-step angles ranging from [0,5]
     int i    = 0;
-    Mat &roi = g.ell.transformedImage;
+    const Mat &roi = g.ell.transformedImage;
 
     float mean1c = 0;
     float mean2c = 0;
 
     for (int j = 0; j < 6; j++) {
-        Mat mask1 = Mat(roi.rows, roi.cols, roi.type(), Scalar(0));
+        Mat mask1(roi.rows, roi.cols, roi.type(), Scalar(0));
         std::vector<std::vector<Point> > conts1;
         conts1.push_back(g.renderGridCell(13, j));
         drawContours(mask1, conts1, 0, Scalar(255), CV_FILLED);
@@ -285,7 +276,7 @@ int GridFitter::bestGridAngleCorrection(Grid g) {
 
         meanStdDev(roi, mean1, std1, mask1);
 
-        Mat mask2 = Mat(roi.rows, roi.cols, roi.type(), Scalar(0));
+        Mat mask2(roi.rows, roi.cols, roi.type(), Scalar(0));
         std::vector<std::vector<Point> > conts2;
         conts2.push_back(g.renderGridCell(14, j));
         drawContours(mask2, conts2, 0, Scalar(255), CV_FILLED);
@@ -305,6 +296,6 @@ int GridFitter::bestGridAngleCorrection(Grid g) {
     if (mean1c < mean2c)
         i += 6;
 
-    return (i);
+    return i;
 }
 }

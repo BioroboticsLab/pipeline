@@ -18,6 +18,7 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/opencv.hpp>
+#include <array> // std::array
 
 // Constants for optimized detection of the tag center
 // initial step size
@@ -50,7 +51,7 @@ public:
      *
      * @return possible grids
      */
-    std::vector<Tag> process(std::vector<Tag> &&taglist);
+    std::vector<Tag> process(std::vector<Tag> &&taglist) const;
 
 private:
 
@@ -65,7 +66,7 @@ private:
      * @param ellipse the ellipse the grid should belong to
      * @return the hopefully best grid
      */
-    Grid fitGrid(Ellipse &ellipse);
+    Grid fitGrid(Ellipse &ellipse) const;
 
     /**
      * guesses orientation of the tag
@@ -73,14 +74,14 @@ private:
      * @param roi part of the image where the tag is
      * @param circle Point3f object with position and radius of the tag circle
      */
-    std::vector<Point2f> getOrientationVector(Ellipse &ellipse);
+    std::array<Point2f, 2> getOrientationVector(const Ellipse &ellipse) const;
 
     /** Otsu binarization to reduce grey scale
      *
      * @param srcMat grayscale source image
      * @return Otsu-threshold of the masked input image
      */
-    double getOtsuThreshold(Mat &srcMat);
+    double getOtsuThreshold(const Mat &srcMat) const;
 
     /**
      * Tries to get the best grid according to the given ellipse with a gradient approach
@@ -91,7 +92,7 @@ private:
      * @param startY y part of the start coordinate
      * @return the best grid
      */
-    Grid fitGridGradient(Ellipse &ellipse, double angle, int startX, int startY);
+    Grid fitGridGradient(const Ellipse &ellipse, double angle, int startX, int startY) const;
 
     /**
      * Returns the grid with the highest score
@@ -99,7 +100,7 @@ private:
      * @param grids a vector of grids
      * @return the grid with the highest score
      */
-    Grid getBestGrid(std::vector<Grid> grids);
+    Grid getBestGrid(const std::vector<Grid> &grids) const;
 
     /**
      * Tries to get the best angle of a grid at the given position
@@ -111,7 +112,7 @@ private:
      * @param y vertical part of grid position
      * @return best grid angle
      */
-    Grid fitGridAngle(Ellipse &ellipse, float gsize, double angle, int x, int y);
+    Grid fitGridAngle(const Ellipse &ellipse, float gsize, double angle, int x, int y) const;
 
     /**
      * Returns a orientation correction for a grid as offset.
@@ -119,7 +120,7 @@ private:
      * @param g the grid
      * @return offset in cells
      */
-    int bestGridAngleCorrection(Grid g);
+    int bestGridAngleCorrection(Grid g) const;
 };
 }
 #endif /* GRIDFITTER_H_ */
