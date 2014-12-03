@@ -17,7 +17,7 @@ Converter::Converter() {
  *
  * @param filename
  */
-Mat Converter::process(const string& filename) {
+Mat Converter::process(const std::string& filename) {
     Mat image = cv::imread(filename);
     return process(image);
 }
@@ -42,14 +42,14 @@ Converter::~Converter() {
  * @param filename
  * @return
  */
-bool Converter::checkValidFilename(const string& filename) {
+bool Converter::checkValidFilename(const std::string& filename) {
     //check if filename is given
     if (filename.size() == 0) {
         return false;
     }
 
     //check if file exists
-    ifstream f(filename.c_str());
+    std::ifstream f(filename.c_str());
     if (!f.good()) {
         f.close();
         return false;

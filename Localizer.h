@@ -27,7 +27,6 @@
 #include <boost/property_tree/ptree.hpp>
 #endif
 
-using namespace std;
 using namespace cv;
 
 namespace decoder {
@@ -56,17 +55,17 @@ typedef struct {
 
 class Localizer {
 private:
-    Mat gray_image_;
-    Mat sobel_;
-    Mat blob_;
-    Mat canny_map_;
+	Mat gray_image_;
+	Mat sobel_;
+	Mat blob_;
+	Mat canny_map_;
 
 	localizer_settings_t _settings;
 
-    Mat computeSobelMap(Mat grayImage);
-    Mat computeBlobs(Mat sobel);
-    Mat highlightTags(Mat &grayImage);
-	vector<Tag> locateTagCandidates(Mat blobImage, Mat cannyEdgeMap, Mat grayImage);
+	Mat computeSobelMap(Mat grayImage);
+	Mat computeBlobs(Mat sobel);
+	Mat highlightTags(Mat &grayImage);
+	std::vector<Tag> locateTagCandidates(Mat blobImage, Mat cannyEdgeMap, Mat grayImage);
 
 #ifdef PipelineStandalone
 	void loadConfigVars(string filename);
@@ -82,16 +81,16 @@ public:
 	void loadSettings(localizer_settings_t&& settings);
 
 	const Mat& getBlob() const;
-    void setBlob(const Mat& blob);
-    const Mat& getCannyMap() const;
-    void setCannyMap(const Mat& cannyMap);
-    const Mat& getGrayImage() const;
-    void setGrayImage(const Mat& grayImage);
-    const Mat& getSobel() const;
-    void setSobel(const Mat& sobel);
+	void setBlob(const Mat& blob);
+	const Mat& getCannyMap() const;
+	void setCannyMap(const Mat& cannyMap);
+	const Mat& getGrayImage() const;
+	void setGrayImage(const Mat& grayImage);
+	const Mat& getSobel() const;
+	void setSobel(const Mat& sobel);
 
-    vector<Tag> process(Mat &&image);
-    void reset();
+	std::vector<Tag> process(Mat &&image);
+	void reset();
 };
 } /* namespace decoder */
 

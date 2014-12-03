@@ -6,26 +6,25 @@
  */
 
 #include "Decoder.h"
+#include <utility> // std::move
 
 #include <bitset>
 
-using namespace std;
 using namespace cv;
 
 namespace decoder {
 Decoder::Decoder() {
 }
 
-Decoder::~Decoder() {
-    // TODO Auto-generated destructor stub
-}
+Decoder::~Decoder() = default;
 
-vector<Tag> Decoder::process(vector<Tag>&& taglist) {
+std::vector<Tag> Decoder::process(std::vector<Tag>&& taglist) const {
     // remove invalid tags
     taglist.erase(std::remove_if(taglist.begin(), taglist.end(), [](Tag& tag) { return !tag.isValid(); }), taglist.end());
     for (Tag& tag : taglist) {
         for (TagCandidate& candidate : tag.getCandidates()) {
-            std::vector<Decoding> decodings(candidate.getGrids().size() * 2);
+            std::vector<Decoding> decodings;
+            decodings.reserve(candidate.getGrids().size() * 2);
             for (Grid& grid : candidate.getGrids()) {
                 decodings.push_back(includeExcludeDecode(grid));
                 decodings.push_back(edgeWalkerDecode(grid));
@@ -57,22 +56,22 @@ vector<Tag> Decoder::process(vector<Tag>&& taglist) {
             destroyAllWindows();
 #endif
 
-            candidate.setDecodings(decodings);
+            candidate.setDecodings(std::move(decodings));
         }
     }
-    return taglist;
+    return std::move(taglist);
 }
 
-Decoding Decoder::decode(Grid &g) {
+Decoding Decoder::decode(const Grid &g) const {
     return edgeWalkerDecode(g);
 }
 
-Decoding Decoder::includeExcludeDecode(Grid &g) {
-    Mat &image = g.ell.binarizedImage;
+Decoding Decoder::includeExcludeDecode(const Grid &g) const {
+    const Mat &image = g.ell().binarizedImage;
 
     Mat whiteMask = Mat(image.rows, image.cols, image.type(), Scalar(0));
     Mat blackMask = Mat(image.rows, image.cols, image.type(), Scalar(0));
-    vector<vector<Point> > conts(1);
+    std::vector<std::vector<Point> > conts(1);
     conts[0] = g.renderScaledGridCell(13, CELL_SCALE);
     drawContours(whiteMask, conts, 0, Scalar(1), CV_FILLED);
     conts[0] = g.renderScaledGridCell(14, CELL_SCALE);
@@ -81,9 +80,9 @@ Decoding Decoder::includeExcludeDecode(Grid &g) {
     Scalar mean;
     Scalar std;
     meanStdDev(image, mean, std, whiteMask);
-    double whiteCenter = mean[0];
+    const double whiteCenter = mean[0];
     meanStdDev(image, mean, std, blackMask);
-    double blackCenter = mean[0];
+    const double blackCenter = mean[0];
 
     // Initial labeling
     Mat labels(12, 1, CV_8U);
@@ -114,9 +113,9 @@ Decoding Decoder::includeExcludeDecode(Grid &g) {
         whiteMovedScore = -1;
 
         // Get the brightest black cell and the darkest white cell
-        minMaxIdx(means, NULL, NULL, NULL, blackMaxIdx,
+        minMaxIdx(means, nullptr, nullptr, nullptr, blackMaxIdx,
           Mat::ones(12, 1, CV_8U) - labels);
-        minMaxIdx(means, NULL, NULL, whiteMinIdx, NULL, labels);
+        minMaxIdx(means, nullptr, nullptr, whiteMinIdx, nullptr, labels);
 
         // Change class of the cell, but just if there is one
         if (blackMaxIdx[1] != -1) {
@@ -151,20 +150,14 @@ Decoding Decoder::includeExcludeDecode(Grid &g) {
     }
 
     // Pack it into the decoding
-    Decoding decoding;
-    //decoding.id = id;
-    decoding.tagId = res;
-    decoding.grid  = g;
-    decoding.score = fisherScore(g, labels, true);
-
-    return decoding;
+    return Decoding(res, fisherScore(g, labels, true), g);
 }
 
-double Decoder::fisherScore(Grid &g, Mat &labels, bool useBinaryImage) {
-    Mat &image = useBinaryImage ? g.ell.binarizedImage : g.ell.transformedImage;
-    vector<vector<Point> > conts(1);
-    Mat whiteMask = Mat(image.rows, image.cols, image.type(), Scalar(0));
-    Mat blackMask = Mat(image.rows, image.cols, image.type(), Scalar(0));
+double Decoder::fisherScore(const Grid &g, Mat &labels, bool useBinaryImage) const {
+    const Mat &image = useBinaryImage ? g.ell().binarizedImage : g.ell().transformedImage;
+    std::vector<std::vector<Point> > conts(1);
+    Mat whiteMask(image.rows, image.cols, image.type(), Scalar(0));
+    Mat blackMask(image.rows, image.cols, image.type(), Scalar(0));
     conts[0] = g.renderScaledGridCell(13, CELL_SCALE);
     drawContours(whiteMask, conts, 0, Scalar(255), CV_FILLED);
     conts[0] = g.renderScaledGridCell(14, CELL_SCALE);
@@ -193,33 +186,32 @@ double Decoder::fisherScore(Grid &g, Mat &labels, bool useBinaryImage) {
            / (whiteStd[0] * whiteStd[0] + blackStd[0] * blackStd[0]);
 }
 
-Decoding Decoder::edgeWalkerDecode(Grid &g) {
+Decoding Decoder::edgeWalkerDecode(const Grid &g) const {
     Mat edge = g.generateEdgeAsMat(
-        static_cast<int>(IORR * g.size + (ORR * g.size - IORR * g.size) * 0.5), 1);
-    int edgeSize    = edge.size().height;
-    double cellSize = edgeSize / 12.0;
+        static_cast<int>(IORR * g.size() + (ORR * g.size() - IORR * g.size()) * 0.5), 1);
+    const int edgeSize    = edge.size().height;
+    const double cellSize = edgeSize / 12.0;
 
     // Generate cut at the half way between the min and the max value of the edge
     double min;
     double max;
     minMaxIdx(edge, &min, &max);
-    double cut = min + (max - min) / 2;
+    const double cut = min + (max - min) / 2;
 
     // Get peaks and valleys of the edge, by walking from left to right
     // Indicate the direction of the curve
     EdgePoint::Direction leftDir  = EdgePoint::PLAIN;
     EdgePoint::Direction rightDir = EdgePoint::PLAIN;
-    vector<EdgePoint> turningPoints;
+    std::vector<EdgePoint> turningPoints;
     for (int i = 0; i < edgeSize; i++) {
         EdgePoint turningPoint;
         turningPoint.value    = edge.at<float>(i);
         turningPoint.position = i;
 
         // Follow the left side till something changes
-        float prevVal;
         for (int prevIdx = (i - 1 + edgeSize) % edgeSize;;
           prevIdx = (prevIdx - 1 + edgeSize) % edgeSize) {
-            prevVal = edge.at<float>(prevIdx);
+            const float prevVal = edge.at<float>(prevIdx);
             if (prevVal > turningPoint.value) {
                 leftDir = EdgePoint::UP;
                 break;
@@ -230,10 +222,9 @@ Decoding Decoder::edgeWalkerDecode(Grid &g) {
         }
 
         // Follow the right side till something changes
-        float nextVal;
         for (int nextIdx = (i + 1) % edgeSize;;
           nextIdx = (nextIdx + 1) % edgeSize) {
-            nextVal = edge.at<float>(nextIdx);
+            const float nextVal = edge.at<float>(nextIdx);
 
             //i = nextIdx - 1; // Skip points on the same level
 
@@ -258,17 +249,17 @@ Decoding Decoder::edgeWalkerDecode(Grid &g) {
         }
     }
 
-    ofstream turningPointsFile(
+    std::ofstream turningPointsFile(
         "../../../arbeit/data/decoding/edgeWalker/turning_points_003_001.txt");
     for (unsigned int k = 0; k < turningPoints.size(); k++) {
         turningPointsFile << turningPoints[k].position << " "
-                          << turningPoints[k].value << endl;
+                          << turningPoints[k].value << std::endl;
     }
     turningPointsFile.close();
 
     // Find transition points
 #define TP_EPS 0 // interval a turning point can move
-    vector<EdgePoint> transitionPoints;
+    std::vector<EdgePoint> transitionPoints;
     for (unsigned int i = 0; i < turningPoints.size(); i++) {
         EdgePoint leftPoint  = turningPoints[i];
         EdgePoint rightPoint = turningPoints[(i + 1) % turningPoints.size()];
@@ -284,14 +275,12 @@ Decoding Decoder::edgeWalkerDecode(Grid &g) {
             //transitionPoint.position = (leftPoint.position + rightPoint.position) / 2;
             //} else {
             // Walk the edge to the right from the leftPoint and to the left from the rightPoint till a point goes over the cut. This point is the transition point!
-            int leftPos, rightPos;
-            float leftVal, rightVal;
             for (int j = 1;; j++) {
-                leftPos  = (static_cast<int>(leftPoint.position) + j) % edgeSize;
-                leftVal  = edge.at<float>(leftPos);
-                rightPos = (static_cast<int>(rightPoint.position) - j + edgeSize)
+                const int leftPos  = (static_cast<int>(leftPoint.position) + j) % edgeSize;
+                const float leftVal  = edge.at<float>(leftPos);
+                const int rightPos = (static_cast<int>(rightPoint.position) - j + edgeSize)
                   % edgeSize;
-                rightVal = edge.at<float>(rightPos);
+                const float rightVal = edge.at<float>(rightPos);
 
                 // TODO maybe use better heuristics for usable differences
                 if ((leftPoint.value - cut >= 0 ? 1 : -1)
@@ -314,18 +303,18 @@ Decoding Decoder::edgeWalkerDecode(Grid &g) {
         }
     }
 
-    ofstream transitionPointsFile(
+    std::ofstream transitionPointsFile(
         "../../../arbeit/data/decoding/edgeWalker/transition_points_003_001.txt");
     for (unsigned int k = 0; k < transitionPoints.size(); k++) {
         transitionPointsFile << transitionPoints[k].position << " "
-                             << transitionPoints[k].value << endl;
+                             << transitionPoints[k].value << std::endl;
     }
     transitionPointsFile.close();
 
     // correction at the first transition point
-    double cellBeginning = round((transitionPoints[0].position) / cellSize)
+    const double cellBeginning = round((transitionPoints[0].position) / cellSize)
       * cellSize;
-    double correction = cellBeginning - transitionPoints[0].position;
+    const double correction = cellBeginning - transitionPoints[0].position;
 
     // Apply correction
     for (unsigned int i = 0; i < transitionPoints.size(); i++) {
@@ -338,16 +327,15 @@ Decoding Decoder::edgeWalkerDecode(Grid &g) {
 
     // At least the decoding
     Mat labels(12, 1, CV_8UC1, 2);
-    int curBit, leftCellId, rightCellId;
     for (unsigned int i = 0; i < transitionPoints.size(); i++) {
         EdgePoint leftPoint  = transitionPoints[i];
         EdgePoint rightPoint = transitionPoints[(i + 1)
           % transitionPoints.size()];
 
-        curBit = leftPoint.dir == EdgePoint::UP;         // Compute possible current bit
+        const int curBit = leftPoint.dir == EdgePoint::UP;         // Compute possible current bit
 
-        leftCellId  = round(leftPoint.position / cellSize);
-        rightCellId = round(rightPoint.position / cellSize);
+        const int leftCellId  = round(leftPoint.position / cellSize);
+        const int rightCellId = round(rightPoint.position / cellSize);
 
         for (int j = 0; j < (rightCellId - leftCellId + 12) % 12; j++) {
             labels.at<unsigned char>((leftCellId + j) % 12) =
@@ -355,19 +343,13 @@ Decoding Decoder::edgeWalkerDecode(Grid &g) {
         }
     }
 
-    //cout << labels << endl;
+    //std::cout << labels << std::endl;
     unsigned int res = 0;
     for (int i = 0; i < 12; i++) {
         res += labels.at<unsigned char>(i) << (11 - i);
     }
 
     // Pack it into the decoding
-    Decoding decoding;
-    //decoding.id = id;
-    decoding.tagId = res;
-    decoding.grid  = g;
-    decoding.score = fisherScore(g, labels, true);
-
-    return decoding;
+    return Decoding(res, fisherScore(g, labels, true), g);
 }
 }

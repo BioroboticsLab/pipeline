@@ -11,6 +11,7 @@
 #include "Decoding.h"
 #include "Ellipse.h"
 #include "Grid.h"
+#include <utility> // std::move
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/opencv.hpp>
@@ -26,20 +27,19 @@ private:
     *
     **************************************/
     //score of the candidate
-    double _score;
+    //double _score;
     Ellipse _ellipse;
-    vector<Grid> _grids;
+    std::vector<Grid> _grids;
     vector <Decoding> _decodings;
     //decoded Id
-    int _decodedId;
+    //int _decodedId;
 public:
     /**************************************
     *
     *           constructor
     *
     **************************************/
-    TagCandidate(){
-    }
+
     TagCandidate(Ellipse e){
         this->_ellipse = e;
     }
@@ -52,13 +52,13 @@ public:
     *
     **************************************/
 
-    int getDecodedId() const {
-        return _decodedId;
-    }
-
-    void setDecodedId(int decodedId) {
-        _decodedId = decodedId;
-    }
+//    int getDecodedId() const {
+//        return _decodedId;
+//    }
+//
+//    void setDecodedId(int decodedId) {
+//        _decodedId = decodedId;
+//    }
 
     Ellipse& getEllipse() {
         return _ellipse;
@@ -68,13 +68,13 @@ public:
         _ellipse = ellipse;
     }
 
-    double getScore() const {
-        return _score;
-    }
-
-    void setScore(double score) {
-        _score = score;
-    }
+//    double getScore() const {
+//        return _score;
+//    }
+//
+//    void setScore(double score) {
+//        _score = score;
+//    }
 
     const Mat& getTransformedImage() const {
         return _ellipse.getTransformedImage();
@@ -84,20 +84,20 @@ public:
         _ellipse.setTransformedImage(transformedImage);
     }
 
-    vector<Grid>& getGrids() {
+    std::vector<Grid>& getGrids() {
         return _grids;
     }
 
-    void setGrids(vector<Grid>&& grids) {
-        _grids = grids;
+    void setGrids(std::vector<Grid>&& grids) {
+        _grids = std::move(grids);
     }
 
-    const vector<Decoding>& getDecodings() const {
+    const std::vector<Decoding>& getDecodings() const {
         return _decodings;
     }
 
-    void setDecodings(const vector<Decoding>& decodings) {
-        _decodings = decodings;
+    void setDecodings(std::vector<Decoding>&& decodings) {
+        _decodings = std::move(decodings);
     }
 };
 } /* namespace decoder */

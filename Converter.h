@@ -16,8 +16,8 @@
 #include <opencv2/opencv.hpp>
 #include <stdio.h>
 #include <unistd.h>
+#include <string>
 
-using namespace std;
 using namespace cv;
 
 namespace decoder {
@@ -26,11 +26,11 @@ public:
     Converter();
     virtual ~Converter();
 
-    cv::Mat process(const string& filename);
+    cv::Mat process(const std::string& filename);
     cv::Mat process(cv::Mat& image);
 
 private:
-    bool checkValidFilename(const string& filename);
+    bool checkValidFilename(const std::string& filename);
 };
 } /* namespace decoder_interface */
 

@@ -25,7 +25,6 @@
 #include <boost/property_tree/ptree.hpp>
 #endif
 
-using namespace std;
 using namespace cv;
 
 namespace decoder {
@@ -38,7 +37,7 @@ public:
     Transformer() {}
     virtual ~Transformer() {}
 
-    vector<Tag> process(vector<Tag> &&taglist);
+    std::vector<Tag> process(std::vector<Tag> &&taglist);
 };
 } /* namespace decoder */
 

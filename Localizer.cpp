@@ -85,7 +85,7 @@ void Localizer::setSobel(const Mat& sobel) {
 *
 **************************************/
 
-vector<Tag> Localizer::process(cv::Mat&& grayImage) {
+std::vector<Tag> Localizer::process(cv::Mat&& grayImage) {
     this->gray_image_ = grayImage;
 
     // compute the sobel derivative first
@@ -97,7 +97,7 @@ vector<Tag> Localizer::process(cv::Mat&& grayImage) {
     // compute canny edge map. Needed for ellipse detection but needs to be done only once per image.
     //this->canny_map_ = this->computeCannyEdgeMap(grayImage);
 
-    vector<Tag> taglist = this->locateTagCandidates(this->blob_,
+    std::vector<Tag> taglist = this->locateTagCandidates(this->blob_,
         this->canny_map_, this->gray_image_);
 
     return taglist;
@@ -194,10 +194,10 @@ Mat Localizer::highlightTags(Mat &grayImage) {
  * @return boundingBoxes output vector of size-filtered bounding boxes
  */
 
-vector<Tag> Localizer::locateTagCandidates(Mat blobImage_old,
-  Mat cannyEdgeMap, Mat grayImage) {
-    vector<Tag>  taglist = vector<Tag>();
-    vector<vector<Point2i> > contours;
+std::vector<Tag> Localizer::locateTagCandidates(Mat blobImage_old,
+  Mat /*cannyEdgeMap*/, Mat grayImage) {
+    std::vector<Tag>  taglist = std::vector<Tag>();
+    std::vector<vector<Point2i> > contours;
 
     Mat blobImage;
     blobImage_old.copyTo(blobImage);
@@ -206,7 +206,7 @@ vector<Tag> Localizer::locateTagCandidates(Mat blobImage_old,
     findContours(blobImage, contours, CV_RETR_LIST, CV_CHAIN_APPROX_NONE);
 
     //extract contour bounding boxes for tag candidates
-    for (vector<vector<Point2i> >::iterator contour = contours.begin();
+    for (std::vector<vector<Point2i> >::iterator contour = contours.begin();
       contour != contours.end(); ++contour) {
         //filter contours which are too big
         if (contour->size() < this->_settings.max_tag_size) {
@@ -244,8 +244,7 @@ vector<Tag> Localizer::locateTagCandidates(Mat blobImage_old,
             // if rectangle-size is big/small enough add it to Bounding Boxes
             if ((rec.height * rec.width) > 800
               && (rec.height * rec.width) < 20000) {
-                Tag tag = Tag(rec);
-                tag.setId(taglist.size() + 1);
+                Tag tag(rec, taglist.size() + 1);
 
                 Mat subImageOrig_cp;
                 Mat sub_image_orig(grayImage, rec);

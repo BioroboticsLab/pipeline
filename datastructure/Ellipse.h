@@ -6,7 +6,6 @@
 #define ELLIPSE_H_
 
 using namespace cv;
-using namespace std;
 
 namespace decoder {
 class Ellipse {

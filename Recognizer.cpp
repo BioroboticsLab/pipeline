@@ -58,10 +58,10 @@ void Recognizer::detectXieEllipse(Tag &tag) {
     tag.setCannySubImage(cannyImage);
 
     //edge_pixel array, all edge pixels are stored in this array
-    vector<Point2i> ep;
+    std::vector<Point2i> ep;
     ep.reserve(cv::countNonZero(cannyImage) + 1);
 
-    vector<Ellipse> candidates;
+    std::vector<Ellipse> candidates;
 
     // (1) all white (being edge) pixels are written into the ep array
     MatConstIterator_<unsigned char> mit, end;
@@ -271,7 +271,7 @@ Mat Recognizer::computeCannyEdgeMap(Mat grayImage) {
     return cannyEdgeMap;
 }
 
-vector<Tag> Recognizer::process(vector<Tag>&& taglist) {
+std::vector<Tag> Recognizer::process(std::vector<Tag>&& taglist) {
     static const size_t numThreads = 8;
     ThreadPool pool(numThreads);
     std::vector < std::future < void >> results;
