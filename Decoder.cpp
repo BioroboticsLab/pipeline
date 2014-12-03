@@ -10,7 +10,6 @@
 
 #include <bitset>
 
-using namespace cv;
 
 namespace decoder {
 Decoder::Decoder() {
@@ -44,7 +43,7 @@ std::vector<Tag> Decoder::process(std::vector<Tag>&& taglist) const {
             for (Decoding& decoding : decodings) {
                 uint tagId = decoding.tagId;
                 std::bitset<12> binDigits(tagId);
-                Mat draw = decoding.grid.drawGrid();
+                cv::Mat draw = decoding.grid.drawGrid();
                 stringstream ss;
                 ss << "Grid " << cnt << " | Decoding: " << decoding.tagId << " | Binary Digits: " << binDigits;
                 string windowName = ss.str();
@@ -67,34 +66,34 @@ Decoding Decoder::decode(const Grid &g) const {
 }
 
 Decoding Decoder::includeExcludeDecode(const Grid &g) const {
-    const Mat &image = g.ell().binarizedImage;
+    const cv::Mat &image = g.ell().binarizedImage;
 
-    Mat whiteMask = Mat(image.rows, image.cols, image.type(), Scalar(0));
-    Mat blackMask = Mat(image.rows, image.cols, image.type(), Scalar(0));
-    std::vector<std::vector<Point> > conts(1);
+    cv::Mat whiteMask = cv::Mat(image.rows, image.cols, image.type(), cv::Scalar(0));
+    cv::Mat blackMask = cv::Mat(image.rows, image.cols, image.type(), cv::Scalar(0));
+    std::vector<std::vector<cv::Point> > conts(1);
     conts[0] = g.renderScaledGridCell(13, CELL_SCALE);
-    drawContours(whiteMask, conts, 0, Scalar(1), CV_FILLED);
+    drawContours(whiteMask, conts, 0, cv::Scalar(1), CV_FILLED);
     conts[0] = g.renderScaledGridCell(14, CELL_SCALE);
-    drawContours(blackMask, conts, 0, Scalar(1), CV_FILLED);
+    drawContours(blackMask, conts, 0, cv::Scalar(1), CV_FILLED);
 
-    Scalar mean;
-    Scalar std;
+    cv::Scalar mean;
+    cv::Scalar std;
     meanStdDev(image, mean, std, whiteMask);
     const double whiteCenter = mean[0];
     meanStdDev(image, mean, std, blackMask);
     const double blackCenter = mean[0];
 
     // Initial labeling
-    Mat labels(12, 1, CV_8U);
-    Mat means(12, 1, CV_32F);
-    Mat stds(12, 1, CV_32F);
+    cv::Mat labels(12, 1, CV_8U);
+    cv::Mat means(12, 1, CV_32F);
+    cv::Mat stds(12, 1, CV_32F);
     for (int i = 0; i < 12; i++) {
-        Mat cellMask = Mat(image.rows, image.cols, image.type(), Scalar(0));
+        cv::Mat cellMask = cv::Mat(image.rows, image.cols, image.type(), cv::Scalar(0));
 
         conts[0] = g.renderScaledGridCell(i, CELL_SCALE);
-        drawContours(cellMask, conts, 0, Scalar(1), CV_FILLED);
-        Scalar mean;
-        Scalar std;
+        drawContours(cellMask, conts, 0, cv::Scalar(1), CV_FILLED);
+        cv::Scalar mean;
+        cv::Scalar std;
         meanStdDev(image, mean, std, cellMask);
         labels.at<unsigned char>(i) =
           abs(whiteCenter - mean[0]) < abs(blackCenter - mean[0]) ? 1 : 0;
@@ -114,7 +113,7 @@ Decoding Decoder::includeExcludeDecode(const Grid &g) const {
 
         // Get the brightest black cell and the darkest white cell
         minMaxIdx(means, nullptr, nullptr, nullptr, blackMaxIdx,
-          Mat::ones(12, 1, CV_8U) - labels);
+          cv::Mat::ones(12, 1, CV_8U) - labels);
         minMaxIdx(means, nullptr, nullptr, whiteMinIdx, nullptr, labels);
 
         // Change class of the cell, but just if there is one
@@ -153,33 +152,33 @@ Decoding Decoder::includeExcludeDecode(const Grid &g) const {
     return Decoding(res, fisherScore(g, labels, true), g);
 }
 
-double Decoder::fisherScore(const Grid &g, Mat &labels, bool useBinaryImage) const {
-    const Mat &image = useBinaryImage ? g.ell().binarizedImage : g.ell().transformedImage;
-    std::vector<std::vector<Point> > conts(1);
-    Mat whiteMask(image.rows, image.cols, image.type(), Scalar(0));
-    Mat blackMask(image.rows, image.cols, image.type(), Scalar(0));
+double Decoder::fisherScore(const Grid &g, cv::Mat &labels, bool useBinaryImage) const {
+    const cv::Mat &image = useBinaryImage ? g.ell().binarizedImage : g.ell().transformedImage;
+    std::vector<std::vector<cv::Point> > conts(1);
+    cv::Mat whiteMask(image.rows, image.cols, image.type(), cv::Scalar(0));
+    cv::Mat blackMask(image.rows, image.cols, image.type(), cv::Scalar(0));
     conts[0] = g.renderScaledGridCell(13, CELL_SCALE);
-    drawContours(whiteMask, conts, 0, Scalar(255), CV_FILLED);
+    drawContours(whiteMask, conts, 0, cv::Scalar(255), CV_FILLED);
     conts[0] = g.renderScaledGridCell(14, CELL_SCALE);
-    drawContours(blackMask, conts, 0, Scalar(255), CV_FILLED);
+    drawContours(blackMask, conts, 0, cv::Scalar(255), CV_FILLED);
 
     for (int i = 0; i < 12; i++) {
         // Add the cell to the mask of the designated group
-        Mat *cellMask;
+        cv::Mat *cellMask;
         if (labels.at<unsigned char>(i) == 1) {
             cellMask = &whiteMask;
         } else {
             cellMask = &blackMask;
         }
         conts[0] = g.renderScaledGridCell(i, CELL_SCALE);
-        drawContours(*cellMask, conts, 0, Scalar(255), CV_FILLED);
+        drawContours(*cellMask, conts, 0, cv::Scalar(255), CV_FILLED);
     }
-    Scalar whiteMean;
-    Scalar whiteStd;
+    cv::Scalar whiteMean;
+    cv::Scalar whiteStd;
     meanStdDev(image, whiteMean, whiteStd, whiteMask);
 
-    Scalar blackMean;
-    Scalar blackStd;
+    cv::Scalar blackMean;
+    cv::Scalar blackStd;
     meanStdDev(image, blackMean, blackStd, blackMask);
 
     return ((whiteMean[0] - blackMean[0]) * (whiteMean[0] - blackMean[0]))
@@ -187,7 +186,7 @@ double Decoder::fisherScore(const Grid &g, Mat &labels, bool useBinaryImage) con
 }
 
 Decoding Decoder::edgeWalkerDecode(const Grid &g) const {
-    Mat edge = g.generateEdgeAsMat(
+    cv::Mat edge = g.generateEdgeAsMat(
         static_cast<int>(IORR * g.size() + (ORR * g.size() - IORR * g.size()) * 0.5), 1);
     const int edgeSize    = edge.size().height;
     const double cellSize = edgeSize / 12.0;
@@ -326,7 +325,7 @@ Decoding Decoder::edgeWalkerDecode(const Grid &g) const {
     }
 
     // At least the decoding
-    Mat labels(12, 1, CV_8UC1, 2);
+    cv::Mat labels(12, 1, CV_8UC1, 2);
     for (unsigned int i = 0; i < transitionPoints.size(); i++) {
         EdgePoint leftPoint  = transitionPoints[i];
         EdgePoint rightPoint = transitionPoints[(i + 1)

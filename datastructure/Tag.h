@@ -22,7 +22,6 @@
 using namespace boost;
 #endif
 
-using namespace cv;
 
 namespace decoder {
 class Tag {
@@ -34,11 +33,11 @@ private:
     *
     **************************************/
 
-    Rect _box;
+    cv::Rect _box;
 
-    Mat _origSubImage;
+    cv::Mat _origSubImage;
 
-    Mat _cannySubImage;
+    cv::Mat _cannySubImage;
 
     //marks if the tag is really a tag;
     bool _valid;
@@ -60,7 +59,7 @@ private:
 
 public:
 
-    explicit Tag(Rect rec, int id);
+    explicit Tag(cv::Rect rec, int id);
     ~Tag();
 
     /**************************************
@@ -72,17 +71,17 @@ public:
     std::vector<TagCandidate> &getCandidates();
     std::vector<TagCandidate> const& getCandidatesConst() const;
     void setCandidates(std::vector<TagCandidate>&& candidates);
-    const Mat& getCannySubImage() const;
-    void setCannySubImage(const Mat& cannySubImage);
-    const Mat& getOrigSubImage() const;
-    void setOrigSubImage(const Mat& origSubImage);
+    const cv::Mat& getCannySubImage() const;
+    void setCannySubImage(const cv::Mat& cannySubImage);
+    const cv::Mat& getOrigSubImage() const;
+    void setOrigSubImage(const cv::Mat& origSubImage);
     bool isValid() const;
     void setValid(bool valid);
     int getId() const;
     void setId(int id);
     void addCandidate(TagCandidate c);
-    const Rect& getBox() const;
-    void setBox(const Rect& box);
+    const cv::Rect& getBox() const;
+    void setBox(const cv::Rect& box);
 };
 } /* namespace decoder */
 

@@ -20,7 +20,6 @@
 #include <boost/serialization/vector.hpp>
 #endif
 
-using namespace cv;
 
 namespace decoder {
 class BoundingBox {
@@ -32,7 +31,7 @@ private:
     *
     **************************************/
 
-    Rect _box;
+    cv::Rect _box;
 
 #ifdef PipelineStandalone
     //needed to serialize all the private members
@@ -56,7 +55,7 @@ public:
     BoundingBox() {
     }
 
-    BoundingBox(Rect bb) {
+    BoundingBox(cv::Rect bb) {
         this->_box = bb;
     }
 
@@ -66,11 +65,11 @@ public:
     *
     **************************************/
 
-    const Rect& getBox() const {
+    const cv::Rect& getBox() const {
         return _box;
     }
 
-    void setBox(const Rect& box) {
+    void setBox(const cv::Rect& box) {
         _box = box;
     }
 
@@ -80,7 +79,7 @@ public:
     *
     **************************************/
 
-    bool isPossibleCenter(Point p, int tolerance) {
+    bool isPossibleCenter(cv::Point p, int tolerance) {
         int centerx = this->_box.x + this->_box.width / 2;
         int centery = this->_box.y + this->_box.height / 2;
         return (p.x >= (centerx - tolerance) && p.x <= (centerx + tolerance)

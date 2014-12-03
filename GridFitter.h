@@ -30,7 +30,6 @@
 // speed decrease for step size (on position stay)
 #define DOWN_SPEED 0.5
 
-using namespace cv;
 
 namespace decoder {
 class GridFitter {
@@ -72,16 +71,16 @@ private:
      * guesses orientation of the tag
      *
      * @param roi part of the image where the tag is
-     * @param circle Point3f object with position and radius of the tag circle
+     * @param circle cv::Point3f object with position and radius of the tag circle
      */
-    std::array<Point2f, 2> getOrientationVector(const Ellipse &ellipse) const;
+    std::array<cv::Point2f, 2> getOrientationVector(const Ellipse &ellipse) const;
 
     /** Otsu binarization to reduce grey scale
      *
      * @param srcMat grayscale source image
      * @return Otsu-threshold of the masked input image
      */
-    double getOtsuThreshold(const Mat &srcMat) const;
+    double getOtsuThreshold(const cv::Mat &srcMat) const;
 
     /**
      * Tries to get the best grid according to the given ellipse with a gradient approach

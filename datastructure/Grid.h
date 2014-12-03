@@ -31,7 +31,6 @@
 // the confidence interval between the standard deviations of separate cells (for the angle correction)
 #define STD_EPS 10
 
-using namespace cv;
 
 namespace decoder {
 /**
@@ -125,7 +124,7 @@ public:
      * @param offset angle offset to draw inner half circles with different angles 1 offset = 30°
      * @return a vector with the contours of the cell
      */
-    std::vector<Point> renderGridCell(unsigned short cell, int offset = 0) const;
+    std::vector<cv::Point> renderGridCell(unsigned short cell, int offset = 0) const;
 
     /**
      * Render a grid cell of the given type and ID
@@ -135,7 +134,7 @@ public:
      * @param offset angle offset to draw inner half circles with different angles 1 offset = 30°
      * @return a vector with the contours of the cell
      */
-    std::vector<Point> renderScaledGridCell(unsigned short cell, double scale, int offset = 0) const;
+    std::vector<cv::Point> renderScaledGridCell(unsigned short cell, double scale, int offset = 0) const;
 
     /**
      * Determines whether the given grid is worser than itself (depending on the score).
@@ -170,9 +169,9 @@ public:
     /**
      * @see generateEdge
      *
-     * @return a CV_32FC1 Mat with the edge data
+     * @return a CV_32FC1 cv::Mat with the edge data
      */
-    Mat generateEdgeAsMat(int radius, int width = 1, bool useBinaryImage = false) const;
+    cv::Mat generateEdgeAsMat(int radius, int width = 1, bool useBinaryImage = false) const;
 
     // ===== DEBUG METHODS =====
 
@@ -182,12 +181,12 @@ public:
      *
      * @param the scale of the cells
      * @param useBinaryImage whether the binary image should be shown or ne normal one
-     * @return the Mat object the grid should be drawn into
+     * @return the cv::Mat object the grid should be drawn into
      */
-    Mat drawGrid(double scale, bool useBinaryImage) const;
-    Mat drawGrid(double scale) const;
-    Mat drawGrid() const;
-    Mat drawGrid(bool useBinaryImage) const;
+    cv::Mat drawGrid(double scale, bool useBinaryImage) const;
+    cv::Mat drawGrid(double scale) const;
+    cv::Mat drawGrid() const;
+    cv::Mat drawGrid(bool useBinaryImage) const;
 private:
 
     /**

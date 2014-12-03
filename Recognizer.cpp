@@ -52,19 +52,19 @@ void Recognizer::detectXieEllipse(Tag &tag) {
     const double recognizer_min_major = RECOGNIZER_MIN_MAJOR;
     const double recognizer_min_minor = RECOGNIZER_MIN_MINOR;
 
-    const Mat& subImage  = tag.getOrigSubImage();
-    const Mat cannyImage = computeCannyEdgeMap(subImage);
+    const cv::Mat& subImage  = tag.getOrigSubImage();
+    const cv::Mat cannyImage = computeCannyEdgeMap(subImage);
 
     tag.setCannySubImage(cannyImage);
 
     //edge_pixel array, all edge pixels are stored in this array
-    std::vector<Point2i> ep;
+    std::vector<cv::Point2i> ep;
     ep.reserve(cv::countNonZero(cannyImage) + 1);
 
     std::vector<Ellipse> candidates;
 
     // (1) all white (being edge) pixels are written into the ep array
-    MatConstIterator_<unsigned char> mit, end;
+    cv::MatConstIterator_<unsigned char> mit, end;
     for (mit = cannyImage.begin<unsigned char>(), end = cannyImage.end<unsigned char>();
       mit != end; ++mit) {
         if (*mit.ptr == 255) {
@@ -128,8 +128,8 @@ void Recognizer::detectXieEllipse(Tag &tag) {
 
                     if (vote_minor >= RECOGNIZER_THRESHOLD_EDGE) {
                         // (11) save ellipse parameters
-                        const Point2i cen(cvRound(centerx), cvRound(centery));
-                        const Size axis(cvRound(a), max_ind);
+                        const cv::Point2i cen(cvRound(centerx), cvRound(centery));
+                        const cv::Size axis(cvRound(a), max_ind);
                         const double angle = (alpha * 180) / CV_PI;
 
                         const float j = cvRound(a);
@@ -238,25 +238,25 @@ foundEllipse:
 }
 
 void Recognizer::visualizeEllipse(Tag const& tag, Ellipse const& ell, std::string const& title) {
-    Mat subroiTest;
+    cv::Mat subroiTest;
     tag.getOrigSubImage().copyTo(subroiTest);
-    ellipse(subroiTest, ell.cen, ell.axis, ell.angle, 0, 360, Scalar(0, 0, 255));
-    string text = "Score " + std::to_string(ell.vote);
-    cv::putText(subroiTest, text, Point(10, 30), FONT_HERSHEY_COMPLEX_SMALL,
-      0.7, Scalar(0, 255, 0));
-    namedWindow(title, WINDOW_NORMAL);
-    imshow(title, subroiTest);
-    waitKey();
+    ellipse(subroiTest, ell.cen, ell.axis, ell.angle, 0, 360, cv::Scalar(0, 0, 255));
+    std::string text = "Score " + std::to_string(ell.vote);
+    cv::putText(subroiTest, text, cv::Point(10, 30), cv::FONT_HERSHEY_COMPLEX_SMALL,
+      0.7, cv::Scalar(0, 255, 0));
+    cv::namedWindow(title, cv::WINDOW_NORMAL);
+    cv::imshow(title, subroiTest);
+    cv::waitKey();
 }
 
-Mat Recognizer::computeCannyEdgeMap(Mat grayImage) {
-    Mat localGrayImage;
+cv::Mat Recognizer::computeCannyEdgeMap(cv::Mat grayImage) {
+    cv::Mat localGrayImage;
     grayImage.copyTo(localGrayImage);
 
-    cv::GaussianBlur(localGrayImage, localGrayImage, Size(3, 3), 0, 0,
-      BORDER_DEFAULT);
+    cv::GaussianBlur(localGrayImage, localGrayImage, cv::Size(3, 3), 0, 0,
+      cv::BORDER_DEFAULT);
 
-    Mat cannyEdgeMap;
+    cv::Mat cannyEdgeMap;
     Canny(localGrayImage, cannyEdgeMap, this->RECOGNIZER_LCANNYTHRES,
       this->RECOGNIZER_HCANNYTHRES);
 #ifdef PipelineStandalone

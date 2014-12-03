@@ -19,13 +19,13 @@ Grid::Grid(float size, float angle, float tilt, int x, int y, Ellipse ell, bool 
 {
     // Need to binarize the image, because we need it for scoring
     if (this->m_ell.transformedImage.type() != CV_8U) {
-        Mat grayImage;
+        cv::Mat grayImage;
         cvtColor(this->m_ell.transformedImage, grayImage, CV_BGR2GRAY);
         this->m_ell.transformedImage = grayImage;
     }
 
     // Binarize image first (just for new Scoring)
-    adaptiveThreshold(this->m_ell.transformedImage, this->m_ell.binarizedImage, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY, 21, 3);
+    cv::adaptiveThreshold(this->m_ell.transformedImage, this->m_ell.binarizedImage, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY, 21, 3);
 }
 
 Grid::Grid(ScoringMethod scoringMethod)
@@ -58,18 +58,18 @@ double Grid::score() const {
 }
 
 double Grid::binaryCountScore() const {
-    const Mat &binImg = m_ell.binarizedImage;
+    const cv::Mat &binImg = m_ell.binarizedImage;
 
-    Mat scores (3, 1, CV_64FC1);
+    cv::Mat scores (3, 1, CV_64FC1);
     // for each cell calculate its size (cell size) and its mean intensity (means)
     for (int j = 12; j < 15; j++) {
-        Mat mask = Mat(binImg.rows, binImg.cols, binImg.type(), Scalar(0));
+        cv::Mat mask = cv::Mat(binImg.rows, binImg.cols, binImg.type(), cv::Scalar(0));
 
-        std::vector< std::vector <Point> > conts;
+        std::vector< std::vector <cv::Point> > conts;
         conts.push_back(renderGridCell(j));
-        drawContours(mask, conts, 0, Scalar(1), CV_FILLED);
+        cv::drawContours(mask, conts, 0, cv::Scalar(1), CV_FILLED);
 
-        const Mat whiteCellPixel   = binImg.mul(mask);       // just keep the pixel within the cell
+        const cv::Mat whiteCellPixel   = binImg.mul(mask);       // just keep the pixel within the cell
         const double whitePixelAmount = static_cast<double>(countNonZero(whiteCellPixel));
         const double blackPixelAmount = static_cast<double>(countNonZero(mask - whiteCellPixel));
 
@@ -89,31 +89,31 @@ double Grid::fisherScore() const {
     // 37/46 = 80.43% with Sb = |black - white| look into other intervariances
     // 41/47 = 89.13% with kind of A scaling
     // determine best orientation
-    const Mat &roi = m_ell.transformedImage;
+    const cv::Mat &roi = m_ell.transformedImage;
 
     double black = -1;
     double white = -1;
 
-    Mat smoothROI;
-    GaussianBlur(roi, smoothROI, Size(7, 7), 0, 0, BORDER_DEFAULT);
+    cv::Mat smoothROI;
+    cv::GaussianBlur(roi, smoothROI, cv::Size(7, 7), 0, 0, cv::BORDER_DEFAULT);
     minMaxIdx(smoothROI, &black, &white);
 
-    Mat means  = Mat(15, 1, CV_32F);
-    Mat labels = Mat(15, 1, CV_32S);
-    TermCriteria max_it = TermCriteria(TermCriteria::COUNT, 3, 2);
-    Mat centers;
-    std::vector<Mat> masks;
+    cv::Mat means  = cv::Mat(15, 1, CV_32F);
+    cv::Mat labels = cv::Mat(15, 1, CV_32S);
+    cv::TermCriteria max_it = cv::TermCriteria(cv::TermCriteria::COUNT, 3, 2);
+    cv::Mat centers;
+    std::vector<cv::Mat> masks;
 
     // for each cell calculate its size (cellsize) and its mean intensity (means)
     for (int j = 0; j < 15; j++) {
-        Mat mask(roi.rows, roi.cols, roi.type(), Scalar(0));
-        std::vector< std::vector <Point> > conts;
+        cv::Mat mask(roi.rows, roi.cols, roi.type(), cv::Scalar(0));
+        std::vector< std::vector <cv::Point> > conts;
         conts.push_back(renderGridCell(j));
-        drawContours(mask, conts, 0, Scalar(255), CV_FILLED);
+        drawContours(mask, conts, 0, cv::Scalar(255), CV_FILLED);
         masks.push_back(mask);
 
-        Scalar mean;
-        Scalar std;
+        cv::Scalar mean;
+        cv::Scalar std;
         meanStdDev(roi, mean, std, mask);
 
         means.at<float>(j) = mean[0];
@@ -135,7 +135,7 @@ double Grid::fisherScore() const {
     labels.at<int>(13) = 1;
     labels.at<int>(14) = 0;
 
-    kmeans(means, 2, labels, max_it, 1, KMEANS_USE_INITIAL_LABELS, centers);
+    cv::kmeans(means, 2, labels, max_it, 1, cv::KMEANS_USE_INITIAL_LABELS, centers);
 
     // tag design 12,13 are white, 14 is black
     labels.at<int>(12) = 1;
@@ -235,19 +235,19 @@ double Grid::fisherScore() const {
 
     // how much "black" is covered?
 
-    Mat tagMask(roi.rows, roi.cols, CV_8UC1, Scalar(0));
+    cv::Mat tagMask(roi.rows, roi.cols, CV_8UC1, cv::Scalar(0));
     // different center!! ellipse stuff!!!
-    circle(tagMask, m_ell.cen, static_cast<int>(m_size * TRR), Scalar(1), CV_FILLED);
+    cv::circle(tagMask, m_ell.cen, static_cast<int>(m_size * TRR), cv::Scalar(1), CV_FILLED);
 
-    Mat matMask(roi.rows, roi.cols, CV_8UC1, Scalar(0));
-    circle(matMask, Point(m_x, m_y), static_cast<int>(m_size * ORR), Scalar(1), CV_FILLED);
+    cv::Mat matMask(roi.rows, roi.cols, CV_8UC1, cv::Scalar(0));
+    cv::circle(matMask, cv::Point(m_x, m_y), static_cast<int>(m_size * ORR), cv::Scalar(1), CV_FILLED);
 
-    Mat tagBlack;
-    threshold(roi, tagBlack, (black + white) / 2, 255, CV_THRESH_BINARY_INV);
+    cv::Mat tagBlack;
+    cv::threshold(roi, tagBlack, (black + white) / 2, 255, CV_THRESH_BINARY_INV);
     tagBlack = tagBlack.mul(tagMask);
 
-    Mat matBlack;
-    threshold(roi, matBlack, (black + white) / 2, 255, CV_THRESH_BINARY_INV);
+    cv::Mat matBlack;
+    cv::threshold(roi, matBlack, (black + white) / 2, 255, CV_THRESH_BINARY_INV);
     matBlack = matBlack.mul(matMask);
 
     const float blackratio = (static_cast<float>(countNonZero(matBlack))) / (static_cast<float>(countNonZero(tagBlack)));
@@ -259,9 +259,9 @@ double Grid::fisherScore() const {
 
 // ======
 
-std::vector<Point> Grid::renderScaledGridCell(unsigned short cell, double scale, int offset) const {
+std::vector<cv::Point> Grid::renderScaledGridCell(unsigned short cell, double scale, int offset) const {
     // TODO caching???
-	std::vector<Point> cont;
+	std::vector<cv::Point> cont;
 
 
     // Outer cells
@@ -273,35 +273,35 @@ std::vector<Point> Grid::renderScaledGridCell(unsigned short cell, double scale,
         const int arcStart = -180 + (cell    ) * 30 + 15 * (1 - scale);
         const int arcEnd   = -180 + (cell + 1) * 30 - 15 * (1 - scale);
         // outer arc
-        ellipse2Poly(Point2f(m_x, m_y), Size2f(outerCircleRadius, outerCircleRadius), m_angle, arcStart, arcEnd, 1, cont);
+        ellipse2Poly(cv::Point2f(m_x, m_y), cv::Size2f(outerCircleRadius, outerCircleRadius), m_angle, arcStart, arcEnd, 1, cont);
         // inner arc
-        std::vector<Point> inner_arc_poly;
-        ellipse2Poly(Point2f(m_x, m_y), Size2f(innerCircleRadius, innerCircleRadius), m_angle, arcStart, arcEnd, 1, inner_arc_poly);
+        std::vector<cv::Point> inner_arc_poly;
+        ellipse2Poly(cv::Point2f(m_x, m_y), cv::Size2f(innerCircleRadius, innerCircleRadius), m_angle, arcStart, arcEnd, 1, inner_arc_poly);
         // join outer and inner arc
         cont.insert(cont.end(), inner_arc_poly.rbegin(), inner_arc_poly.rend());
         return cont;
     } else if (cell == 13) {
         // supposed white inner half circle
-        ellipse2Poly(Point2f(m_x, m_y), Size2f(IRR * m_size * scale, IRR * m_size * scale), m_angle, -180 + offset * 30, offset * 30, 1, cont);
+        ellipse2Poly(cv::Point2f(m_x, m_y), cv::Size2f(IRR * m_size * scale, IRR * m_size * scale), m_angle, -180 + offset * 30, offset * 30, 1, cont);
     } else if (cell == 14) {
         //supposed black inner half circle
-        ellipse2Poly(Point2f(m_x, m_y), Size2f(IRR * m_size * scale, IRR * m_size * scale), m_angle, 180 + offset * 30, offset * 30, 1, cont);
+        ellipse2Poly(cv::Point2f(m_x, m_y), cv::Size2f(IRR * m_size * scale, IRR * m_size * scale), m_angle, 180 + offset * 30, offset * 30, 1, cont);
     } else if (cell == 12) {
         // outer (white) border
         const double outerInnerRadiusDiff = TRR * m_size - ORR * m_size;
         const double outerCircleRadius    = ORR * m_size + outerInnerRadiusDiff * 0.5 + (outerInnerRadiusDiff * 0.5 * scale);
         const double innerCircleRadius    = ORR * m_size + outerInnerRadiusDiff * 0.5 - (outerInnerRadiusDiff * 0.5 * scale);
 
-        std::vector < Point > cont2;
-        ellipse2Poly(Point2f(m_x, m_y), Size(outerCircleRadius, outerCircleRadius), m_angle + 90, 0, 360, 1,cont);
-        ellipse2Poly(Point2f(m_x, m_y), Size(innerCircleRadius, innerCircleRadius), m_angle + 90, 0, 360, 1,cont2);
+        std::vector < cv::Point > cont2;
+        ellipse2Poly(cv::Point2f(m_x, m_y), cv::Size(outerCircleRadius, outerCircleRadius), m_angle + 90, 0, 360, 1,cont);
+        ellipse2Poly(cv::Point2f(m_x, m_y), cv::Size(innerCircleRadius, innerCircleRadius), m_angle + 90, 0, 360, 1,cont2);
         cont.insert(cont.end(), cont2.rbegin(), cont2.rend());
     }
 
     return cont;
 }
 
-std::vector<Point> Grid::renderGridCell(unsigned short cell, int offset) const {
+std::vector<cv::Point> Grid::renderGridCell(unsigned short cell, int offset) const {
     return renderScaledGridCell(cell, 1, offset);
 }
 
@@ -358,14 +358,14 @@ std::vector<float> Grid::generateEdge(int radius, int width, bool useBinaryImage
         subEdges[7].push_back(getMeanAlongLine(this->m_x - x, this->m_y + y, this->m_x, this->m_y, width, useBinaryImage));
 
         // This part is sometimes useful for debugging
-        //image.at<unsigned char>(Point(this->x - x, this->y - y)) = 255;
-        //image.at<unsigned char>(Point(this->x - y, this->y - x)) = 255;
-        //image.at<unsigned char>(Point(this->x + y, this->y - x)) = 255;
-        //image.at<unsigned char>(Point(this->x + x, this->y - y)) = 255;
-        //image.at<unsigned char>(Point(this->x + x, this->y + y)) = 255;
-        //image.at<unsigned char>(Point(this->x + y, this->y + x)) = 255;
-        //image.at<unsigned char>(Point(this->x - y, this->y + x)) = 255;
-        //image.at<unsigned char>(Point(this->x - x, this->y + y)) = 255;
+        //image.at<unsigned char>(cv::Point(this->x - x, this->y - y)) = 255;
+        //image.at<unsigned char>(cv::Point(this->x - y, this->y - x)) = 255;
+        //image.at<unsigned char>(cv::Point(this->x + y, this->y - x)) = 255;
+        //image.at<unsigned char>(cv::Point(this->x + x, this->y - y)) = 255;
+        //image.at<unsigned char>(cv::Point(this->x + x, this->y + y)) = 255;
+        //image.at<unsigned char>(cv::Point(this->x + y, this->y + x)) = 255;
+        //image.at<unsigned char>(cv::Point(this->x - y, this->y + x)) = 255;
+        //image.at<unsigned char>(cv::Point(this->x - x, this->y + y)) = 255;
     }
 
     // Merge all subedges
@@ -388,10 +388,10 @@ std::vector<float> Grid::generateEdge(int radius, int width, bool useBinaryImage
     return mergedEdges;
 }
 
-Mat Grid::generateEdgeAsMat(int radius, int width, bool useBinaryImage) const {
+cv::Mat Grid::generateEdgeAsMat(int radius, int width, bool useBinaryImage) const {
 	const std::vector<float> &edge = generateEdge(radius, width, useBinaryImage);
 
-    Mat newEdge(edge.size(), 1, CV_32FC1);
+    cv::Mat newEdge(edge.size(), 1, CV_32FC1);
     for (size_t i = 0; i < edge.size(); i++) {
         newEdge.at<float>(i) = edge[i];
     }
@@ -401,9 +401,9 @@ Mat Grid::generateEdgeAsMat(int radius, int width, bool useBinaryImage) const {
 
 float Grid::getMeanAlongLine(int xStart, int yStart, int xEnd, int yEnd, int size, bool useBinaryImage) const {
     // It's possibly better just to get the position of the pixel along the line, but lets fuck performance
-    const Mat &image = useBinaryImage ? m_ell.binarizedImage : m_ell.transformedImage;
+    const cv::Mat &image = useBinaryImage ? m_ell.binarizedImage : m_ell.transformedImage;
 
-    Mat profile (size, 1, CV_8UC1);
+    cv::Mat profile (size, 1, CV_8UC1);
     int x = xStart;
     int y = yStart;
     // Distances according to axis
@@ -416,7 +416,7 @@ float Grid::getMeanAlongLine(int xStart, int yStart, int xEnd, int yEnd, int siz
     int err = dx + dy;
 
     for (int i = 0; i < size; i++) {
-        profile.at<unsigned char>(i) = image.at<unsigned char>(Point(x, y));
+        profile.at<unsigned char>(i) = image.at<unsigned char>(cv::Point(x, y));
 
         const int e2 = 2 * err;
         if (e2 > dy) {
@@ -429,8 +429,8 @@ float Grid::getMeanAlongLine(int xStart, int yStart, int xEnd, int yEnd, int siz
         }
     }
 
-    Scalar mean;
-    Scalar std;
+    cv::Scalar mean;
+    cv::Scalar std;
     meanStdDev(profile, mean, std);
 
     return mean[0];
@@ -438,9 +438,9 @@ float Grid::getMeanAlongLine(int xStart, int yStart, int xEnd, int yEnd, int siz
 // ======
 
 // ======= DEBUG METHODS ========
-Mat Grid::drawGrid(double scale, bool useBinaryImage) const {
-    Mat draw;     // Matrix the image will be drawn into
-    const Mat &roi = useBinaryImage ? m_ell.binarizedImage : m_ell.transformedImage;
+cv::Mat Grid::drawGrid(double scale, bool useBinaryImage) const {
+    cv::Mat draw;     // Matrix the image will be drawn into
+    const cv::Mat &roi = useBinaryImage ? m_ell.binarizedImage : m_ell.transformedImage;
     roi.copyTo(draw);
 
     if (roi.type() == CV_8UC1) {
@@ -449,20 +449,20 @@ Mat Grid::drawGrid(double scale, bool useBinaryImage) const {
     }
 
     // contour vector
-    std::vector< std::vector <Point> > conts;
+    std::vector< std::vector <cv::Point> > conts;
 
     int ites = 16;
-    std::vector < Point > cont;
+    std::vector < cv::Point > cont;
 
     // render half of the inner circle (circular matrix design)
-    ellipse2Poly(Point2f(m_x, m_y), Size2f(IRR * m_size, IRR * m_size), m_angle, 0, -180, 1, cont);
-    std::vector < Point > cont2;
+    ellipse2Poly(cv::Point2f(m_x, m_y), cv::Size2f(IRR * m_size, IRR * m_size), m_angle, 0, -180, 1, cont);
+    std::vector < cv::Point > cont2;
 
     // take first and last vertex of the polygon to get the respective diameter of the inner circle
     cont2.push_back(cont[0]);
     cont2.push_back(cont[cont.size() - 1]);
     conts.push_back(cont2);
-    drawContours(draw, conts, 0, Scalar(255, 0, 0), 1);
+    drawContours(draw, conts, 0, cv::Scalar(255, 0, 0), 1);
 
     conts.clear();
 
@@ -470,21 +470,21 @@ Mat Grid::drawGrid(double scale, bool useBinaryImage) const {
         conts.push_back(renderScaledGridCell(i, scale, 0));
     }
 
-    drawContours(draw, conts, -1, Scalar(255, 0, 0), 1);
-    drawContours(draw, conts, 0, Scalar(0, 255, 0), 1);
+    drawContours(draw, conts, -1, cv::Scalar(255, 0, 0), 1);
+    drawContours(draw, conts, 0, cv::Scalar(0, 255, 0), 1);
 
     return draw;
 }
 
-Mat Grid::drawGrid() const {
+cv::Mat Grid::drawGrid() const {
     return drawGrid(1, false);
 }
 
-Mat Grid::drawGrid(double scale) const {
+cv::Mat Grid::drawGrid(double scale) const {
     return drawGrid(scale, false);
 }
 
-Mat Grid::drawGrid(bool useBinaryImage) const {
+cv::Mat Grid::drawGrid(bool useBinaryImage) const {
     return drawGrid(1, useBinaryImage);
 }
 }

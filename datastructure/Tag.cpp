@@ -15,7 +15,7 @@ namespace decoder {
 *
 **************************************/
 
-Tag::Tag(Rect rec, int id)
+Tag::Tag(cv::Rect rec, int id)
 	: _box(rec)
 	, _valid(true)
 	, id(id)
@@ -43,19 +43,19 @@ void Tag::setCandidates(std::vector<TagCandidate>&& candidates) {
     _candidates = std::move(candidates);
 }
 
-const Mat& Tag::getCannySubImage() const {
+const cv::Mat& Tag::getCannySubImage() const {
     return _cannySubImage;
 }
 
-void Tag::setCannySubImage(const Mat& cannySubImage) {
+void Tag::setCannySubImage(const cv::Mat& cannySubImage) {
     _cannySubImage = cannySubImage;
 }
 
-const Mat& Tag::getOrigSubImage() const {
+const cv::Mat& Tag::getOrigSubImage() const {
     return _origSubImage;
 }
 
-void Tag::setOrigSubImage(const Mat& origSubImage) {
+void Tag::setOrigSubImage(const cv::Mat& origSubImage) {
     _origSubImage = origSubImage;
 }
 
@@ -75,11 +75,11 @@ void Tag::setId(int id) {
     this->id = id;
 }
 
-const Rect& Tag::getBox() const {
+const cv::Rect& Tag::getBox() const {
     return _box;
 }
 
-void Tag::setBox(const Rect& box) {
+void Tag::setBox(const cv::Rect& box) {
     _box = box;
 }
 

@@ -17,14 +17,14 @@ Converter::Converter() {
  *
  * @param filename
  */
-Mat Converter::process(const std::string& filename) {
-    Mat image = cv::imread(filename);
+cv::Mat Converter::process(const std::string& filename) {
+    cv::Mat image = cv::imread(filename);
     return process(image);
 }
 
-Mat Converter::process(Mat &image)
+cv::Mat Converter::process(cv::Mat &image)
 {
-    Mat grayImage;
+    cv::Mat grayImage;
 
     // convert image to grayscale (not needed later because images will already be grayscale)
     cvtColor(image, grayImage, CV_BGR2GRAY);

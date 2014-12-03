@@ -25,7 +25,6 @@
 #include <boost/property_tree/ptree.hpp>
 #endif
 
-using namespace cv;
 
 namespace decoder {
 //TODO
@@ -72,7 +71,7 @@ private:
     int RECOGNIZER_THRESHOLD_BEST_VOTE;
 
     void detectXieEllipse(Tag &tag);
-    Mat computeCannyEdgeMap(Mat grayImage);
+    cv::Mat computeCannyEdgeMap(cv::Mat grayImage);
 
 #ifdef PipelineStandalone
     void loadConfigVars(string filename);

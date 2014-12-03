@@ -1,6 +1,5 @@
 #include "Ellipse.h"
 
-using namespace cv;
 
 namespace decoder {
 Ellipse::Ellipse() {
@@ -8,7 +7,7 @@ Ellipse::Ellipse() {
     angle = 0;
 }
 
-Ellipse::Ellipse(int vote, Point2i center, Size axis_length, double angle){
+Ellipse::Ellipse(int vote, cv::Point2i center, cv::Size axis_length, double angle){
     this->vote  = vote;
     this->angle = angle;
     cen         = center;
@@ -23,19 +22,19 @@ void Ellipse::setAngle(double angle) {
     this->angle = angle;
 }
 
-Size Ellipse::getAxis() const {
+cv::Size Ellipse::getAxis() const {
     return (axis);
 }
 
-void Ellipse::setAxis(Size axis) {
+void Ellipse::setAxis(cv::Size axis) {
     this->axis = axis;
 }
 
-Point2i Ellipse::getCen() const {
+cv::Point2i Ellipse::getCen() const {
     return (cen);
 }
 
-void Ellipse::setCen(Point2i cen) {
+void Ellipse::setCen(cv::Point2i cen) {
     this->cen = cen;
 }
 

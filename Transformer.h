@@ -25,12 +25,11 @@
 #include <boost/property_tree/ptree.hpp>
 #endif
 
-using namespace cv;
 
 namespace decoder {
 class Transformer {
 private:
-    Mat ellipseTransform(Ellipse ell, Mat originalImage);
+    cv::Mat ellipseTransform(Ellipse ell, cv::Mat originalImage);
     void transformImages(Tag &t);
 
 public:

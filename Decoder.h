@@ -100,7 +100,7 @@ private:
      * @param useBinaryImage determines whether the binary image should be used or the grayscale one
      * @return the fisher score
      */
-    double fisherScore(const Grid &g, Mat &labels, bool useBinaryImage = false) const;
+    double fisherScore(const Grid &g, cv::Mat &labels, bool useBinaryImage = false) const;
 
     /**
      * decodes the grid by walking along an edge of a circle
@@ -117,7 +117,7 @@ private:
      * @return a vector with the means and standard deviation of the white and black color (format:
      * [0]: white mean, [1]: white stddev, [2]: black mean, [3]: black stddev)
      */
-    //std::vector<Scalar> colorMeans(const Grid &g);
+    //std::vector<cv::Scalar> colorMeans(const Grid &g);
 };
 }
 #endif /* DECODER_H_ */

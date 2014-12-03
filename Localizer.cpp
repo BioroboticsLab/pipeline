@@ -13,11 +13,11 @@
  * \param rectangle OpenCV rectangle to be scaled
  * \param scale factor by which the rectangle is scaled
  */
-Rect operator*(const Rect rectangle, double scale) {
-    Size s    = Size((rectangle.height * scale), (rectangle.width * scale));
-    Point2i c = Point(rectangle.x - (0.5 * (s.width - rectangle.width)),
+cv::Rect operator*(const cv::Rect rectangle, double scale) {
+    cv::Size s    = cv::Size((rectangle.height * scale), (rectangle.width * scale));
+    cv::Point2i c = cv::Point(rectangle.x - (0.5 * (s.width - rectangle.width)),
         rectangle.y - (0.5 * (s.height - rectangle.height)));
-    return (Rect(c, s));
+    return (cv::Rect(c, s));
 }
 
 namespace decoder {
@@ -47,35 +47,35 @@ Localizer::~Localizer() {}
 *
 **************************************/
 
-const Mat& Localizer::getBlob() const {
+const cv::Mat& Localizer::getBlob() const {
     return blob_;
 }
 
-void Localizer::setBlob(const Mat& blob) {
+void Localizer::setBlob(const cv::Mat& blob) {
     blob_ = blob;
 }
 
-const Mat& Localizer::getCannyMap() const {
+const cv::Mat& Localizer::getCannyMap() const {
     return canny_map_;
 }
 
-void Localizer::setCannyMap(const Mat& cannyMap) {
+void Localizer::setCannyMap(const cv::Mat& cannyMap) {
     canny_map_ = cannyMap;
 }
 
-const Mat& Localizer::getGrayImage() const {
+const cv::Mat& Localizer::getGrayImage() const {
     return gray_image_;
 }
 
-void Localizer::setGrayImage(const Mat& grayImage) {
+void Localizer::setGrayImage(const cv::Mat& grayImage) {
     gray_image_ = grayImage;
 }
 
-const Mat& Localizer::getSobel() const {
+const cv::Mat& Localizer::getSobel() const {
     return sobel_;
 }
 
-void Localizer::setSobel(const Mat& sobel) {
+void Localizer::setSobel(const cv::Mat& sobel) {
     sobel_ = sobel;
 }
 
@@ -109,13 +109,13 @@ std::vector<Tag> Localizer::process(cv::Mat&& grayImage) {
  * @param grayImage
  * @return image with highlighted tags
  */
-Mat Localizer::highlightTags(Mat &grayImage) {
-    Mat imageCopy, imageCopy2;
+cv::Mat Localizer::highlightTags(cv::Mat &grayImage) {
+    cv::Mat imageCopy, imageCopy2;
     //eroded image
-    Mat erodedImage;
+    cv::Mat erodedImage;
     //dilated image
-    Mat dilatedImage;
-    Mat binarizedImage;
+    cv::Mat dilatedImage;
+    cv::Mat binarizedImage;
 
     //binarization
     threshold(grayImage, binarizedImage, this->_settings.binary_threshold, 255,
@@ -135,12 +135,12 @@ Mat Localizer::highlightTags(Mat &grayImage) {
     binarizedImage.copyTo(imageCopy2);
 
     //cv::MORPH_OPEN
-    dilatedImage = getStructuringElement(MORPH_ELLIPSE,
-        Size(2 * this->_settings.dilation_1_size + 1,
+    dilatedImage = cv::getStructuringElement(cv::MORPH_ELLIPSE,
+        cv::Size(2 * this->_settings.dilation_1_size + 1,
         2 * this->_settings.dilation_1_size + 1),
-        Point(this->_settings.dilation_1_size,
+        cv::Point(this->_settings.dilation_1_size,
         this->_settings.dilation_1_size));
-    dilate(imageCopy, imageCopy, dilatedImage, Point(-1, -1),
+    cv::dilate(imageCopy, imageCopy, dilatedImage, cv::Point(-1, -1),
 	  this->_settings.dilation_1_iteration_number);
 
 #ifdef PipelineStandalone
@@ -153,12 +153,12 @@ Mat Localizer::highlightTags(Mat &grayImage) {
 #endif
 
     //erosion
-    erodedImage = getStructuringElement(MORPH_ELLIPSE,
-        Size(2 * this->_settings.erosion_size + 1,
+    erodedImage = cv::getStructuringElement(cv::MORPH_ELLIPSE,
+        cv::Size(2 * this->_settings.erosion_size + 1,
         2 * this->_settings.erosion_size + 1),
-        Point(this->_settings.erosion_size,
+        cv::Point(this->_settings.erosion_size,
         this->_settings.erosion_size));
-    erode(imageCopy, imageCopy, erodedImage);
+    cv::erode(imageCopy, imageCopy, erodedImage);
 
 #ifdef PipelineStandalone
     if (config::DEBUG_MODE_LOCALIZER) {
@@ -169,12 +169,12 @@ Mat Localizer::highlightTags(Mat &grayImage) {
     }
 #endif
 
-    dilatedImage = getStructuringElement(MORPH_ELLIPSE,
-        Size(2 * this->_settings.dilation_2_size + 1,
+    dilatedImage = cv::getStructuringElement(cv::MORPH_ELLIPSE,
+        cv::Size(2 * this->_settings.dilation_2_size + 1,
         2 * this->_settings.dilation_2_size + 1),
-        Point(this->_settings.dilation_2_size,
+        cv::Point(this->_settings.dilation_2_size,
         this->_settings.dilation_2_size));
-    dilate(imageCopy, imageCopy, dilatedImage);
+    cv::dilate(imageCopy, imageCopy, dilatedImage);
 
 #ifdef PipelineStandalone
     if (config::DEBUG_MODE_LOCALIZER) {
@@ -194,23 +194,23 @@ Mat Localizer::highlightTags(Mat &grayImage) {
  * @return boundingBoxes output vector of size-filtered bounding boxes
  */
 
-std::vector<Tag> Localizer::locateTagCandidates(Mat blobImage_old,
-  Mat /*cannyEdgeMap*/, Mat grayImage) {
+std::vector<Tag> Localizer::locateTagCandidates(cv::Mat blobImage_old,
+  cv::Mat /*cannyEdgeMap*/, cv::Mat grayImage) {
     std::vector<Tag>  taglist = std::vector<Tag>();
-    std::vector<vector<Point2i> > contours;
+    std::vector<std::vector<cv::Point2i> > contours;
 
-    Mat blobImage;
+    cv::Mat blobImage;
     blobImage_old.copyTo(blobImage);
 
     //find intra-connected white pixels
-    findContours(blobImage, contours, CV_RETR_LIST, CV_CHAIN_APPROX_NONE);
+    cv::findContours(blobImage, contours, CV_RETR_LIST, CV_CHAIN_APPROX_NONE);
 
     //extract contour bounding boxes for tag candidates
-    for (std::vector<vector<Point2i> >::iterator contour = contours.begin();
+    for (auto contour = contours.begin();
       contour != contours.end(); ++contour) {
         //filter contours which are too big
         if (contour->size() < this->_settings.max_tag_size) {
-            Rect rec = boundingRect(*contour) * 2;
+            cv::Rect rec = cv::boundingRect(*contour) * 2;
 
             if (rec.width < this->_settings.min_tag_size) {
                 int offset = abs(rec.width - this->_settings.min_tag_size);
@@ -246,8 +246,8 @@ std::vector<Tag> Localizer::locateTagCandidates(Mat blobImage_old,
               && (rec.height * rec.width) < 20000) {
                 Tag tag(rec, taglist.size() + 1);
 
-                Mat subImageOrig_cp;
-                Mat sub_image_orig(grayImage, rec);
+                cv::Mat subImageOrig_cp;
+                cv::Mat sub_image_orig(grayImage, rec);
                 sub_image_orig.copyTo(subImageOrig_cp);
                 tag.setOrigSubImage(subImageOrig_cp);
 
@@ -263,9 +263,9 @@ std::vector<Tag> Localizer::locateTagCandidates(Mat blobImage_old,
  * Computes the Sobel map for a given grayscale image.
  * @return sobelmap
  */
-Mat Localizer::computeSobelMap(Mat grayImage) {
-    Mat sobel;
-    Mat imageCopy;
+cv::Mat Localizer::computeSobelMap(cv::Mat grayImage) {
+    cv::Mat sobel;
+    cv::Mat imageCopy;
     // We need a copy because the GuassianBlur makes changes to the image
 
     grayImage.copyTo(imageCopy);
@@ -273,20 +273,20 @@ Mat Localizer::computeSobelMap(Mat grayImage) {
     int scale  = 1;
     int delta  = 0;
     int ddepth = CV_16S;
-    cv::GaussianBlur(imageCopy, imageCopy, Size(7, 7), 0, 0, BORDER_DEFAULT);
+    cv::GaussianBlur(imageCopy, imageCopy, cv::Size(7, 7), 0, 0, cv::BORDER_DEFAULT);
 
     /// Generate grad_x and grad_y
-    Mat grad_x, grad_y;
-    Mat abs_grad_x, abs_grad_y;
+    cv::Mat grad_x, grad_y;
+    cv::Mat abs_grad_x, abs_grad_y;
 
     /// Gradient X
     //Scharr( src_gray, grad_x, ddepth, 1, 0, scale, delta, BORDER_DEFAULT );
-    cv::Sobel(imageCopy, grad_x, ddepth, 1, 0, 3, scale, delta, BORDER_DEFAULT);
+    cv::Sobel(imageCopy, grad_x, ddepth, 1, 0, 3, scale, delta, cv::BORDER_DEFAULT);
     cv::convertScaleAbs(grad_x, abs_grad_x);
 
     /// Gradient Y
     //Scharr( src_gray, grad_y, ddepth, 0, 1, scale, delta, BORDER_DEFAULT );
-    cv::Sobel(imageCopy, grad_y, ddepth, 0, 1, 3, scale, delta, BORDER_DEFAULT);
+    cv::Sobel(imageCopy, grad_y, ddepth, 0, 1, 3, scale, delta, cv::BORDER_DEFAULT);
     cv::convertScaleAbs(grad_y, abs_grad_y);
 
     /// Total Gradient (approximate)
@@ -309,20 +309,20 @@ Mat Localizer::computeSobelMap(Mat grayImage) {
    Computes Blobs and finally finds the ROI's using the sobel map. The ROI's are stored in the boundingBoxes Vector.
  */
 
-Mat Localizer::computeBlobs(Mat sobel) {
-    Mat blob;
+cv::Mat Localizer::computeBlobs(cv::Mat sobel) {
+    cv::Mat blob;
     blob = this->highlightTags(sobel);
 
     //DEBUG_IMSHOW("blob", blob);
 
-    //vector<Rect> boundingBoxes = this->locateTagCandidates(blob);
+    //vector<cv::Rect> boundingBoxes = this->locateTagCandidates(blob);
 
     //#ifdef _DEBUG
     //	image.copyTo(output);
     //
     //	for ( unsigned int i = 0; i < boundingBoxes.size(); i++) {
     //
-    //		cv::rectangle(output, boundingBoxes[i], Scalar(0, 0, 255), 3);
+    //		cv::rectangle(output, boundingBoxes[i], cv::Scalar(0, 0, 255), 3);
     //	}
     //#endif
     return blob;

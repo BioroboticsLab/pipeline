@@ -18,19 +18,19 @@ std::vector<Tag> Transformer::process(std::vector<Tag>&& taglist){
 }
 
 void Transformer::transformImages(Tag &tag){
-    Mat originalImage = tag.getOrigSubImage();
+    cv::Mat originalImage = tag.getOrigSubImage();
     std::vector<TagCandidate> candidates = tag.getCandidates();
 
     for (TagCandidate& candidate : candidates) {
-        Mat transformedImage = ellipseTransform(candidate.getEllipse(), originalImage);
+        cv::Mat transformedImage = ellipseTransform(candidate.getEllipse(), originalImage);
         candidate.setTransformedImage(transformedImage);
     }
 
     tag.setCandidates(std::move(candidates));
 }
 
-Mat Transformer::ellipseTransform(Ellipse ell, Mat originalImage) {
-    Mat rot = Mat(2, 3, CV_64F);
+cv::Mat Transformer::ellipseTransform(Ellipse ell, cv::Mat originalImage) {
+    cv::Mat rot = cv::Mat(2, 3, CV_64F);
 
     // rotation angle is the ellipse' orientation
     double a = (ell.angle * CV_PI) / 180.0;
@@ -52,7 +52,7 @@ Mat Transformer::ellipseTransform(Ellipse ell, Mat originalImage) {
 
     //apply transformation described by the matrix rot
 
-    Mat transformedImage;
+    cv::Mat transformedImage;
     originalImage.copyTo(transformedImage);
 
     cv::warpAffine(originalImage, transformedImage, rot, transformedImage.size());

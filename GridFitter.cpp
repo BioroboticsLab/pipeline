@@ -10,7 +10,6 @@
 #include <algorithm> // std::remove_if
 #include <iterator> // std::distance
 
-using namespace cv;
 
 namespace decoder {
 GridFitter::GridFitter(Grid::ScoringMethod scoringMethod) {
@@ -47,7 +46,7 @@ std::vector<Tag> GridFitter::process(std::vector<Tag>&& taglist) const {
 
 Grid GridFitter::fitGrid(Ellipse& ellipse) const {
     // Convert image to gray scale (maybe obsolete)
-    Mat grayImage;
+    cv::Mat grayImage;
     if (ellipse.transformedImage.channels() > 2) {
         cvtColor(ellipse.transformedImage, grayImage, CV_BGR2GRAY);
         ellipse.transformedImage = grayImage;
@@ -56,12 +55,12 @@ Grid GridFitter::fitGrid(Ellipse& ellipse) const {
     // Binarize image first (just for new Scoring)
     //threshold(ellipse.transformedImage, ellipse.binarizedImage, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
     //adaptiveThreshold(ellipse.transformedImage, ellipse.binarizedImage, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, 13, 5);
-    adaptiveThreshold(ellipse.transformedImage, ellipse.binarizedImage, 255,
-      ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY, 21, 3);
+    cv::adaptiveThreshold(ellipse.transformedImage, ellipse.binarizedImage, 255,
+      cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY, 21, 3);
 
     // Get ellipse orientation
     const auto &orient = getOrientationVector(ellipse);
-    const Vec2f v = orient[1] - orient[0];
+    const cv::Vec2f v = orient[1] - orient[0];
     double alph = atan2(v[1], v[0]) * 180 / CV_PI + 90; // [-90, 270]
 
     //check for NaN values
@@ -89,27 +88,27 @@ Grid GridFitter::fitGrid(Ellipse& ellipse) const {
     return bestGrid;
 }
 
-std::array<Point2f, 2> GridFitter::getOrientationVector(const Ellipse &ellipse) const {
+std::array<cv::Point2f, 2> GridFitter::getOrientationVector(const Ellipse &ellipse) const {
 
-    const Point3f circle(ellipse.cen.x, ellipse.cen.y,
+    const cv::Point3f circle(ellipse.cen.x, ellipse.cen.y,
         (ellipse.axis.width / 3.0));
-    const Mat &roi = ellipse.binarizedImage;
+    const cv::Mat &roi = ellipse.binarizedImage;
 
     // create circular cutout
-    Mat circMask(roi.rows, roi.cols, CV_8UC1, Scalar(0));
-    cv::circle(circMask, Point(circle.x, circle.y), circle.z, Scalar(1),
+    cv::Mat circMask(roi.rows, roi.cols, CV_8UC1, cv::Scalar(0));
+    cv::circle(circMask, cv::Point(circle.x, circle.y), circle.z, cv::Scalar(1),
       CV_FILLED);
 
     // apply otsu binarization to this part
     //double otsut = getOtsuThreshold(roi);
 
-    Mat hcWhite = roi.mul(circMask);
+    cv::Mat hcWhite = roi.mul(circMask);
 
-    Mat hcBlack = circMask.mul(255 - hcWhite);
+    cv::Mat hcBlack = circMask.mul(255 - hcWhite);
 
     // Calculate moment => orientation of the tag
-    const Moments momw = moments(hcWhite, true);
-    const Moments momb = moments(hcBlack, true);
+    const cv::Moments momw = moments(hcWhite, true);
+    const cv::Moments momb = moments(hcBlack, true);
 
     const auto p0_x = momb.m10 / momb.m00;
     const auto p0_y = momb.m01 / momb.m00;
@@ -117,15 +116,15 @@ std::array<Point2f, 2> GridFitter::getOrientationVector(const Ellipse &ellipse) 
     const auto p1_x = momw.m10 / momw.m00;
     const auto p1_y = momw.m01 / momw.m00;
 
-    return {Point2f(p0_x, p0_y), Point2f(p1_x, p1_y)};
+    return {cv::Point2f(p0_x, p0_y), cv::Point2f(p1_x, p1_y)};
 }
 
-double GridFitter::getOtsuThreshold(const Mat &srcMat) const {
+double GridFitter::getOtsuThreshold(const cv::Mat &srcMat) const {
     //Code Snippet from
     //http://stackoverflow.com/questions/12953993/otsu-thresholding-for-depth-image
 	// error removed & simplified
 
-    Mat copyImg = srcMat.clone();
+    cv::Mat copyImg = srcMat.clone();
 
     // remove all zeros
     const auto new_dataend = std::remove_if(copyImg.datastart, copyImg.dataend, [](const uchar p) {return p == 0; });
@@ -256,27 +255,27 @@ Grid GridFitter::getBestGrid(const std::vector<Grid> &grids) const {
 int GridFitter::bestGridAngleCorrection(Grid g) const {
     // index encoding 30Â°-step angles ranging from [0,5]
     int i    = 0;
-    const Mat &roi = g.ell().transformedImage;
+    const cv::Mat &roi = g.ell().transformedImage;
 
     float mean1c = 0;
     float mean2c = 0;
 
     for (int j = 0; j < 6; j++) {
-        Mat mask1(roi.rows, roi.cols, roi.type(), Scalar(0));
-        std::vector<std::vector<Point> > conts1;
+        cv::Mat mask1(roi.rows, roi.cols, roi.type(), cv::Scalar(0));
+        std::vector<std::vector<cv::Point> > conts1;
         conts1.push_back(g.renderGridCell(13, j));
-        drawContours(mask1, conts1, 0, Scalar(255), CV_FILLED);
-        Scalar mean1;
-        Scalar std1;
+        drawContours(mask1, conts1, 0, cv::Scalar(255), CV_FILLED);
+        cv::Scalar mean1;
+        cv::Scalar std1;
 
         meanStdDev(roi, mean1, std1, mask1);
 
-        Mat mask2(roi.rows, roi.cols, roi.type(), Scalar(0));
-        std::vector<std::vector<Point> > conts2;
+        cv::Mat mask2(roi.rows, roi.cols, roi.type(), cv::Scalar(0));
+        std::vector<std::vector<cv::Point> > conts2;
         conts2.push_back(g.renderGridCell(14, j));
-        drawContours(mask2, conts2, 0, Scalar(255), CV_FILLED);
-        Scalar mean2;
-        Scalar std2;
+        drawContours(mask2, conts2, 0, cv::Scalar(255), CV_FILLED);
+        cv::Scalar mean2;
+        cv::Scalar std2;
 
         meanStdDev(roi, mean2, std2, mask2);
 

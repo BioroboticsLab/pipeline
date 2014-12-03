@@ -16,7 +16,6 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/opencv.hpp>
 
-using namespace cv;
 
 namespace decoder {
 class TagCandidate {
@@ -30,7 +29,7 @@ private:
     //double _score;
     Ellipse _ellipse;
     std::vector<Grid> _grids;
-    vector <Decoding> _decodings;
+    std::vector<Decoding> _decodings;
     //decoded Id
     //int _decodedId;
 public:
@@ -76,11 +75,11 @@ public:
 //        _score = score;
 //    }
 
-    const Mat& getTransformedImage() const {
+    const cv::Mat& getTransformedImage() const {
         return _ellipse.getTransformedImage();
     }
 
-    void setTransformedImage(const Mat& transformedImage) {
+    void setTransformedImage(const cv::Mat& transformedImage) {
         _ellipse.setTransformedImage(transformedImage);
     }
 
