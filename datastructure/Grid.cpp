@@ -47,7 +47,7 @@ Grid::ScoringMethod Grid::scoringMethod() const {
     return _score.metric;
 }
 
-double Grid::score() {
+double Grid::score() const {
     // determine whether the grid is a dummy or not
     if (_score.metric == BINARYCOUNT && _score.value == BINARYCOUNT_INIT && ell.binarizedImage.total() > 0) {
         _score.value = binaryCountScore();
@@ -307,7 +307,7 @@ std::vector<Point> Grid::renderGridCell(unsigned short cell, int offset) const {
 
 // === operators ===
 
-bool Grid::operator>(Grid &rhs) {
+bool Grid::operator>(const Grid &rhs) const {
     assert(this->scoringMethod() == rhs.scoringMethod());     // both grids need the same scoring method
 
     if (this->scoringMethod() == BINARYCOUNT) {
@@ -317,7 +317,7 @@ bool Grid::operator>(Grid &rhs) {
     }
 }
 
-bool Grid::operator<(Grid &rhs) {
+bool Grid::operator<(const Grid &rhs) const {
 	return rhs > *this;
 }
 

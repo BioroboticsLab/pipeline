@@ -57,7 +57,7 @@ public:
      * need to put it into the public area because of boost serialization issues
      */
     struct Score {
-        double value;
+        mutable double value;
         ScoringMethod metric;
         Score(ScoringMethod scoringMethod)
         	: value(scoringMethod == BINARYCOUNT ? BINARYCOUNT_INIT : FISHER_INIT)
@@ -100,7 +100,7 @@ public:
      *
      * @return the score
      */
-    double score();
+    double score() const;
 
     /**
      * returns the currently used scoring method
@@ -136,7 +136,7 @@ public:
      * @param g the other grid
      * @param true if the grid itself is better than the given grid
      */
-    bool operator>(Grid &g);
+    bool operator>(const Grid &g) const;
 
     /**
      * Determines whether the given grid is better than itself (depending on the score).
@@ -146,7 +146,7 @@ public:
      * @param g the other grid
      * @param true if the grid itself is worser than the given grid
      */
-    bool operator<(Grid &g);
+    bool operator<(const Grid &g) const;
 
     /**
      * Generates an edge of a circle and returns a vector with the intensities along the edge, with respect to the angle.
