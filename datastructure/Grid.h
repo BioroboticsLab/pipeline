@@ -56,9 +56,13 @@ public:
      * internal score struct (primarily for caching)
      * need to put it into the public area because of boost serialization issues
      */
-    struct {
+    struct Score {
         double value;
         ScoringMethod metric;
+        Score(ScoringMethod scoringMethod)
+        	: value(scoringMethod == BINARYCOUNT ? BINARYCOUNT_INIT : FISHER_INIT)
+        	, metric(scoringMethod)
+        {}
     } _score;
 
     float size;
@@ -72,13 +76,24 @@ public:
     /**
      * Initialization method for multiple contructor
      *
-     * @see init
+     * @see Grid(float size, float angle, float tilt,  int x,  int y, Ellipse ell, bool permutation, ScoringMethod scoringMethod);
      */
-    Grid(float size, float angle, float tilt,  int x,  int y, Ellipse ell, ScoringMethod scoringMethod = BINARYCOUNT);
-    Grid(float size, float angle, float tilt,  int x,  int y, Ellipse ell, bool permutation, ScoringMethod scoringMethod = BINARYCOUNT);
-    Grid(ScoringMethod scoringMethod = BINARYCOUNT);
-    Grid(float s, ScoringMethod scoringMethod = BINARYCOUNT);
-    virtual ~Grid();
+    explicit Grid(float size, float angle, float tilt,  int x,  int y, Ellipse ell, ScoringMethod scoringMethod = BINARYCOUNT);
+    explicit Grid(ScoringMethod scoringMethod = BINARYCOUNT);
+    explicit Grid(float s, ScoringMethod scoringMethod = BINARYCOUNT);
+
+    /**
+     * @param size size of the grid
+     * @param angle angle of the grid
+     * @param tilt tilt of the grid?
+     * @param x horizontal part of the position
+     * @param y vertical part of the position
+     * @param ell ellipse the grid belongs to
+     * @param score initial score of the grid
+     * @param scoringMethod used scoring method
+     */
+    explicit Grid(float size, float angle, float tilt,  int x,  int y, Ellipse ell, bool permutation, ScoringMethod scoringMethod = BINARYCOUNT);
+    ~Grid();
 
     /**
      * computes score of the grid and returns it
@@ -92,7 +107,7 @@ public:
      *
      * @return the used scoring method
      */
-    ScoringMethod scoringMethod();
+    ScoringMethod scoringMethod() const;
 
     /**
      * Render a grid cell of the given type and ID
@@ -101,7 +116,7 @@ public:
      * @param offset angle offset to draw inner half circles with different angles 1 offset = 30°
      * @return a vector with the contours of the cell
      */
-    std::vector<Point> renderGridCell(unsigned short cell, int offset = 0);
+    std::vector<Point> renderGridCell(unsigned short cell, int offset = 0) const;
 
     /**
      * Render a grid cell of the given type and ID
@@ -111,7 +126,7 @@ public:
      * @param offset angle offset to draw inner half circles with different angles 1 offset = 30°
      * @return a vector with the contours of the cell
      */
-    std::vector<Point> renderScaledGridCell(unsigned short cell, double scale, int offset = 0);
+    std::vector<Point> renderScaledGridCell(unsigned short cell, double scale, int offset = 0) const;
 
     /**
      * Determines whether the given grid is worser than itself (depending on the score).
@@ -141,14 +156,14 @@ public:
      * @param useBinaryImage determines whether the binarized image should be used or the grayscale one
      * @return a vector with the intensities along the edge
      */
-    std::vector<float> generateEdge(int radius, int width = 1, bool useBinaryImage = false);
+    std::vector<float> generateEdge(int radius, int width = 1, bool useBinaryImage = false) const;
 
     /**
      * @see generateEdge
      *
      * @return a CV_32FC1 Mat with the edge data
      */
-    Mat generateEdgeAsMat(int radius, int width = 1, bool useBinaryImage = false);
+    Mat generateEdgeAsMat(int radius, int width = 1, bool useBinaryImage = false) const;
 
     // ===== DEBUG METHODS =====
 
@@ -160,25 +175,11 @@ public:
      * @param useBinaryImage whether the binary image should be shown or ne normal one
      * @return the Mat object the grid should be drawn into
      */
-    Mat drawGrid(double scale, bool useBinaryImage);
-    Mat drawGrid(double scale);
-    Mat drawGrid();
-    Mat drawGrid(bool useBinaryImage);
+    Mat drawGrid(double scale, bool useBinaryImage) const;
+    Mat drawGrid(double scale) const;
+    Mat drawGrid() const;
+    Mat drawGrid(bool useBinaryImage) const;
 private:
-
-    /**
-     * Initialization method for multiple contructor
-     *
-     * @param size size of the grid
-     * @param angle angle of the grid
-     * @param tilt tilt of the grid?
-     * @param x horizontal part of the position
-     * @param y vertical part of the position
-     * @param ell ellipse the grid belongs to
-     * @param score initial score of the grid
-     * @param scoringMethod used scoring method
-     */
-    void init(float size, float angle, float tilt,  int x,  int y, Ellipse ell, bool permutation, ScoringMethod scoringMethod);
 
     /**
      * returns the mean of the intensities along a line
@@ -191,7 +192,7 @@ private:
      * @param useBinaryImage determines whether the binarized image should be used (default: false)
      * @return the mean along the line
      */
-    float getMeanAlongLine(int xStart, int yStart, int xEnd, int yEnd, int size, bool useBinaryImage = false);
+    float getMeanAlongLine(int xStart, int yStart, int xEnd, int yEnd, int size, bool useBinaryImage = false) const;
 
     // === Scoring methods ===
 
@@ -200,7 +201,7 @@ private:
      *
      * @return the score
      */
-    double binaryCountScore();
+    double binaryCountScore() const;
 
     /**
      * Computes the score by fisher method (higher Scores are better).
@@ -208,7 +209,7 @@ private:
      *
      * @return the score
      */
-    double fisherScore();
+    double fisherScore() const;
 
     // ======
 };
