@@ -55,7 +55,7 @@ public:
      * @param id the id of the roi
      * @param grids a vector of possible grids of the SAME tag/roi
      */
-    Decoder();
+    explicit Decoder();
 
     virtual ~Decoder();
 
@@ -73,7 +73,7 @@ public:
      * @param radius the radius of the circle
      * @return the vector with the brightness levels of the edge
      */
-    std::vector<unsigned char> generateEdge(Grid &g, int radius);
+    //std::vector<unsigned char> generateEdge(const Grid &g, int radius);
 private:
 
     /**
@@ -82,7 +82,7 @@ private:
      * @param g the grid
      * @return decoding of the grid
      */
-    Decoding decode(Grid &g);
+    Decoding decode(const Grid &g);
 
     /**
      * decodes the grid by using an include exclude approach
@@ -90,7 +90,7 @@ private:
      * @param g the grid
      * @return the decoding
      */
-    Decoding includeExcludeDecode(Grid &g);
+    Decoding includeExcludeDecode(const Grid &g);
 
     /**
      * helper method to calculate the fisher score depending on the given labels and the grid
@@ -100,7 +100,7 @@ private:
      * @param useBinaryImage determines whether the binary image should be used or the grayscale one
      * @return the fisher score
      */
-    double fisherScore(Grid &g, Mat &labels, bool useBinaryImage = false);
+    double fisherScore(const Grid &g, Mat &labels, bool useBinaryImage = false);
 
     /**
      * decodes the grid by walking along an edge of a circle
@@ -108,7 +108,7 @@ private:
      * @param g the grid
      * @return the decoding
      */
-    Decoding edgeWalkerDecode(Grid &g);
+    Decoding edgeWalkerDecode(const Grid &g);
 
     /**
      * Returns the means for white and black color with standard deviation. Uses the black and white inner half circle as set.
@@ -117,7 +117,7 @@ private:
      * @return a vector with the means and standard deviation of the white and black color (format:
      * [0]: white mean, [1]: white stddev, [2]: black mean, [3]: black stddev)
      */
-    std::vector<Scalar> colorMeans(Grid &g);
+    //std::vector<Scalar> colorMeans(const Grid &g);
 };
 }
 #endif /* DECODER_H_ */
