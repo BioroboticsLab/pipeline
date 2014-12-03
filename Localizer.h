@@ -8,18 +8,19 @@
 #ifndef LOCALIZER_H_
 #define LOCALIZER_H_
 
-#include "./datastructure/BoundingBox.h"
-#include "./datastructure/Tag.h"
-#include "opencv2/imgproc/imgproc.hpp"
 #include <fstream>
 #include <iostream>
-#include <math.h>
+#include <cmath>
+#include <cstdio>
+#include <vector>
+
+#include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/opencv.hpp>
-#include <stdio.h>
-#include <unistd.h>
-#include <vector>
+
+#include "datastructure/BoundingBox.h"
+#include "datastructure/Tag.h"
 
 #ifdef PipelineStandalone
 #include "../config.h"
@@ -30,128 +31,67 @@
 using namespace cv;
 
 namespace decoder {
-//TODO
-namespace LocalizerParams {
-// Threshold for binarisation
-static const int binary_threshold = 29;
+typedef struct {
+	// Threshold for binarisation
+	int binary_threshold = 29;
 
-// number of first dilation iterations
-static const int dilation_1_interation_number = 4;
+	// number of first dilation iterations
+	int dilation_1_iteration_number = 4;
 
-// size of dilation-radius
-static const int dilation_1_size = 2;
+	// size of dilation-radius
+	int dilation_1_size = 2;
 
-// erosion-size
-static const int erosion_size = 25;
+	// erosion-size
+	int erosion_size = 25;
 
-// second dilation-size
-static const int dilation_2_size = 2;
+	// second dilation-size
+	int dilation_2_size = 2;
 
-// maximal size of a possible tag
-static const int max_tag_size =  250;
+	// maximal size of a possible tag
+	unsigned int max_tag_size =  250;
 
-// minimal size of bounding box
-static const int min_tag_size =  100;
-}
+	// minimal size of bounding box
+	int min_tag_size =  100;
+} localizer_settings_t;
 
 class Localizer {
 private:
+	Mat gray_image_;
+	Mat sobel_;
+	Mat blob_;
+	Mat canny_map_;
 
-    /**************************************
-    *
-    *           constructor
-    *
-    **************************************/
-    Mat gray_image_;
-    Mat sobel_;
-    Mat blob_;
-    Mat canny_map_;
+	localizer_settings_t _settings;
 
-    /*
-     * vars that we be filled by an ini file
-     */
-
-    int LOCALIZER_BINTHRES;
-    int LOCALIZER_DILATION_1_ITERATIONS;
-    int LOCALIZER_DILATION_1_SIZE;
-    int LOCALIZER_EROSION_SIZE;
-    int LOCALIZER_DILATION_2_SIZE;
-    unsigned int LOCALIZER_MAXTAGSIZE;
-    int LOCALIZER_MINTAGSIZE;
-
-    /**************************************
-    *
-    *           stuff
-    *
-    **************************************/
-
-    Mat computeSobelMap(Mat grayImage);
-    Mat computeBlobs(Mat sobel);
-    Mat highlightTags(Mat &grayImage);
-    std::vector<Tag> locateTagCandidates(Mat blobImage, Mat cannyEdgeMap,
-      Mat grayImage);
+	Mat computeSobelMap(Mat grayImage);
+	Mat computeBlobs(Mat sobel);
+	Mat highlightTags(Mat &grayImage);
+	std::vector<Tag> locateTagCandidates(Mat blobImage, Mat cannyEdgeMap, Mat grayImage);
 
 #ifdef PipelineStandalone
-    void loadConfigVars(string filename);
+	void loadConfigVars(string filename);
 #endif
-    void loadConfigVars();
 
 public:
-
-    /**************************************
-    *
-    *           constructor
-    *
-    **************************************/
-
-    Localizer();
+	Localizer();
 #ifdef PipelineStandalone
-    Localizer(string configFile);
+	Localizer(string configFile);
 #endif
+	virtual ~Localizer();
 
-    virtual ~Localizer();
+	void loadSettings(localizer_settings_t&& settings);
 
-    /**************************************
-    *
-    *           getter/setter
-    *
-    **************************************/
+	const Mat& getBlob() const;
+	void setBlob(const Mat& blob);
+	const Mat& getCannyMap() const;
+	void setCannyMap(const Mat& cannyMap);
+	const Mat& getGrayImage() const;
+	void setGrayImage(const Mat& grayImage);
+	const Mat& getSobel() const;
+	void setSobel(const Mat& sobel);
 
-    const Mat& getBlob() const;
-    void setBlob(const Mat& blob);
-    const Mat& getCannyMap() const;
-    void setCannyMap(const Mat& cannyMap);
-    const Mat& getGrayImage() const;
-    void setGrayImage(const Mat& grayImage);
-    int getLocalizerBinthres() const;
-    void setLocalizerBinthres(int localizerBinthres);
-    int getLocalizerDilation1Iterations() const;
-    void setLocalizerDilation1Iterations(int localizerDilation1Iterations);
-    int getLocalizerDilation1Size() const;
-    void setLocalizerDilation1Size(int localizerDilation1Size);
-    int getLocalizerDilation2Size() const;
-    void setLocalizerDilation2Size(int localizerDilation2Size);
-    int getLocalizerErosionSize() const;
-    void setLocalizerErosionSize(int localizerErosionSize);
-    int getLocalizerHcannythres() const;
-    void setLocalizerHcannythres(int localizerHcannythres);
-    int getLocalizerLcannythres() const;
-    void setLocalizerLcannythres(int localizerLcannythres);
-    int getLocalizerMaxtagsize() const;
-    void setLocalizerMaxtagsize(int localizerMaxtagsize);
-    int getLocalizerMintagsize() const;
-    void setLocalizerMintagsize(int localizerMintagsize);
-    const Mat& getSobel() const;
-    void setSobel(const Mat& sobel);
-
-    /**************************************
-    *
-    *           stuff
-    *
-    **************************************/
-
-    std::vector<Tag> process(Mat &&image);
-    void reset();
+	std::vector<Tag> process(Mat &&image);
+	void reset();
 };
 } /* namespace decoder */
 

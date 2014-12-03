@@ -29,21 +29,17 @@ namespace decoder {
 
 Localizer::Localizer() {
 #ifdef PipelineStandalone
-    this->loadConfigVars(config::DEFAULT_LOCALIZER_CONFIG);
-#else
-    loadConfigVars();
+	loadConfigVars(config::DEFAULT_LOCALIZER_CONFIG);
 #endif
 }
 
 #ifdef PipelineStandalone
 Localizer::Localizer(string configFile) {
-    this->loadConfigVars(configFile);
+	loadConfigVars(configFile);
 }
 #endif
 
-Localizer::~Localizer() {
-    // TODO Auto-generated destructor stub
-}
+Localizer::~Localizer() {}
 
 /**************************************
 *
@@ -73,63 +69,6 @@ const Mat& Localizer::getGrayImage() const {
 
 void Localizer::setGrayImage(const Mat& grayImage) {
     gray_image_ = grayImage;
-}
-
-int Localizer::getLocalizerBinthres() const {
-    return LOCALIZER_BINTHRES;
-}
-
-void Localizer::setLocalizerBinthres(int localizerBinthres) {
-    LOCALIZER_BINTHRES = localizerBinthres;
-}
-
-int Localizer::getLocalizerDilation1Iterations() const {
-    return LOCALIZER_DILATION_1_ITERATIONS;
-}
-
-void Localizer::setLocalizerDilation1Iterations(
-    int localizerDilation1Iterations) {
-    LOCALIZER_DILATION_1_ITERATIONS = localizerDilation1Iterations;
-}
-
-int Localizer::getLocalizerDilation1Size() const {
-    return LOCALIZER_DILATION_1_SIZE;
-}
-
-void Localizer::setLocalizerDilation1Size(int localizerDilation1Size) {
-    LOCALIZER_DILATION_1_SIZE = localizerDilation1Size;
-}
-
-int Localizer::getLocalizerDilation2Size() const {
-    return LOCALIZER_DILATION_2_SIZE;
-}
-
-void Localizer::setLocalizerDilation2Size(int localizerDilation2Size) {
-    LOCALIZER_DILATION_2_SIZE = localizerDilation2Size;
-}
-
-int Localizer::getLocalizerErosionSize() const {
-    return LOCALIZER_EROSION_SIZE;
-}
-
-void Localizer::setLocalizerErosionSize(int localizerErosionSize) {
-    LOCALIZER_EROSION_SIZE = localizerErosionSize;
-}
-
-int Localizer::getLocalizerMaxtagsize() const {
-    return LOCALIZER_MAXTAGSIZE;
-}
-
-void Localizer::setLocalizerMaxtagsize(int localizerMaxtagsize) {
-    LOCALIZER_MAXTAGSIZE = localizerMaxtagsize;
-}
-
-int Localizer::getLocalizerMintagsize() const {
-    return LOCALIZER_MINTAGSIZE;
-}
-
-void Localizer::setLocalizerMintagsize(int localizerMintagsize) {
-    LOCALIZER_MINTAGSIZE = localizerMintagsize;
 }
 
 const Mat& Localizer::getSobel() const {
@@ -179,7 +118,7 @@ Mat Localizer::highlightTags(Mat &grayImage) {
     Mat binarizedImage;
 
     //binarization
-    threshold(grayImage, binarizedImage, this->LOCALIZER_BINTHRES, 255,
+    threshold(grayImage, binarizedImage, this->_settings.binary_threshold, 255,
       CV_THRESH_BINARY);
 
     binarizedImage.copyTo(imageCopy);
@@ -197,12 +136,12 @@ Mat Localizer::highlightTags(Mat &grayImage) {
 
     //cv::MORPH_OPEN
     dilatedImage = getStructuringElement(MORPH_ELLIPSE,
-        Size(2 * this->LOCALIZER_DILATION_1_SIZE + 1,
-        2 * this->LOCALIZER_DILATION_1_SIZE + 1),
-        Point(this->LOCALIZER_DILATION_1_SIZE,
-        this->LOCALIZER_DILATION_1_SIZE));
+        Size(2 * this->_settings.dilation_1_size + 1,
+        2 * this->_settings.dilation_1_size + 1),
+        Point(this->_settings.dilation_1_size,
+        this->_settings.dilation_1_size));
     dilate(imageCopy, imageCopy, dilatedImage, Point(-1, -1),
-      this->LOCALIZER_DILATION_1_ITERATIONS);
+	  this->_settings.dilation_1_iteration_number);
 
 #ifdef PipelineStandalone
     if (config::DEBUG_MODE_LOCALIZER) {
@@ -215,10 +154,10 @@ Mat Localizer::highlightTags(Mat &grayImage) {
 
     //erosion
     erodedImage = getStructuringElement(MORPH_ELLIPSE,
-        Size(2 * this->LOCALIZER_EROSION_SIZE + 1,
-        2 * this->LOCALIZER_EROSION_SIZE + 1),
-        Point(this->LOCALIZER_EROSION_SIZE,
-        this->LOCALIZER_EROSION_SIZE));
+        Size(2 * this->_settings.erosion_size + 1,
+        2 * this->_settings.erosion_size + 1),
+        Point(this->_settings.erosion_size,
+        this->_settings.erosion_size));
     erode(imageCopy, imageCopy, erodedImage);
 
 #ifdef PipelineStandalone
@@ -231,10 +170,10 @@ Mat Localizer::highlightTags(Mat &grayImage) {
 #endif
 
     dilatedImage = getStructuringElement(MORPH_ELLIPSE,
-        Size(2 * this->LOCALIZER_DILATION_2_SIZE + 1,
-        2 * this->LOCALIZER_DILATION_2_SIZE + 1),
-        Point(this->LOCALIZER_DILATION_2_SIZE,
-        this->LOCALIZER_DILATION_2_SIZE));
+        Size(2 * this->_settings.dilation_2_size + 1,
+        2 * this->_settings.dilation_2_size + 1),
+        Point(this->_settings.dilation_2_size,
+        this->_settings.dilation_2_size));
     dilate(imageCopy, imageCopy, dilatedImage);
 
 #ifdef PipelineStandalone
@@ -270,17 +209,17 @@ std::vector<Tag> Localizer::locateTagCandidates(Mat blobImage_old,
     for (std::vector<vector<Point2i> >::iterator contour = contours.begin();
       contour != contours.end(); ++contour) {
         //filter contours which are too big
-        if (contour->size() < this->LOCALIZER_MAXTAGSIZE) {
+        if (contour->size() < this->_settings.max_tag_size) {
             Rect rec = boundingRect(*contour) * 2;
 
-            if (rec.width < this->LOCALIZER_MINTAGSIZE) {
-                int offset = abs(rec.width - this->LOCALIZER_MINTAGSIZE);
+            if (rec.width < this->_settings.min_tag_size) {
+                int offset = abs(rec.width - this->_settings.min_tag_size);
                 rec.x     = rec.x - offset / 2;
                 rec.width = rec.width + offset;
             }
 
-            if (rec.height < this->LOCALIZER_MINTAGSIZE) {
-                int offset = abs(rec.height - this->LOCALIZER_MINTAGSIZE);
+            if (rec.height < this->_settings.min_tag_size) {
+                int offset = abs(rec.height - this->_settings.min_tag_size);
                 rec.y      = rec.y - offset / 2;
                 rec.height = rec.height + offset;
             }
@@ -396,35 +335,28 @@ Mat Localizer::computeBlobs(Mat sobel) {
  * @param filename absolute path to the config file
  */
 void Localizer::loadConfigVars(string filename) {
-    //TODO
-    boost::property_tree::ptree pt;
-    boost::property_tree::ini_parser::read_ini(filename, pt);
+	boost::property_tree::ptree pt;
+	boost::property_tree::ini_parser::read_ini(filename, pt);
 
-    this->LOCALIZER_BINTHRES =
-      pt.get<int>(config::APPlICATION_ENVIROMENT + ".binary_threshold");
-    this->LOCALIZER_DILATION_1_ITERATIONS = pt.get<int>(
-        config::APPlICATION_ENVIROMENT + ".dilation_1_interation_number");
-    this->LOCALIZER_DILATION_1_SIZE =
-      pt.get<int>(config::APPlICATION_ENVIROMENT + ".dilation_1_size");
-    this->LOCALIZER_EROSION_SIZE =
-      pt.get<int>(config::APPlICATION_ENVIROMENT + ".erosion_size");
-    this->LOCALIZER_DILATION_2_SIZE =
-      pt.get<int>(config::APPlICATION_ENVIROMENT + ".dilation_2_size");
-    this->LOCALIZER_MAXTAGSIZE =
-      pt.get<int>(config::APPlICATION_ENVIROMENT + ".max_tag_size");
-    this->LOCALIZER_MINTAGSIZE =
-      pt.get<int>(config::APPlICATION_ENVIROMENT + ".min_tag_size");
+	_settings.binary_threshold =
+			pt.get<int>(config::APPlICATION_ENVIROMENT + ".binary_threshold");
+	_settings.dilation_1_iteration_number =
+			pt.get<int>(config::APPlICATION_ENVIROMENT + ".dilation_1_interation_number");
+	_settings.dilation_1_size =
+			pt.get<int>(config::APPlICATION_ENVIROMENT + ".dilation_1_size");
+	_settings.erosion_size =
+			pt.get<int>(config::APPlICATION_ENVIROMENT + ".erosion_size");
+	_settings.dilation_2_size =
+			pt.get<int>(config::APPlICATION_ENVIROMENT + ".dilation_2_size");
+	_settings.max_tag_size =
+			pt.get<int>(config::APPlICATION_ENVIROMENT + ".max_tag_size");
+	_settings.min_tag_size =
+			pt.get<int>(config::APPlICATION_ENVIROMENT + ".min_tag_size");
 }
 #endif
 
-void Localizer::loadConfigVars()
+void Localizer::loadSettings(localizer_settings_t &&settings)
 {
-    LOCALIZER_BINTHRES = LocalizerParams::binary_threshold;
-    LOCALIZER_DILATION_1_ITERATIONS = LocalizerParams::dilation_1_interation_number;
-    LOCALIZER_DILATION_1_SIZE       = LocalizerParams::dilation_1_size;
-    LOCALIZER_DILATION_2_SIZE       = LocalizerParams::dilation_2_size;
-    LOCALIZER_EROSION_SIZE = LocalizerParams::erosion_size;
-    LOCALIZER_MAXTAGSIZE   = LocalizerParams::max_tag_size;
-    LOCALIZER_MINTAGSIZE   = LocalizerParams::min_tag_size;
+	_settings = std::move(settings);
 }
 }
