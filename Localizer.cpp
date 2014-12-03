@@ -256,7 +256,7 @@ Mat Localizer::highlightTags(Mat &grayImage) {
  */
 
 std::vector<Tag> Localizer::locateTagCandidates(Mat blobImage_old,
-  Mat cannyEdgeMap, Mat grayImage) {
+  Mat /*cannyEdgeMap*/, Mat grayImage) {
     std::vector<Tag>  taglist = std::vector<Tag>();
     std::vector<vector<Point2i> > contours;
 
@@ -305,8 +305,7 @@ std::vector<Tag> Localizer::locateTagCandidates(Mat blobImage_old,
             // if rectangle-size is big/small enough add it to Bounding Boxes
             if ((rec.height * rec.width) > 800
               && (rec.height * rec.width) < 20000) {
-                Tag tag = Tag(rec);
-                tag.setId(taglist.size() + 1);
+                Tag tag(rec, taglist.size() + 1);
 
                 Mat subImageOrig_cp;
                 Mat sub_image_orig(grayImage, rec);
