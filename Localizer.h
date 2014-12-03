@@ -67,14 +67,15 @@ private:
 	cv::Mat highlightTags(cv::Mat &grayImage);
 	std::vector<Tag> locateTagCandidates(cv::Mat blobImage, cv::Mat cannyEdgeMap, cv::Mat grayImage);
 
+
 #ifdef PipelineStandalone
-	void loadConfigVars(string filename);
+	void loadConfigVars(const std::string &filename);
 #endif
 
 public:
 	Localizer();
 #ifdef PipelineStandalone
-	Localizer(string configFile);
+	Localizer(const std::string &configFile);
 #endif
 	virtual ~Localizer();
 

@@ -14,8 +14,8 @@
  * \param scale factor by which the rectangle is scaled
  */
 cv::Rect operator*(const cv::Rect rectangle, double scale) {
-    cv::Size s    = cv::Size((rectangle.height * scale), (rectangle.width * scale));
-    cv::Point2i c = cv::Point(rectangle.x - (0.5 * (s.width - rectangle.width)),
+    cv::Size    s((rectangle.height * scale), (rectangle.width * scale));
+    cv::Point2i c(rectangle.x - (0.5 * (s.width - rectangle.width)),
         rectangle.y - (0.5 * (s.height - rectangle.height)));
     return (cv::Rect(c, s));
 }
@@ -34,7 +34,7 @@ Localizer::Localizer() {
 }
 
 #ifdef PipelineStandalone
-Localizer::Localizer(string configFile) {
+Localizer::Localizer(const std::string &configFile) {
 	loadConfigVars(configFile);
 }
 #endif
@@ -110,32 +110,27 @@ std::vector<Tag> Localizer::process(cv::Mat&& grayImage) {
  * @return image with highlighted tags
  */
 cv::Mat Localizer::highlightTags(cv::Mat &grayImage) {
-    cv::Mat imageCopy, imageCopy2;
-    //eroded image
-    cv::Mat erodedImage;
-    //dilated image
-    cv::Mat dilatedImage;
-    cv::Mat binarizedImage;
 
     //binarization
-    threshold(grayImage, binarizedImage, this->_settings.binary_threshold, 255,
+	cv::Mat binarizedImage;
+    cv::threshold(grayImage, binarizedImage, this->_settings.binary_threshold, 255,
       CV_THRESH_BINARY);
 
-    binarizedImage.copyTo(imageCopy);
+    cv::Mat imageCopy = binarizedImage.clone();
 
 #ifdef PipelineStandalone
     if (config::DEBUG_MODE_LOCALIZER) {
-        namedWindow("binarized Image", WINDOW_NORMAL);
-        imshow("binarized Image", imageCopy);
-        waitKey(0);
-        destroyWindow("binarized Image");
+        cv::namedWindow("binarized Image", cv::WINDOW_NORMAL);
+        cv::imshow("binarized Image", imageCopy);
+        cv::waitKey(0);
+        cv::destroyWindow("binarized Image");
     }
 #endif
 
-    binarizedImage.copyTo(imageCopy2);
+    cv::Mat imageCopy2 = binarizedImage.clone();
 
     //cv::MORPH_OPEN
-    dilatedImage = cv::getStructuringElement(cv::MORPH_ELLIPSE,
+    cv::Mat dilatedImage = cv::getStructuringElement(cv::MORPH_ELLIPSE,
         cv::Size(2 * this->_settings.dilation_1_size + 1,
         2 * this->_settings.dilation_1_size + 1),
         cv::Point(this->_settings.dilation_1_size,
@@ -153,7 +148,7 @@ cv::Mat Localizer::highlightTags(cv::Mat &grayImage) {
 #endif
 
     //erosion
-    erodedImage = cv::getStructuringElement(cv::MORPH_ELLIPSE,
+    cv::Mat erodedImage = cv::getStructuringElement(cv::MORPH_ELLIPSE,
         cv::Size(2 * this->_settings.erosion_size + 1,
         2 * this->_settings.erosion_size + 1),
         cv::Point(this->_settings.erosion_size,
@@ -162,10 +157,10 @@ cv::Mat Localizer::highlightTags(cv::Mat &grayImage) {
 
 #ifdef PipelineStandalone
     if (config::DEBUG_MODE_LOCALIZER) {
-        namedWindow("First Erode", WINDOW_NORMAL);
-        imshow("First Erode", imageCopy);
-        waitKey(0);
-        destroyWindow("First Erode");
+        cv::namedWindow("First Erode", cv::WINDOW_NORMAL);
+        cv::imshow("First Erode", imageCopy);
+        cv::waitKey(0);
+        cv::destroyWindow("First Erode");
     }
 #endif
 
@@ -178,10 +173,10 @@ cv::Mat Localizer::highlightTags(cv::Mat &grayImage) {
 
 #ifdef PipelineStandalone
     if (config::DEBUG_MODE_LOCALIZER) {
-        namedWindow("My Window", WINDOW_NORMAL);
-        imshow("My Window", imageCopy);
-        waitKey(0);
-        destroyWindow("My Window");
+        cv::namedWindow("My Window", cv::WINDOW_NORMAL);
+        cv::imshow("My Window", imageCopy);
+        cv::waitKey(0);
+        cv::destroyWindow("My Window");
     }
 #endif
     return imageCopy;
@@ -293,10 +288,10 @@ cv::Mat Localizer::computeSobelMap(cv::Mat grayImage) {
     cv::addWeighted(abs_grad_x, 0.5, abs_grad_y, 0.5, 0, sobel);
 #ifdef PipelineStandalone
     if (config::DEBUG_MODE_LOCALIZER) {
-        namedWindow("Sobel", WINDOW_NORMAL);
-        imshow("Sobel", sobel);
-        waitKey(0);
-        destroyWindow("Sobel");
+        cv::namedWindow("Sobel", cv::WINDOW_NORMAL);
+        cv::imshow("Sobel", sobel);
+        cv::waitKey(0);
+        cv::destroyWindow("Sobel");
     }
 #endif
 
@@ -334,7 +329,7 @@ cv::Mat Localizer::computeBlobs(cv::Mat sobel) {
  *
  * @param filename absolute path to the config file
  */
-void Localizer::loadConfigVars(string filename) {
+void Localizer::loadConfigVars(const std::string &filename) {
 	boost::property_tree::ptree pt;
 	boost::property_tree::ini_parser::read_ini(filename, pt);
 

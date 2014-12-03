@@ -68,8 +68,8 @@ Decoding Decoder::decode(const Grid &g) const {
 Decoding Decoder::includeExcludeDecode(const Grid &g) const {
     const cv::Mat &image = g.ell().binarizedImage;
 
-    cv::Mat whiteMask = cv::Mat(image.rows, image.cols, image.type(), cv::Scalar(0));
-    cv::Mat blackMask = cv::Mat(image.rows, image.cols, image.type(), cv::Scalar(0));
+    cv::Mat whiteMask(image.rows, image.cols, image.type(), cv::Scalar(0));
+    cv::Mat blackMask(image.rows, image.cols, image.type(), cv::Scalar(0));
     std::vector<std::vector<cv::Point> > conts(1);
     conts[0] = g.renderScaledGridCell(13, CELL_SCALE);
     drawContours(whiteMask, conts, 0, cv::Scalar(1), CV_FILLED);
@@ -88,7 +88,7 @@ Decoding Decoder::includeExcludeDecode(const Grid &g) const {
     cv::Mat means(12, 1, CV_32F);
     cv::Mat stds(12, 1, CV_32F);
     for (int i = 0; i < 12; i++) {
-        cv::Mat cellMask = cv::Mat(image.rows, image.cols, image.type(), cv::Scalar(0));
+        cv::Mat cellMask(image.rows, image.cols, image.type(), cv::Scalar(0));
 
         conts[0] = g.renderScaledGridCell(i, CELL_SCALE);
         drawContours(cellMask, conts, 0, cv::Scalar(1), CV_FILLED);

@@ -63,7 +63,7 @@ double Grid::binaryCountScore() const {
     cv::Mat scores (3, 1, CV_64FC1);
     // for each cell calculate its size (cell size) and its mean intensity (means)
     for (int j = 12; j < 15; j++) {
-        cv::Mat mask = cv::Mat(binImg.rows, binImg.cols, binImg.type(), cv::Scalar(0));
+        cv::Mat mask(binImg.rows, binImg.cols, binImg.type(), cv::Scalar(0));
 
         std::vector< std::vector <cv::Point> > conts;
         conts.push_back(renderGridCell(j));
@@ -98,9 +98,9 @@ double Grid::fisherScore() const {
     cv::GaussianBlur(roi, smoothROI, cv::Size(7, 7), 0, 0, cv::BORDER_DEFAULT);
     minMaxIdx(smoothROI, &black, &white);
 
-    cv::Mat means  = cv::Mat(15, 1, CV_32F);
-    cv::Mat labels = cv::Mat(15, 1, CV_32S);
-    cv::TermCriteria max_it = cv::TermCriteria(cv::TermCriteria::COUNT, 3, 2);
+    cv::Mat means(15, 1, CV_32F);
+    cv::Mat labels(15, 1, CV_32S);
+    cv::TermCriteria max_it(cv::TermCriteria::COUNT, 3, 2);
     cv::Mat centers;
     std::vector<cv::Mat> masks;
 

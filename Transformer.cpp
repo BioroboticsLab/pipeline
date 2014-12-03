@@ -30,7 +30,7 @@ void Transformer::transformImages(Tag &tag){
 }
 
 cv::Mat Transformer::ellipseTransform(Ellipse ell, cv::Mat originalImage) {
-    cv::Mat rot = cv::Mat(2, 3, CV_64F);
+    cv::Mat rot(2, 3, CV_64F);
 
     // rotation angle is the ellipse' orientation
     double a = (ell.angle * CV_PI) / 180.0;
