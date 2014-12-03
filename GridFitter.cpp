@@ -228,8 +228,8 @@ Grid GridFitter::fitGridAngle(Ellipse &ellipse, float gsize, double angle,
 
     // Similar approach like in fitGridGradient, just using the angle
     while (step_size > 0) {
-        Grid g1 = Grid(gsize, a + step_size, 0, x, y, ellipse, scoringMethod);
-        Grid g2 = Grid(gsize, a - step_size, 0, x, y, ellipse, scoringMethod);
+        Grid g1(gsize, a + step_size, 0, x, y, ellipse, scoringMethod);
+        Grid g2(gsize, a - step_size, 0, x, y, ellipse, scoringMethod);
 
         int new_a;
         if (g1 > g2) {

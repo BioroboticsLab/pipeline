@@ -43,14 +43,14 @@ public:
      * @param scoringMethod method that should be used for scoring (FOR LATER USE MAYBE)
      */
     GridFitter(Grid::ScoringMethod scoringMethod = Grid::BINARYCOUNT);
-    virtual ~GridFitter();
+    ~GridFitter();
 
     /**
      * processes all ellipses and returns the grids which fit to the given ellipses
      *
      * @return possible grids
      */
-    virtual std::vector<Tag> process(std::vector<Tag> &&taglist);
+    std::vector<Tag> process(std::vector<Tag> &&taglist);
 
 private:
 
@@ -65,7 +65,7 @@ private:
      * @param ellipse the ellipse the grid should belong to
      * @return the hopefully best grid
      */
-    virtual Grid fitGrid(Ellipse &ellipse);
+    Grid fitGrid(Ellipse &ellipse);
 
     /**
      * guesses orientation of the tag
