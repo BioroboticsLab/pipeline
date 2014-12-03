@@ -7,6 +7,8 @@
 
 #include "GridFitter.h"
 #include "util/ThreadPool.h"
+#include <algorithm> // std::remove_if
+#include <iterator> // std::distance
 
 using namespace cv;
 
@@ -121,22 +123,15 @@ std::array<Point2f, 2> GridFitter::getOrientationVector(const Ellipse &ellipse) 
 double GridFitter::getOtsuThreshold(const Mat &srcMat) const {
     //Code Snippet from
     //http://stackoverflow.com/questions/12953993/otsu-thresholding-for-depth-image
-    Mat copyImg = srcMat.clone();
-    uchar* ptr     = copyImg.datastart;
-    uchar* ptr_end = copyImg.dataend;
-    while (ptr < ptr_end) {
-        if (*ptr == 0) {         // swap if zero
-            uchar tmp = *ptr_end;
-            *ptr_end = *ptr;
-            *ptr     = tmp;
-            ptr_end--;             // make array smaller
-        } else {
-            ptr++;
-        }
-    }
+	// error removed & simplified
 
-    // make a new matrix with only valid data
-    Mat nz = Mat(std::vector<uchar>(copyImg.datastart, ptr_end), true);
+    Mat copyImg = srcMat.clone();
+
+    // remove all zeros
+    const auto new_dataend = std::remove_if(copyImg.datastart, copyImg.dataend, [](const uchar p) {return p == 0; });
+
+    // make a new matrix with only valid data (i.e. non-zero)
+    cv::Mat nz(cv::Size(1, std::distance(copyImg.datastart, new_dataend)), cv::DataType<uchar>::type, copyImg.datastart);
 
     // compute  Otsu threshold
     const double thresh = threshold(nz, nz, 0, 255,
