@@ -12,7 +12,7 @@ struct Decoding {
     /**
      * ID of the roi
      */
-    int id;
+    // int id; <-- unused ...
 
     /**
      * Decoded ID of the tag
@@ -28,6 +28,12 @@ struct Decoding {
      * The grid that has been decoded
      */
     Grid grid;
+
+    Decoding(unsigned int tagId, double score, Grid grid)
+    	: tagId(tagId)
+    	, score(score)
+    	, grid(grid)
+    {}
 };
 }
 
