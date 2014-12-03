@@ -60,7 +60,7 @@ Grid GridFitter::fitGrid(Ellipse& ellipse) const {
     // Get ellipse orientation
     const auto &orient = getOrientationVector(ellipse);
     const Vec2f v = orient[1] - orient[0];
-    float alph = atan2(v[1], v[0]) * 180 / CV_PI + 90;
+    double alph = atan2(v[1], v[0]) * 180 / CV_PI + 90; // [-90, 270]
 
     //check for NaN values
     if (alph != alph) {
@@ -68,15 +68,15 @@ Grid GridFitter::fitGrid(Ellipse& ellipse) const {
     }
 
     // Run multiple Grid Fittings with several start positions
-    Grid bestGrid = fitGridGradient(ellipse, static_cast<double>(alph), ellipse.cen.x,
+    Grid bestGrid = fitGridGradient(ellipse, alph, ellipse.cen.x,
         ellipse.cen.y);
-    srand(time(NULL));     // Seed the random generator
+    srand(time(nullptr));     // Seed the random generator
     // TODO 16 ist besser als 4
     for (int i = 0; i < 16; i++) {
         // Calculate offset to the center of the ellipse
         const int offsetX = rand() % ellipse.axis.width - (ellipse.axis.width / 2);
         const int offsetY = rand() % ellipse.axis.width - (ellipse.axis.width / 2);
-        Grid grid = fitGridGradient(ellipse, static_cast<double>(alph),
+        Grid grid = fitGridGradient(ellipse, alph,
             ellipse.cen.x + offsetX, ellipse.cen.y + offsetY);
 
         if (grid > bestGrid) {
@@ -149,12 +149,12 @@ Grid GridFitter::fitGridGradient(const Ellipse &ellipse, double angle, int start
   int startY) const {
     int step_size = INITIAL_STEP_SIZE;     // Amount of pixel the walk should jump
 
-    float gsize = (ellipse.axis.width / 3.0);
-    int x       = startX;
-    int y       = startY;
+    const float gsize = (ellipse.axis.width / 3.0);
+    const int x       = startX;
+    const int y       = startY;
     // best grid so far
     Grid best = fitGridAngle(ellipse, gsize, angle, x, y);
-    int gs    = cvRound(ellipse.axis.width / 3.0);
+    const int gs    = cvRound(ellipse.axis.width / 3.0);
 
     while (step_size > FINAL_STEP_SIZE) {
         // investigate the surrounding positions

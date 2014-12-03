@@ -57,14 +57,14 @@ public:
      */
     explicit Decoder();
 
-    virtual ~Decoder();
+    ~Decoder();
 
     /**
      * decodes the tags of the grids
      *
      * @return new struct named Decoding(consists of id, tagId, score)
      */
-    std::vector<Tag> process(std::vector<Tag> &&taglist);
+    std::vector<Tag> process(std::vector<Tag> &&taglist) const;
 
     /**
      * generates an circle edge
@@ -82,7 +82,7 @@ private:
      * @param g the grid
      * @return decoding of the grid
      */
-    Decoding decode(const Grid &g);
+    Decoding decode(const Grid &g) const;
 
     /**
      * decodes the grid by using an include exclude approach
@@ -90,7 +90,7 @@ private:
      * @param g the grid
      * @return the decoding
      */
-    Decoding includeExcludeDecode(const Grid &g);
+    Decoding includeExcludeDecode(const Grid &g) const;
 
     /**
      * helper method to calculate the fisher score depending on the given labels and the grid
@@ -100,7 +100,7 @@ private:
      * @param useBinaryImage determines whether the binary image should be used or the grayscale one
      * @return the fisher score
      */
-    double fisherScore(const Grid &g, Mat &labels, bool useBinaryImage = false);
+    double fisherScore(const Grid &g, Mat &labels, bool useBinaryImage = false) const;
 
     /**
      * decodes the grid by walking along an edge of a circle
@@ -108,7 +108,7 @@ private:
      * @param g the grid
      * @return the decoding
      */
-    Decoding edgeWalkerDecode(const Grid &g);
+    Decoding edgeWalkerDecode(const Grid &g) const;
 
     /**
      * Returns the means for white and black color with standard deviation. Uses the black and white inner half circle as set.

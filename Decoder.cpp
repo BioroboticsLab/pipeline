@@ -16,11 +16,9 @@ namespace decoder {
 Decoder::Decoder() {
 }
 
-Decoder::~Decoder() {
-    // TODO Auto-generated destructor stub
-}
+Decoder::~Decoder() = default;
 
-std::vector<Tag> Decoder::process(std::vector<Tag>&& taglist) {
+std::vector<Tag> Decoder::process(std::vector<Tag>&& taglist) const {
     // remove invalid tags
     taglist.erase(std::remove_if(taglist.begin(), taglist.end(), [](Tag& tag) { return !tag.isValid(); }), taglist.end());
     for (Tag& tag : taglist) {
@@ -61,14 +59,14 @@ std::vector<Tag> Decoder::process(std::vector<Tag>&& taglist) {
             candidate.setDecodings(std::move(decodings));
         }
     }
-    return taglist;
+    return std::move(taglist);
 }
 
-Decoding Decoder::decode(const Grid &g) {
+Decoding Decoder::decode(const Grid &g) const {
     return edgeWalkerDecode(g);
 }
 
-Decoding Decoder::includeExcludeDecode(const Grid &g) {
+Decoding Decoder::includeExcludeDecode(const Grid &g) const {
     const Mat &image = g.ell().binarizedImage;
 
     Mat whiteMask = Mat(image.rows, image.cols, image.type(), Scalar(0));
@@ -82,9 +80,9 @@ Decoding Decoder::includeExcludeDecode(const Grid &g) {
     Scalar mean;
     Scalar std;
     meanStdDev(image, mean, std, whiteMask);
-    double whiteCenter = mean[0];
+    const double whiteCenter = mean[0];
     meanStdDev(image, mean, std, blackMask);
-    double blackCenter = mean[0];
+    const double blackCenter = mean[0];
 
     // Initial labeling
     Mat labels(12, 1, CV_8U);
@@ -115,9 +113,9 @@ Decoding Decoder::includeExcludeDecode(const Grid &g) {
         whiteMovedScore = -1;
 
         // Get the brightest black cell and the darkest white cell
-        minMaxIdx(means, NULL, NULL, NULL, blackMaxIdx,
+        minMaxIdx(means, nullptr, nullptr, nullptr, blackMaxIdx,
           Mat::ones(12, 1, CV_8U) - labels);
-        minMaxIdx(means, NULL, NULL, whiteMinIdx, NULL, labels);
+        minMaxIdx(means, nullptr, nullptr, whiteMinIdx, nullptr, labels);
 
         // Change class of the cell, but just if there is one
         if (blackMaxIdx[1] != -1) {
@@ -155,7 +153,7 @@ Decoding Decoder::includeExcludeDecode(const Grid &g) {
     return Decoding(res, fisherScore(g, labels, true), g);
 }
 
-double Decoder::fisherScore(const Grid &g, Mat &labels, bool useBinaryImage) {
+double Decoder::fisherScore(const Grid &g, Mat &labels, bool useBinaryImage) const {
     const Mat &image = useBinaryImage ? g.ell().binarizedImage : g.ell().transformedImage;
     std::vector<std::vector<Point> > conts(1);
     Mat whiteMask(image.rows, image.cols, image.type(), Scalar(0));
@@ -188,7 +186,7 @@ double Decoder::fisherScore(const Grid &g, Mat &labels, bool useBinaryImage) {
            / (whiteStd[0] * whiteStd[0] + blackStd[0] * blackStd[0]);
 }
 
-Decoding Decoder::edgeWalkerDecode(const Grid &g) {
+Decoding Decoder::edgeWalkerDecode(const Grid &g) const {
     Mat edge = g.generateEdgeAsMat(
         static_cast<int>(IORR * g.size() + (ORR * g.size() - IORR * g.size()) * 0.5), 1);
     const int edgeSize    = edge.size().height;
