@@ -191,30 +191,28 @@ cv::Mat Localizer::highlightTags(cv::Mat &grayImage) {
 
 std::vector<Tag> Localizer::locateTagCandidates(cv::Mat blobImage_old,
   cv::Mat /*cannyEdgeMap*/, cv::Mat grayImage) {
-    std::vector<Tag>  taglist = std::vector<Tag>();
+    std::vector<Tag>  taglist;
     std::vector<std::vector<cv::Point2i> > contours;
 
-    cv::Mat blobImage;
-    blobImage_old.copyTo(blobImage);
+    cv::Mat blobImage = blobImage_old.clone();
 
     //find intra-connected white pixels
     cv::findContours(blobImage, contours, CV_RETR_LIST, CV_CHAIN_APPROX_NONE);
 
     //extract contour bounding boxes for tag candidates
-    for (auto contour = contours.begin();
-      contour != contours.end(); ++contour) {
+    for (const auto &contour : contours) {
         //filter contours which are too big
-        if (contour->size() < this->_settings.max_tag_size) {
-            cv::Rect rec = cv::boundingRect(*contour) * 2;
+        if (contour.size() < this->_settings.max_tag_size) {
+            cv::Rect rec = cv::boundingRect(contour) * 2;
 
             if (rec.width < this->_settings.min_tag_size) {
-                int offset = abs(rec.width - this->_settings.min_tag_size);
+                const int offset = abs(rec.width - this->_settings.min_tag_size);
                 rec.x     = rec.x - offset / 2;
                 rec.width = rec.width + offset;
             }
 
             if (rec.height < this->_settings.min_tag_size) {
-                int offset = abs(rec.height - this->_settings.min_tag_size);
+                const int offset = abs(rec.height - this->_settings.min_tag_size);
                 rec.y      = rec.y - offset / 2;
                 rec.height = rec.height + offset;
             }
@@ -241,9 +239,8 @@ std::vector<Tag> Localizer::locateTagCandidates(cv::Mat blobImage_old,
               && (rec.height * rec.width) < 20000) {
                 Tag tag(rec, taglist.size() + 1);
 
-                cv::Mat subImageOrig_cp;
                 cv::Mat sub_image_orig(grayImage, rec);
-                sub_image_orig.copyTo(subImageOrig_cp);
+                cv::Mat subImageOrig_cp = sub_image_orig.clone();
                 tag.setOrigSubImage(subImageOrig_cp);
 
                 taglist.push_back(tag);
@@ -259,11 +256,9 @@ std::vector<Tag> Localizer::locateTagCandidates(cv::Mat blobImage_old,
  * @return sobelmap
  */
 cv::Mat Localizer::computeSobelMap(cv::Mat grayImage) {
-    cv::Mat sobel;
-    cv::Mat imageCopy;
-    // We need a copy because the GuassianBlur makes changes to the image
 
-    grayImage.copyTo(imageCopy);
+    // We need a copy because the GuassianBlur makes changes to the image
+    cv::Mat imageCopy = grayImage.clone();
 
     int scale  = 1;
     int delta  = 0;
@@ -285,6 +280,7 @@ cv::Mat Localizer::computeSobelMap(cv::Mat grayImage) {
     cv::convertScaleAbs(grad_y, abs_grad_y);
 
     /// Total Gradient (approximate)
+    cv::Mat sobel;
     cv::addWeighted(abs_grad_x, 0.5, abs_grad_y, 0.5, 0, sobel);
 #ifdef PipelineStandalone
     if (config::DEBUG_MODE_LOCALIZER) {
@@ -305,8 +301,7 @@ cv::Mat Localizer::computeSobelMap(cv::Mat grayImage) {
  */
 
 cv::Mat Localizer::computeBlobs(cv::Mat sobel) {
-    cv::Mat blob;
-    blob = this->highlightTags(sobel);
+    cv::Mat blob = this->highlightTags(sobel);
 
     //DEBUG_IMSHOW("blob", blob);
 

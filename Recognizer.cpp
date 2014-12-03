@@ -64,8 +64,7 @@ void Recognizer::detectXieEllipse(Tag &tag) {
     std::vector<Ellipse> candidates;
 
     // (1) all white (being edge) pixels are written into the ep array
-    cv::MatConstIterator_<unsigned char> mit, end;
-    for (mit = cannyImage.begin<unsigned char>(), end = cannyImage.end<unsigned char>();
+    for (auto mit = cannyImage.begin<unsigned char>(), end = cannyImage.end<unsigned char>();
       mit != end; ++mit) {
         if (*mit.ptr == 255) {
             ep.push_back(mit.pos());
@@ -223,7 +222,7 @@ foundEllipse:
 #endif
         tag.addCandidate(TagCandidate(ell));
     }
-    if (tag.getCandidates().size() == 0) {
+    if (tag.getCandidates().empty()) {
         tag.setValid(false);
     }
 #ifdef PipelineStandalone
@@ -238,8 +237,7 @@ foundEllipse:
 }
 
 void Recognizer::visualizeEllipse(Tag const& tag, Ellipse const& ell, std::string const& title) {
-    cv::Mat subroiTest;
-    tag.getOrigSubImage().copyTo(subroiTest);
+    cv::Mat subroiTest = tag.getOrigSubImage().clone();
     ellipse(subroiTest, ell.cen, ell.axis, ell.angle, 0, 360, cv::Scalar(0, 0, 255));
     std::string text = "Score " + std::to_string(ell.vote);
     cv::putText(subroiTest, text, cv::Point(10, 30), cv::FONT_HERSHEY_COMPLEX_SMALL,
@@ -250,8 +248,7 @@ void Recognizer::visualizeEllipse(Tag const& tag, Ellipse const& ell, std::strin
 }
 
 cv::Mat Recognizer::computeCannyEdgeMap(cv::Mat grayImage) {
-    cv::Mat localGrayImage;
-    grayImage.copyTo(localGrayImage);
+    cv::Mat localGrayImage = grayImage.clone();
 
     cv::GaussianBlur(localGrayImage, localGrayImage, cv::Size(3, 3), 0, 0,
       cv::BORDER_DEFAULT);
@@ -282,7 +279,7 @@ std::vector<Tag> Recognizer::process(std::vector<Tag>&& taglist) {
             }));
     }
     for (auto && result : results) result.get();
-    return taglist;
+    return std::move(taglist);
 }
 
 #ifdef PipelineStandalone

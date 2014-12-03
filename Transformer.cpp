@@ -14,7 +14,7 @@ std::vector<Tag> Transformer::process(std::vector<Tag>&& taglist){
     for (Tag& tag : taglist) {
         transformImages(tag);
     }
-    return taglist;
+    return std::move(taglist);
 }
 
 void Transformer::transformImages(Tag &tag){
@@ -30,19 +30,19 @@ void Transformer::transformImages(Tag &tag){
 }
 
 cv::Mat Transformer::ellipseTransform(Ellipse ell, cv::Mat originalImage) {
-    cv::Mat rot(2, 3, CV_64F);
 
     // rotation angle is the ellipse' orientation
-    double a = (ell.angle * CV_PI) / 180.0;
+    const double a = (ell.angle * CV_PI) / 180.0;
 
     // scale factor in y-direction
-    double s = (static_cast<double>(ell.axis.width)) / (static_cast<double>(ell.axis.height));
+    const double s = (static_cast<double>(ell.axis.width)) / (static_cast<double>(ell.axis.height));
 
     //center of the transformation
     float x0 = ell.cen.x;
     float y0 = ell.cen.y;
 
     // create the following rotation matrix: http://goo.gl/H3kZDj
+    cv::Mat rot(2, 3, CV_64F);
     rot.at<double>(0,0) = cos(a) * cos(a) + s * sin(a) * sin(a);
     rot.at<double>(0,1) = cos(a) * sin(a) - s * cos(a) * sin(a);
     rot.at<double>(0,2) = -(cos(a) * cos(a) + s * sin(a) * sin(a)) * x0 + x0 - y0 * (cos(a) * sin(a) - s * cos(a) * sin(a));
@@ -52,8 +52,7 @@ cv::Mat Transformer::ellipseTransform(Ellipse ell, cv::Mat originalImage) {
 
     //apply transformation described by the matrix rot
 
-    cv::Mat transformedImage;
-    originalImage.copyTo(transformedImage);
+    cv::Mat transformedImage = originalImage.clone();
 
     cv::warpAffine(originalImage, transformedImage, rot, transformedImage.size());
 
