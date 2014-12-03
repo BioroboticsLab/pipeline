@@ -33,8 +33,8 @@ std::vector<Tag> GridFitter::process(std::vector<Tag>&& taglist) const {
                   std::vector<Grid> grids;
                   grids.push_back(grid);
                   // Rotation by half cell (in both directions), because in some cases it's all you need to get a correct decoding
-                  grids.emplace_back(grid.size, grid.angle + 15, 0, grid.x, grid.y, grid.ell, true, scoringMethod);
-                  grids.emplace_back(grid.size, grid.angle - 15, 0, grid.x, grid.y, grid.ell, true, scoringMethod);
+                  grids.emplace_back(grid.size(), grid.angle() + 15, 0, grid.x(), grid.y(), grid.ell(), true, scoringMethod);
+                  grids.emplace_back(grid.size(), grid.angle() - 15, 0, grid.x(), grid.y(), grid.ell(), true, scoringMethod);
                   candidate.setGrids(std::move(grids));
         }
         }));
@@ -242,7 +242,7 @@ Grid GridFitter::fitGridAngle(const Ellipse &ellipse, float gsize, double angle,
             step_size *= 3;
             a          = new_a;
         } else {
-            step_size *= 0.5;
+            step_size /= 2;
         }
     }
 
@@ -261,7 +261,7 @@ Grid GridFitter::getBestGrid(const std::vector<Grid> &grids) const {
 int GridFitter::bestGridAngleCorrection(Grid g) const {
     // index encoding 30Â°-step angles ranging from [0,5]
     int i    = 0;
-    const Mat &roi = g.ell.transformedImage;
+    const Mat &roi = g.ell().transformedImage;
 
     float mean1c = 0;
     float mean2c = 0;

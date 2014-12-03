@@ -8,24 +8,24 @@ Grid::Grid(float size, float angle, float tilt,  int x,  int y, Ellipse ell, Sco
 }
 
 Grid::Grid(float size, float angle, float tilt, int x, int y, Ellipse ell, bool permutation, ScoringMethod scoringMethod)
-	: _score(scoringMethod)
-	, size(size)
-	, x(x)
-	, y(y)
-	, angle(angle)
-	, tilt(tilt)
-	, ell(ell)
-	, permutation(permutation)
+	: m_score(scoringMethod)
+	, m_size(size)
+	, m_x(x)
+	, m_y(y)
+	, m_angle(angle)
+	, m_tilt(tilt)
+	, m_ell(ell)
+	, m_permutation(permutation)
 {
     // Need to binarize the image, because we need it for scoring
-    if (this->ell.transformedImage.type() != CV_8U) {
+    if (this->m_ell.transformedImage.type() != CV_8U) {
         Mat grayImage;
-        cvtColor(this->ell.transformedImage, grayImage, CV_BGR2GRAY);
-        this->ell.transformedImage = grayImage;
+        cvtColor(this->m_ell.transformedImage, grayImage, CV_BGR2GRAY);
+        this->m_ell.transformedImage = grayImage;
     }
 
     // Binarize image first (just for new Scoring)
-    adaptiveThreshold(this->ell.transformedImage, this->ell.binarizedImage, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY, 21, 3);
+    adaptiveThreshold(this->m_ell.transformedImage, this->m_ell.binarizedImage, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY, 21, 3);
 }
 
 Grid::Grid(ScoringMethod scoringMethod)
@@ -44,21 +44,21 @@ Grid::~Grid() = default;
 
 // === Scoring methods ===
 Grid::ScoringMethod Grid::scoringMethod() const {
-    return _score.metric;
+    return m_score.metric;
 }
 
 double Grid::score() const {
     // determine whether the grid is a dummy or not
-    if (_score.metric == BINARYCOUNT && _score.value == BINARYCOUNT_INIT && ell.binarizedImage.total() > 0) {
-        _score.value = binaryCountScore();
-    } else if (_score.metric == FISHER && _score.value == FISHER_INIT && ell.transformedImage.total() > 0) {
-        _score.value = fisherScore();
+    if (m_score.metric == BINARYCOUNT && m_score.value == BINARYCOUNT_INIT && m_ell.binarizedImage.total() > 0) {
+        m_score.value = binaryCountScore();
+    } else if (m_score.metric == FISHER && m_score.value == FISHER_INIT && m_ell.transformedImage.total() > 0) {
+        m_score.value = fisherScore();
     }
-    return _score.value;
+    return m_score.value;
 }
 
 double Grid::binaryCountScore() const {
-    const Mat &binImg = ell.binarizedImage;
+    const Mat &binImg = m_ell.binarizedImage;
 
     Mat scores (3, 1, CV_64FC1);
     // for each cell calculate its size (cell size) and its mean intensity (means)
@@ -89,7 +89,7 @@ double Grid::fisherScore() const {
     // 37/46 = 80.43% with Sb = |black - white| look into other intervariances
     // 41/47 = 89.13% with kind of A scaling
     // determine best orientation
-    const Mat &roi = ell.transformedImage;
+    const Mat &roi = m_ell.transformedImage;
 
     double black = -1;
     double white = -1;
@@ -145,7 +145,7 @@ double Grid::fisherScore() const {
     black = centers.at<float>(0, 0);
     white = centers.at<float>(1, 0);
 
-    if (_score.value != -1) {
+    if (m_score.value != -1) {
         for (int lab = 0; lab < labels.rows; lab++) {
             if (labels.at<int>(lab) == 0 && lab < 12) {
                 if (abs(means.at<float>(lab) - white) < abs(means.at<float>(lab) - black)) {
@@ -237,10 +237,10 @@ double Grid::fisherScore() const {
 
     Mat tagMask(roi.rows, roi.cols, CV_8UC1, Scalar(0));
     // different center!! ellipse stuff!!!
-    circle(tagMask, ell.cen, static_cast<int>(size * TRR), Scalar(1), CV_FILLED);
+    circle(tagMask, m_ell.cen, static_cast<int>(m_size * TRR), Scalar(1), CV_FILLED);
 
     Mat matMask(roi.rows, roi.cols, CV_8UC1, Scalar(0));
-    circle(matMask, Point(x, y), static_cast<int>(size * ORR), Scalar(1), CV_FILLED);
+    circle(matMask, Point(m_x, m_y), static_cast<int>(m_size * ORR), Scalar(1), CV_FILLED);
 
     Mat tagBlack;
     threshold(roi, tagBlack, (black + white) / 2, 255, CV_THRESH_BINARY_INV);
@@ -266,35 +266,35 @@ std::vector<Point> Grid::renderScaledGridCell(unsigned short cell, double scale,
 
     // Outer cells
     if (cell < 12) {
-        const double outerInnerRadiusDiff = ORR * size - IORR * size;
-        const double outerCircleRadius    = IORR * size + outerInnerRadiusDiff * 0.5 + (outerInnerRadiusDiff * 0.5 * scale);
-        const double innerCircleRadius    = IORR * size + outerInnerRadiusDiff * 0.5 - (outerInnerRadiusDiff * 0.5 * scale);
+        const double outerInnerRadiusDiff = ORR * m_size - IORR * m_size;
+        const double outerCircleRadius    = IORR * m_size + outerInnerRadiusDiff * 0.5 + (outerInnerRadiusDiff * 0.5 * scale);
+        const double innerCircleRadius    = IORR * m_size + outerInnerRadiusDiff * 0.5 - (outerInnerRadiusDiff * 0.5 * scale);
 
         const int arcStart = -180 + (cell    ) * 30 + 15 * (1 - scale);
         const int arcEnd   = -180 + (cell + 1) * 30 - 15 * (1 - scale);
         // outer arc
-        ellipse2Poly(Point2f(x, y), Size2f(outerCircleRadius, outerCircleRadius), angle, arcStart, arcEnd, 1, cont);
+        ellipse2Poly(Point2f(m_x, m_y), Size2f(outerCircleRadius, outerCircleRadius), m_angle, arcStart, arcEnd, 1, cont);
         // inner arc
         std::vector<Point> inner_arc_poly;
-        ellipse2Poly(Point2f(x, y), Size2f(innerCircleRadius, innerCircleRadius), angle, arcStart, arcEnd, 1, inner_arc_poly);
+        ellipse2Poly(Point2f(m_x, m_y), Size2f(innerCircleRadius, innerCircleRadius), m_angle, arcStart, arcEnd, 1, inner_arc_poly);
         // join outer and inner arc
         cont.insert(cont.end(), inner_arc_poly.rbegin(), inner_arc_poly.rend());
         return cont;
     } else if (cell == 13) {
         // supposed white inner half circle
-        ellipse2Poly(Point2f(x, y), Size2f(IRR * size * scale, IRR * size * scale), angle, -180 + offset * 30, offset * 30, 1, cont);
+        ellipse2Poly(Point2f(m_x, m_y), Size2f(IRR * m_size * scale, IRR * m_size * scale), m_angle, -180 + offset * 30, offset * 30, 1, cont);
     } else if (cell == 14) {
         //supposed black inner half circle
-        ellipse2Poly(Point2f(x, y), Size2f(IRR * size * scale, IRR * size * scale), angle, 180 + offset * 30, offset * 30, 1, cont);
+        ellipse2Poly(Point2f(m_x, m_y), Size2f(IRR * m_size * scale, IRR * m_size * scale), m_angle, 180 + offset * 30, offset * 30, 1, cont);
     } else if (cell == 12) {
         // outer (white) border
-        const double outerInnerRadiusDiff = TRR * size - ORR * size;
-        const double outerCircleRadius    = ORR * size + outerInnerRadiusDiff * 0.5 + (outerInnerRadiusDiff * 0.5 * scale);
-        const double innerCircleRadius    = ORR * size + outerInnerRadiusDiff * 0.5 - (outerInnerRadiusDiff * 0.5 * scale);
+        const double outerInnerRadiusDiff = TRR * m_size - ORR * m_size;
+        const double outerCircleRadius    = ORR * m_size + outerInnerRadiusDiff * 0.5 + (outerInnerRadiusDiff * 0.5 * scale);
+        const double innerCircleRadius    = ORR * m_size + outerInnerRadiusDiff * 0.5 - (outerInnerRadiusDiff * 0.5 * scale);
 
         std::vector < Point > cont2;
-        ellipse2Poly(Point2f(x, y), Size(outerCircleRadius, outerCircleRadius), angle + 90, 0, 360, 1,cont);
-        ellipse2Poly(Point2f(x, y), Size(innerCircleRadius, innerCircleRadius), angle + 90, 0, 360, 1,cont2);
+        ellipse2Poly(Point2f(m_x, m_y), Size(outerCircleRadius, outerCircleRadius), m_angle + 90, 0, 360, 1,cont);
+        ellipse2Poly(Point2f(m_x, m_y), Size(innerCircleRadius, innerCircleRadius), m_angle + 90, 0, 360, 1,cont2);
         cont.insert(cont.end(), cont2.rbegin(), cont2.rend());
     }
 
@@ -333,10 +333,10 @@ std::vector<float> Grid::generateEdge(int radius, int width, bool useBinaryImage
 
     std::vector< std::vector<float> > subEdges (8);
 
-    subEdges[0].push_back(getMeanAlongLine(this->x - outerRadius, this->y, this->x, this->y, width, useBinaryImage));
-    subEdges[2].push_back(getMeanAlongLine(this->x, this->y - outerRadius, this->x, this->y, width, useBinaryImage));
-    subEdges[4].push_back(getMeanAlongLine(this->x + outerRadius, this->y, this->x, this->y, width, useBinaryImage));
-    subEdges[6].push_back(getMeanAlongLine(this->x, this->y + outerRadius, this->x, this->y, width, useBinaryImage));
+    subEdges[0].push_back(getMeanAlongLine(this->m_x - outerRadius, this->m_y, this->m_x, this->m_y, width, useBinaryImage));
+    subEdges[2].push_back(getMeanAlongLine(this->m_x, this->m_y - outerRadius, this->m_x, this->m_y, width, useBinaryImage));
+    subEdges[4].push_back(getMeanAlongLine(this->m_x + outerRadius, this->m_y, this->m_x, this->m_y, width, useBinaryImage));
+    subEdges[6].push_back(getMeanAlongLine(this->m_x, this->m_y + outerRadius, this->m_x, this->m_y, width, useBinaryImage));
 
     // Generating the octant in clockwise order
     while (x > y + 1) {
@@ -348,14 +348,14 @@ std::vector<float> Grid::generateEdge(int radius, int width, bool useBinaryImage
             err += 2 * (y - x + 1);
         }
 
-        subEdges[0].push_back(getMeanAlongLine(this->x - x, this->y - y, this->x, this->y, width, useBinaryImage));
-        subEdges[1].push_back(getMeanAlongLine(this->x - y, this->y - x, this->x, this->y, width, useBinaryImage));
-        subEdges[2].push_back(getMeanAlongLine(this->x + y, this->y - x, this->x, this->y, width, useBinaryImage));
-        subEdges[3].push_back(getMeanAlongLine(this->x + x, this->y - y, this->x, this->y, width, useBinaryImage));
-        subEdges[4].push_back(getMeanAlongLine(this->x + x, this->y + y, this->x, this->y, width, useBinaryImage));
-        subEdges[5].push_back(getMeanAlongLine(this->x + y, this->y + x, this->x, this->y, width, useBinaryImage));
-        subEdges[6].push_back(getMeanAlongLine(this->x - y, this->y + x, this->x, this->y, width, useBinaryImage));
-        subEdges[7].push_back(getMeanAlongLine(this->x - x, this->y + y, this->x, this->y, width, useBinaryImage));
+        subEdges[0].push_back(getMeanAlongLine(this->m_x - x, this->m_y - y, this->m_x, this->m_y, width, useBinaryImage));
+        subEdges[1].push_back(getMeanAlongLine(this->m_x - y, this->m_y - x, this->m_x, this->m_y, width, useBinaryImage));
+        subEdges[2].push_back(getMeanAlongLine(this->m_x + y, this->m_y - x, this->m_x, this->m_y, width, useBinaryImage));
+        subEdges[3].push_back(getMeanAlongLine(this->m_x + x, this->m_y - y, this->m_x, this->m_y, width, useBinaryImage));
+        subEdges[4].push_back(getMeanAlongLine(this->m_x + x, this->m_y + y, this->m_x, this->m_y, width, useBinaryImage));
+        subEdges[5].push_back(getMeanAlongLine(this->m_x + y, this->m_y + x, this->m_x, this->m_y, width, useBinaryImage));
+        subEdges[6].push_back(getMeanAlongLine(this->m_x - y, this->m_y + x, this->m_x, this->m_y, width, useBinaryImage));
+        subEdges[7].push_back(getMeanAlongLine(this->m_x - x, this->m_y + y, this->m_x, this->m_y, width, useBinaryImage));
 
         // This part is sometimes useful for debugging
         //image.at<unsigned char>(Point(this->x - x, this->y - y)) = 255;
@@ -382,7 +382,7 @@ std::vector<float> Grid::generateEdge(int radius, int width, bool useBinaryImage
     }
 
     // Move the beginning of the Edge, depending on the angle
-    const int a        = static_cast<int>(angle + 360) % 360;
+    const int a        = static_cast<int>(m_angle + 360) % 360;
     const size_t firstIdx = static_cast<size_t>(a / 360.0 * mergedEdges.size()) % mergedEdges.size();
     std::rotate(mergedEdges.begin(), mergedEdges.begin() + firstIdx, mergedEdges.end());
     return mergedEdges;
@@ -401,7 +401,7 @@ Mat Grid::generateEdgeAsMat(int radius, int width, bool useBinaryImage) const {
 
 float Grid::getMeanAlongLine(int xStart, int yStart, int xEnd, int yEnd, int size, bool useBinaryImage) const {
     // It's possibly better just to get the position of the pixel along the line, but lets fuck performance
-    const Mat &image = useBinaryImage ? ell.binarizedImage : ell.transformedImage;
+    const Mat &image = useBinaryImage ? m_ell.binarizedImage : m_ell.transformedImage;
 
     Mat profile (size, 1, CV_8UC1);
     int x = xStart;
@@ -440,7 +440,7 @@ float Grid::getMeanAlongLine(int xStart, int yStart, int xEnd, int yEnd, int siz
 // ======= DEBUG METHODS ========
 Mat Grid::drawGrid(double scale, bool useBinaryImage) const {
     Mat draw;     // Matrix the image will be drawn into
-    const Mat &roi = useBinaryImage ? ell.binarizedImage : ell.transformedImage;
+    const Mat &roi = useBinaryImage ? m_ell.binarizedImage : m_ell.transformedImage;
     roi.copyTo(draw);
 
     if (roi.type() == CV_8UC1) {
@@ -455,7 +455,7 @@ Mat Grid::drawGrid(double scale, bool useBinaryImage) const {
     std::vector < Point > cont;
 
     // render half of the inner circle (circular matrix design)
-    ellipse2Poly(Point2f(x, y), Size2f(IRR * size, IRR * size), angle, 0, -180, 1, cont);
+    ellipse2Poly(Point2f(m_x, m_y), Size2f(IRR * m_size, IRR * m_size), m_angle, 0, -180, 1, cont);
     std::vector < Point > cont2;
 
     // take first and last vertex of the polygon to get the respective diameter of the inner circle

@@ -56,6 +56,8 @@ public:
      * internal score struct (primarily for caching)
      * need to put it into the public area because of boost serialization issues
      */
+
+private:
     struct Score {
         mutable double value;
         ScoringMethod metric;
@@ -63,16 +65,23 @@ public:
         	: value(scoringMethod == BINARYCOUNT ? BINARYCOUNT_INIT : FISHER_INIT)
         	, metric(scoringMethod)
         {}
-    } _score;
+    } m_score;
 
-    float size;
-    float x;
-    float y;
-    float angle;
-    float tilt;
-    Ellipse ell;
-    bool permutation;     // Determines whether the grid is just a rotated grid or a fitted one
+    float m_size;
+    float m_x;
+    float m_y;
+    float m_angle;
+    float m_tilt;
+    Ellipse m_ell;
+    bool m_permutation;     // Determines whether the grid is just a rotated grid or a fitted one
 
+public:
+
+    float size() const { return m_size; }
+    float x() const { return m_x; }
+    float y() const { return m_y; }
+    float angle() const { return m_angle; }
+    const Ellipse& ell() const { return m_ell; }
     /**
      * Initialization method for multiple contructor
      *

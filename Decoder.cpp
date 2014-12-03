@@ -69,7 +69,7 @@ Decoding Decoder::decode(const Grid &g) {
 }
 
 Decoding Decoder::includeExcludeDecode(const Grid &g) {
-    const Mat &image = g.ell.binarizedImage;
+    const Mat &image = g.ell().binarizedImage;
 
     Mat whiteMask = Mat(image.rows, image.cols, image.type(), Scalar(0));
     Mat blackMask = Mat(image.rows, image.cols, image.type(), Scalar(0));
@@ -156,7 +156,7 @@ Decoding Decoder::includeExcludeDecode(const Grid &g) {
 }
 
 double Decoder::fisherScore(const Grid &g, Mat &labels, bool useBinaryImage) {
-    const Mat &image = useBinaryImage ? g.ell.binarizedImage : g.ell.transformedImage;
+    const Mat &image = useBinaryImage ? g.ell().binarizedImage : g.ell().transformedImage;
     std::vector<std::vector<Point> > conts(1);
     Mat whiteMask(image.rows, image.cols, image.type(), Scalar(0));
     Mat blackMask(image.rows, image.cols, image.type(), Scalar(0));
@@ -190,7 +190,7 @@ double Decoder::fisherScore(const Grid &g, Mat &labels, bool useBinaryImage) {
 
 Decoding Decoder::edgeWalkerDecode(const Grid &g) {
     Mat edge = g.generateEdgeAsMat(
-        static_cast<int>(IORR * g.size + (ORR * g.size - IORR * g.size) * 0.5), 1);
+        static_cast<int>(IORR * g.size() + (ORR * g.size() - IORR * g.size()) * 0.5), 1);
     const int edgeSize    = edge.size().height;
     const double cellSize = edgeSize / 12.0;
 
