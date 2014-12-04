@@ -196,7 +196,7 @@ foundEllipse:
     if (config::DEBUG_MODE_RECOGNIZER) {
         for (size_t i = 0; i < candidates.size(); ++i) {
             Ellipse const& ell = candidates[i];
-            if ((i >= num) || (ell.vote < RECOGNIZER_THRESHOLD_VOTE)) {
+			if ((i >= num) || (ell.vote < _settings.threshold_vote)) {
                 if (config::DEBUG_MODE_RECOGNIZER) {
                     std::cout << "Ignore Ellipse With Vote " << ell.vote << std::endl;
                     if (config::DEBUG_MODE_RECOGNIZER_IMAGE) {
@@ -230,7 +230,7 @@ foundEllipse:
     }
 #ifdef PipelineStandalone
     if (config::DEBUG_MODE_RECOGNIZER_IMAGE) {
-        destroyAllWindows();
+		cv::destroyAllWindows();
     }
     if (config::DEBUG_MODE_RECOGNIZER) {
         std::cout << "Found " << tag.getCandidates().size()
@@ -261,10 +261,10 @@ cv::Mat Recognizer::computeCannyEdgeMap(cv::Mat grayImage) {
 	  this->_settings.canny_threshold_high);
 #ifdef PipelineStandalone
     if (config::DEBUG_MODE_RECOGNIZER_IMAGE) {
-        namedWindow("Canny", WINDOW_NORMAL);
-        imshow("Canny", cannyEdgeMap);
-        waitKey(0);
-        destroyWindow("Canny");
+		cv::namedWindow("Canny", cv::WINDOW_NORMAL);
+		cv::imshow("Canny", cannyEdgeMap);
+		cv::waitKey(0);
+		cv::destroyWindow("Canny");
     }
 #endif
 
