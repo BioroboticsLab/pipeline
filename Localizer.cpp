@@ -140,10 +140,10 @@ cv::Mat Localizer::highlightTags(cv::Mat &grayImage) {
 
 #ifdef PipelineStandalone
     if (config::DEBUG_MODE_LOCALIZER) {
-        namedWindow("First Dilate", WINDOW_NORMAL);
-        imshow("First Dilate", imageCopy);
-        waitKey(0);
-        destroyWindow("First Dilate");
+		cv::namedWindow("First Dilate", cv::WINDOW_NORMAL);
+		cv::imshow("First Dilate", imageCopy);
+		cv::waitKey(0);
+		cv::destroyWindow("First Dilate");
     }
 #endif
 
