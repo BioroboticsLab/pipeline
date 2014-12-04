@@ -27,48 +27,39 @@
 
 
 namespace decoder {
-//TODO
-namespace RecognizerParams {
-// Lower Threshold for Canny
-static const int canny_threshold_low = 70;
 
-// Higher Threshold for Canny
-static const int canny_threshold_high = 90;
+typedef struct {
+	// Lower Threshold for Canny
+	int canny_threshold_low = 70;
 
-// major axis' minimum length
-static const int min_major_axis = 42;
+	// Higher Threshold for Canny
+	int canny_threshold_high = 90;
 
-// major axis' maximum length
-static const int max_major_axis = 54;
+	// major axis' minimum length
+	int min_major_axis = 42;
 
-// minor axis' minimum length
-static const int min_minor_axis = 30;
+	// major axis' maximum length
+	int max_major_axis = 54;
 
-// minor axis' maximum length
-static const int max_minor_axis = 54;
+	// minor axis' minimum length
+	int min_minor_axis = 30;
 
-// threshold minimum number of edge pixels required to support an ellipse
-static const int threshold_edge_pixels = 25;
+	// minor axis' maximum length
+	int max_minor_axis = 54;
 
-// threshold vote
-static const int threshold_vote = 1800;
+	// threshold minimum number of edge pixels required to support an ellipse
+	int threshold_edge_pixels = 25;
 
-// threshold best vote: if this vote is reached, the algorithm stops searching for other ellipses
-static const int threshold_best_vote = 3000;
-}
+	// threshold vote
+	int threshold_vote = 1800;
+
+	// threshold best vote: if this vote is reached, the algorithm stops searching for other ellipses
+	int threshold_best_vote = 3000;
+} recognizer_settings_t;
 
 class Recognizer {
 private:
-    int RECOGNIZER_LCANNYTHRES;
-    int RECOGNIZER_HCANNYTHRES;
-
-    int RECOGNIZER_MIN_MAJOR;
-    int RECOGNIZER_MAX_MAJOR;
-    int RECOGNIZER_MIN_MINOR;
-    int RECOGNIZER_MAX_MINOR;
-    int RECOGNIZER_THRESHOLD_EDGE;
-    int RECOGNIZER_THRESHOLD_VOTE;
-    int RECOGNIZER_THRESHOLD_BEST_VOTE;
+	recognizer_settings_t _settings;
 
     void detectXieEllipse(Tag &tag);
     cv::Mat computeCannyEdgeMap(cv::Mat grayImage);
@@ -77,7 +68,6 @@ private:
     void loadConfigVars(string filename);
     void visualizeEllipse(Ellipse const& ell, std::string const& title);
 #endif
-    void loadConfigVars();
 
 public:
     Recognizer();
@@ -85,6 +75,8 @@ public:
     Recognizer(string configFile);
 #endif
     virtual ~Recognizer() {}
+
+	void loadSettings(recognizer_settings_t &&settings);
 
     std::vector<Tag> process(std::vector<Tag> &&taglist);
     void visualizeEllipse(Tag const& tag , Ellipse const& ell, std::string const& title);
