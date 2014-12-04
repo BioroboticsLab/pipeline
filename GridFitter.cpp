@@ -116,7 +116,7 @@ std::array<cv::Point2f, 2> GridFitter::getOrientationVector(const Ellipse &ellip
     const auto p1_x = momw.m10 / momw.m00;
     const auto p1_y = momw.m01 / momw.m00;
 
-    return {cv::Point2f(p0_x, p0_y), cv::Point2f(p1_x, p1_y)};
+	return std::array<cv::Point2f, 2>{cv::Point2f(p0_x, p0_y), cv::Point2f(p1_x, p1_y)};
 }
 
 double GridFitter::getOtsuThreshold(const cv::Mat &srcMat) const {
