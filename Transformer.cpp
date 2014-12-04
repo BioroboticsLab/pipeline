@@ -38,8 +38,8 @@ cv::Mat Transformer::ellipseTransform(Ellipse ell, cv::Mat originalImage) {
     const double s = (static_cast<double>(ell.axis.width)) / (static_cast<double>(ell.axis.height));
 
     //center of the transformation
-    float x0 = ell.cen.x;
-    float y0 = ell.cen.y;
+    const double x0 = ell.cen.x;
+    const double y0 = ell.cen.y;
 
     // create the following rotation matrix: http://goo.gl/H3kZDj
     cv::Mat rot(2, 3, CV_64F);
