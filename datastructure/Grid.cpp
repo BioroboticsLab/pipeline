@@ -2,20 +2,13 @@
 
 namespace decoder {
 // === Constructors and initializer ===
-Grid::Grid(float size, float angle, float tilt,  int x,  int y, Ellipse ell, ScoringMethod scoringMethod)
-	: Grid(size, angle, tilt, x, y, ell, false, scoringMethod)
-{
-}
-
-Grid::Grid(float size, float angle, float tilt, int x, int y, Ellipse ell, bool permutation, ScoringMethod scoringMethod)
+Grid::Grid(float size, float angle, int x, int y, Ellipse ell, ScoringMethod scoringMethod)
 	: m_score(scoringMethod)
 	, m_size(size)
 	, m_x(x)
 	, m_y(y)
 	, m_angle(angle)
-	, m_tilt(tilt)
 	, m_ell(ell)
-	, m_permutation(permutation)
 {
     // Need to binarize the image, because we need it for scoring
     if (this->m_ell.transformedImage.type() != CV_8U) {
@@ -29,12 +22,12 @@ Grid::Grid(float size, float angle, float tilt, int x, int y, Ellipse ell, bool 
 }
 
 Grid::Grid(ScoringMethod scoringMethod)
-	: Grid(0, 0, 0, 0, 0, Ellipse(), false, scoringMethod)
+	: Grid(0, 0, 0, 0, Ellipse(), scoringMethod)
 {
 }
 
 Grid::Grid(float size, ScoringMethod scoringMethod)
-	: Grid(size, 0, 0, 0, 0, Ellipse(), false, scoringMethod)
+	: Grid(size, 0, 0, 0, Ellipse(), scoringMethod)
 {
 }
 
@@ -121,7 +114,7 @@ double Grid::fisherScore() const {
 
     // assume the color for each cell
     for (int j = 0; j < 15; j++) {
-        if (abs(black - means.at<float>(j)) < abs(white - means.at<float>(j))) {
+        if (std::abs(black - means.at<float>(j)) < std::abs(white - means.at<float>(j))) {
             // cell is assumed black
             labels.at<int>(j) = 0;
         } else {
@@ -148,11 +141,11 @@ double Grid::fisherScore() const {
     if (m_score.value != -1) {
         for (int lab = 0; lab < labels.rows; lab++) {
             if (labels.at<int>(lab) == 0 && lab < 12) {
-                if (abs(means.at<float>(lab) - white) < abs(means.at<float>(lab) - black)) {
+                if (std::abs(means.at<float>(lab) - white) < std::abs(means.at<float>(lab) - black)) {
                     std::cout << "eh, uppsb" << std::endl;
                 }
             } else if (lab < 12) {
-                if (abs(means.at<float>(lab) - white) > abs(means.at<float>(lab) - black)) {
+                if (std::abs(means.at<float>(lab) - white) > std::abs(means.at<float>(lab) - black)) {
                     std::cout << "eh, uppsw" << std::endl;
                 }
             }
@@ -231,7 +224,7 @@ double Grid::fisherScore() const {
     mb /= static_cast<float>(nb);
     mw /= static_cast<float>(nw);
 
-    float Sb = abs(mb - mw) * abs(mb - mw);
+    float Sb = std::abs(mb - mw) * std::abs(mb - mw);
 
     // how much "black" is covered?
 
@@ -407,8 +400,8 @@ float Grid::getMeanAlongLine(int xStart, int yStart, int xEnd, int yEnd, int siz
     int x = xStart;
     int y = yStart;
     // Distances according to axis
-    const int dx =  abs(xEnd - xStart);
-    const int dy = -abs(yEnd - yStart);
+    const int dx =  std::abs(xEnd - xStart);
+    const int dy = -std::abs(yEnd - yStart);
     // Step size for the directions (because it's a line)
     const int sx = xStart < xEnd ? 1 : -1;
     const int sy = yStart < yEnd ? 1 : -1;

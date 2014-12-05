@@ -70,9 +70,7 @@ private:
     float m_x;
     float m_y;
     float m_angle;
-    float m_tilt;
     Ellipse m_ell;
-    bool m_permutation;     // Determines whether the grid is just a rotated grid or a fitted one
 
 public:
 
@@ -86,7 +84,6 @@ public:
      *
      * @see Grid(float size, float angle, float tilt,  int x,  int y, Ellipse ell, bool permutation, ScoringMethod scoringMethod);
      */
-    explicit Grid(float size, float angle, float tilt,  int x,  int y, Ellipse ell, ScoringMethod scoringMethod = BINARYCOUNT);
     explicit Grid(ScoringMethod scoringMethod = BINARYCOUNT);
     explicit Grid(float s, ScoringMethod scoringMethod = BINARYCOUNT);
 
@@ -100,7 +97,7 @@ public:
      * @param score initial score of the grid
      * @param scoringMethod used scoring method
      */
-    explicit Grid(float size, float angle, float tilt,  int x,  int y, Ellipse ell, bool permutation, ScoringMethod scoringMethod = BINARYCOUNT);
+    explicit Grid(float size, float angle,  int x,  int y, Ellipse ell, ScoringMethod scoringMethod = BINARYCOUNT);
     ~Grid();
 
     /**

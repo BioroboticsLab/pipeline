@@ -34,8 +34,8 @@ std::vector<Tag> GridFitter::process(std::vector<Tag>&& taglist) const {
                   std::vector<Grid> grids;
                   grids.push_back(grid);
                   // Rotation by half cell (in both directions), because in some cases it's all you need to get a correct decoding
-                  grids.emplace_back(grid.size(), grid.angle() + 15, 0, grid.x(), grid.y(), grid.ell(), true, scoringMethod);
-                  grids.emplace_back(grid.size(), grid.angle() - 15, 0, grid.x(), grid.y(), grid.ell(), true, scoringMethod);
+                  grids.emplace_back(grid.size(), grid.angle() + 15, grid.x(), grid.y(), grid.ell(), scoringMethod);
+                  grids.emplace_back(grid.size(), grid.angle() - 15, grid.x(), grid.y(), grid.ell(), scoringMethod);
                   candidate.setGrids(std::move(grids));
         }
         }));
@@ -116,7 +116,7 @@ std::array<cv::Point2f, 2> GridFitter::getOrientationVector(const Ellipse &ellip
     const auto p1_x = momw.m10 / momw.m00;
     const auto p1_y = momw.m01 / momw.m00;
 
-	return std::array<cv::Point2f, 2>{cv::Point2f(p0_x, p0_y), cv::Point2f(p1_x, p1_y)};
+	return {cv::Point2f(p0_x, p0_y), cv::Point2f(p1_x, p1_y)};
 }
 
 double GridFitter::getOtsuThreshold(const cv::Mat &srcMat) const {
@@ -219,8 +219,8 @@ Grid GridFitter::fitGridAngle(const Ellipse &ellipse, float gsize, double angle,
 
     // Similar approach like in fitGridGradient, just using the angle
     while (step_size > 0) {
-        Grid g1(gsize, a + step_size, 0, x, y, ellipse, scoringMethod);
-        Grid g2(gsize, a - step_size, 0, x, y, ellipse, scoringMethod);
+        Grid g1(gsize, a + step_size, x, y, ellipse, scoringMethod);
+        Grid g2(gsize, a - step_size, x, y, ellipse, scoringMethod);
 
         int new_a;
         if (g1 > g2) {
@@ -279,7 +279,7 @@ int GridFitter::bestGridAngleCorrection(Grid g) const {
 
         meanStdDev(roi, mean2, std2, mask2);
 
-        if (abs(mean1c - mean2c) < abs(mean1[0] - mean2[0])) {
+        if (std::abs(mean1c - mean2c) < std::abs(mean1[0] - mean2[0])) {
             mean1c = mean1[0];
             mean2c = mean2[0];
             i      = j;

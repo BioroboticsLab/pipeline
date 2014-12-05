@@ -96,7 +96,7 @@ Decoding Decoder::includeExcludeDecode(const Grid &g) const {
         cv::Scalar std;
         meanStdDev(image, mean, std, cellMask);
         labels.at<unsigned char>(i) =
-          abs(whiteCenter - mean[0]) < abs(blackCenter - mean[0]) ? 1 : 0;
+          std::abs(whiteCenter - mean[0]) < std::abs(blackCenter - mean[0]) ? 1 : 0;
 
         means.at<float>(i) = mean[0];
         stds.at<float>(i)  = std[0];
@@ -268,7 +268,7 @@ Decoding Decoder::edgeWalkerDecode(const Grid &g) const {
         // Just watch direction changes which are big enough
         if ((leftPoint.value - cut > 0 ? 1 : -1)
           != (rightPoint.value - cut > 0 ? 1 : -1)) {
-            //if (abs(rightPoint.position - leftPoint.position) < cellSize + 2 * TP_EPS) {
+            //if (std::abs(rightPoint.position - leftPoint.position) < cellSize + 2 * TP_EPS) {
             //// turning points are near enough to keep us in watch
             //transitionPoint.value = (leftPoint.value + rightPoint.value) / 2;
             //transitionPoint.position = (leftPoint.position + rightPoint.position) / 2;

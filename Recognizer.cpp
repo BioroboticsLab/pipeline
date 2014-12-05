@@ -148,13 +148,13 @@ void Recognizer::detectXieEllipse(Tag &tag) {
                         }
                         for (size_t idx = 0; idx < candidates.size(); idx++) {
                             Ellipse& ell = candidates[idx];
-                            if (abs(ell.cen.x - cen.x) < 8
-                              && abs(ell.cen.y - cen.y) < 8
-                              && abs(ell.axis.width - j) < 8
-                              && abs(ell.axis.height - n) < 8
+                            if (std::abs(ell.cen.x - cen.x) < 8
+                              && std::abs(ell.cen.y - cen.y) < 8
+                              && std::abs(ell.axis.width - j) < 8
+                              && std::abs(ell.axis.height - n) < 8
                               &&
                               //check angle in relation to minor/major axis
-                              abs(ell.angle - angle) < (180.0 * ell.axis.height) / ell.axis.width) {
+                              std::abs(ell.angle - angle) < (180.0 * ell.axis.height) / ell.axis.width) {
                                 if (ell.vote < vote_minor) {
                                     ell.cen.x       = cen.x;
                                     ell.cen.y       = cen.y;
