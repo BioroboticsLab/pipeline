@@ -66,7 +66,7 @@ Decoding Decoder::decode(const Grid &g) const {
 }
 
 Decoding Decoder::includeExcludeDecode(const Grid &g) const {
-    const cv::Mat &image = g.ell().binarizedImage;
+    const cv::Mat &image = g.ell().getBinarizedImage();
 
     cv::Mat whiteMask(image.rows, image.cols, image.type(), cv::Scalar(0));
     cv::Mat blackMask(image.rows, image.cols, image.type(), cv::Scalar(0));
@@ -153,7 +153,7 @@ Decoding Decoder::includeExcludeDecode(const Grid &g) const {
 }
 
 double Decoder::fisherScore(const Grid &g, cv::Mat &labels, bool useBinaryImage) const {
-    const cv::Mat &image = useBinaryImage ? g.ell().binarizedImage : g.ell().transformedImage;
+    const cv::Mat &image = useBinaryImage ? g.ell().getBinarizedImage() : g.ell().getTransformedImage();
     std::vector<std::vector<cv::Point> > conts(1);
     cv::Mat whiteMask(image.rows, image.cols, image.type(), cv::Scalar(0));
     cv::Mat blackMask(image.rows, image.cols, image.type(), cv::Scalar(0));

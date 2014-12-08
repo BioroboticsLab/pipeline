@@ -32,14 +32,14 @@ void Transformer::transformImages(Tag &tag){
 cv::Mat Transformer::ellipseTransform(Ellipse ell, cv::Mat originalImage) {
 
     // rotation angle is the ellipse' orientation
-    const double a = (ell.angle * CV_PI) / 180.0;
+    const double a = (ell.getAngle() * CV_PI) / 180.0;
 
     // scale factor in y-direction
-    const double s = (static_cast<double>(ell.axis.width)) / (static_cast<double>(ell.axis.height));
+    const double s = (static_cast<double>(ell.getAxis().width)) / (static_cast<double>(ell.getAxis().height));
 
     //center of the transformation
-    float x0 = ell.cen.x;
-    float y0 = ell.cen.y;
+    float x0 = ell.getCen().x;
+    float y0 = ell.getCen().y;
 
     // create the following rotation matrix: http://goo.gl/H3kZDj
     cv::Mat rot(2, 3, CV_64F);

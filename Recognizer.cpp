@@ -23,7 +23,7 @@ inline double pointDistanceNoSqrt(double px, double py, double qx, double qy)
 struct compareVote {
     inline bool operator()(decoder::Ellipse const& a, decoder::Ellipse const& b)
     {
-        return a.vote > b.vote;
+        return a.getVote() > b.getVote();
     }
 };
 }
@@ -148,20 +148,18 @@ void Recognizer::detectXieEllipse(Tag &tag) {
                         }
                         for (size_t idx = 0; idx < candidates.size(); idx++) {
                             Ellipse& ell = candidates[idx];
-                            if (std::abs(ell.cen.x - cen.x) < 8
-                              && std::abs(ell.cen.y - cen.y) < 8
-                              && std::abs(ell.axis.width - j) < 8
-                              && std::abs(ell.axis.height - n) < 8
+                            if (std::abs(ell.getCen().x - cen.x) < 8
+                              && std::abs(ell.getCen().y - cen.y) < 8
+                              && std::abs(ell.getAxis().width - j) < 8
+                              && std::abs(ell.getAxis().height - n) < 8
                               &&
                               //check angle in relation to minor/major axis
-                              std::abs(ell.angle - angle) < (180.0 * ell.axis.height) / ell.axis.width) {
-                                if (ell.vote < vote_minor) {
-                                    ell.cen.x       = cen.x;
-                                    ell.cen.y       = cen.y;
-                                    ell.axis.width  = j;
-                                    ell.axis.height = n;
-                                    ell.angle       = angle;
-                                    ell.vote        = vote_minor;
+                              std::abs(ell.getAngle() - angle) < (180.0 * ell.getAxis().height) / ell.getAxis().width) {
+                                if (ell.getVote() < vote_minor) {
+                                	ell.setCen(cen);
+                                	ell.setAxis(cv::Size(j, n));
+                                	ell.setAngle(angle);
+                                	ell.setVote(vote_minor);
                                 }
                                 break;
                             }
@@ -196,9 +194,9 @@ foundEllipse:
     if (config::DEBUG_MODE_RECOGNIZER) {
         for (size_t i = 0; i < candidates.size(); ++i) {
             Ellipse const& ell = candidates[i];
-			if ((i >= num) || (ell.vote < _settings.threshold_vote)) {
+			if ((i >= num) || (ell.getVote() < _settings.threshold_vote)) {
                 if (config::DEBUG_MODE_RECOGNIZER) {
-                    std::cout << "Ignore Ellipse With Vote " << ell.vote << std::endl;
+                    std::cout << "Ignore Ellipse With Vote " << ell.getVote() << std::endl;
                     if (config::DEBUG_MODE_RECOGNIZER_IMAGE) {
                         visualizeEllipse(tag, ell, "ignored_ellipse");
                     }
@@ -211,13 +209,13 @@ foundEllipse:
     candidates.erase(candidates.begin() + num, candidates.end());
     // remove all candidates with vote < RECOGNIZER_THRESHOLD_VOTE
     candidates.erase(std::remove_if(candidates.begin(), candidates.end(),
-	  [&](Ellipse& ell) { return ell.vote < _settings.threshold_vote; }),
+	  [&](Ellipse& ell) { return ell.getVote() < _settings.threshold_vote; }),
       candidates.end());
     // add remaining candidates to tag
     for (Ellipse const& ell : candidates) {
 #ifdef PipelineStandalone
         if (config::DEBUG_MODE_RECOGNIZER) {
-            std::cout << "Add Ellipse With Vote " << ell.vote << std::endl;
+            std::cout << "Add Ellipse With Vote " << ell.getVote() << std::endl;
             if (config::DEBUG_MODE_RECOGNIZER_IMAGE) {
                 visualizeEllipse(tag, ell, "added_ellipse");
             }
@@ -241,8 +239,8 @@ foundEllipse:
 
 void Recognizer::visualizeEllipse(Tag const& tag, Ellipse const& ell, std::string const& title) {
     cv::Mat subroiTest = tag.getOrigSubImage().clone();
-    ellipse(subroiTest, ell.cen, ell.axis, ell.angle, 0, 360, cv::Scalar(0, 0, 255));
-    std::string text = "Score " + std::to_string(ell.vote);
+    ellipse(subroiTest, ell.getCen(), ell.getAxis(), ell.getAngle(), 0, 360, cv::Scalar(0, 0, 255));
+    std::string text = "Score " + std::to_string(ell.getVote());
     cv::putText(subroiTest, text, cv::Point(10, 30), cv::FONT_HERSHEY_COMPLEX_SMALL,
       0.7, cv::Scalar(0, 255, 0));
     cv::namedWindow(title, cv::WINDOW_NORMAL);
