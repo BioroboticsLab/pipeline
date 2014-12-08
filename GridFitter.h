@@ -65,7 +65,7 @@ private:
      * @param ellipse the ellipse the grid should belong to
      * @return the hopefully best grid
      */
-    Grid fitGrid(Ellipse &ellipse) const;
+    Grid fitGrid(const Ellipse &ellipse) const;
 
     /**
      * guesses orientation of the tag
@@ -119,7 +119,7 @@ private:
      * @param g the grid
      * @return offset in cells
      */
-    int bestGridAngleCorrection(Grid g) const;
+    int bestGridAngleCorrection(const Grid &g) const;
 };
 }
 #endif /* GRIDFITTER_H_ */
