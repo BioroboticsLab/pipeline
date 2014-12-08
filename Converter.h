@@ -23,13 +23,13 @@ namespace decoder {
 class Converter {
 public:
     Converter();
-    virtual ~Converter();
+    ~Converter();
 
-    cv::Mat process(const std::string& filename);
-    cv::Mat process(cv::Mat& image);
+    cv::Mat process(const std::string& filename) const;
+    cv::Mat process(const cv::Mat& image) const;
 
 private:
-    bool checkValidFilename(const std::string& filename);
+    bool checkValidFilename(const std::string& filename) const;
 };
 } /* namespace decoder_interface */
 
