@@ -9,17 +9,7 @@ Grid::Grid(float size, float angle, int x, int y, Ellipse ell, ScoringMethod sco
 	, m_y(y)
 	, m_angle(angle)
 	, m_ell(ell)
-{
-    // Need to binarize the image, because we need it for scoring
-    if (this->m_ell.transformedImage.type() != CV_8U) {
-        cv::Mat grayImage;
-        cvtColor(this->m_ell.transformedImage, grayImage, CV_BGR2GRAY);
-        this->m_ell.transformedImage = grayImage;
-    }
-
-    // Binarize image first (just for new Scoring)
-    cv::adaptiveThreshold(this->m_ell.transformedImage, this->m_ell.binarizedImage, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY, 21, 3);
-}
+{ }
 
 Grid::Grid(ScoringMethod scoringMethod)
 	: Grid(0, 0, 0, 0, Ellipse(), scoringMethod)
@@ -42,16 +32,16 @@ Grid::ScoringMethod Grid::scoringMethod() const {
 
 double Grid::score() const {
     // determine whether the grid is a dummy or not
-    if (m_score.metric == BINARYCOUNT && m_score.value == BINARYCOUNT_INIT && m_ell.binarizedImage.total() > 0) {
+    if (m_score.metric == BINARYCOUNT && m_score.value == BINARYCOUNT_INIT && ! m_ell.getBinarizedImage().empty() ) {
         m_score.value = binaryCountScore();
-    } else if (m_score.metric == FISHER && m_score.value == FISHER_INIT && m_ell.transformedImage.total() > 0) {
+    } else if (m_score.metric == FISHER && m_score.value == FISHER_INIT && ! m_ell.getBinarizedImage().empty() ) {
         m_score.value = fisherScore();
     }
     return m_score.value;
 }
 
 double Grid::binaryCountScore() const {
-    const cv::Mat &binImg = m_ell.binarizedImage;
+    const cv::Mat &binImg = m_ell.getBinarizedImage();
 
     cv::Mat scores (3, 1, CV_64FC1);
     cv::Mat mask(binImg.rows, binImg.cols, binImg.type());
@@ -83,7 +73,7 @@ double Grid::fisherScore() const {
     // 37/46 = 80.43% with Sb = |black - white| look into other intervariances
     // 41/47 = 89.13% with kind of A scaling
     // determine best orientation
-    const cv::Mat &roi = m_ell.transformedImage;
+    const cv::Mat &roi = m_ell.getTransformedImage();
 
     double black = -1;
     double white = -1;
@@ -231,7 +221,7 @@ double Grid::fisherScore() const {
 
     cv::Mat tagMask(roi.rows, roi.cols, CV_8UC1, cv::Scalar(0));
     // different center!! ellipse stuff!!!
-    cv::circle(tagMask, m_ell.cen, static_cast<int>(m_size * TRR), cv::Scalar(1), CV_FILLED);
+    cv::circle(tagMask, m_ell.getCen(), static_cast<int>(m_size * TRR), cv::Scalar(1), CV_FILLED);
 
     cv::Mat matMask(roi.rows, roi.cols, CV_8UC1, cv::Scalar(0));
     cv::circle(matMask, cv::Point(m_x, m_y), static_cast<int>(m_size * ORR), cv::Scalar(1), CV_FILLED);
@@ -395,7 +385,7 @@ cv::Mat Grid::generateEdgeAsMat(int radius, int width, bool useBinaryImage) cons
 
 float Grid::getMeanAlongLine(int xStart, int yStart, int xEnd, int yEnd, int size, bool useBinaryImage) const {
     // It's possibly better just to get the position of the pixel along the line, but lets fuck performance
-    const cv::Mat &image = useBinaryImage ? m_ell.binarizedImage : m_ell.transformedImage;
+    const cv::Mat &image = useBinaryImage ? m_ell.getBinarizedImage() : m_ell.getTransformedImage();
 
     cv::Mat profile (size, 1, CV_8UC1);
     int x = xStart;
@@ -434,7 +424,7 @@ float Grid::getMeanAlongLine(int xStart, int yStart, int xEnd, int yEnd, int siz
 // ======= DEBUG METHODS ========
 cv::Mat Grid::drawGrid(double scale, bool useBinaryImage) const {
     cv::Mat draw;     // Matrix the image will be drawn into
-    const cv::Mat &roi = useBinaryImage ? m_ell.binarizedImage : m_ell.transformedImage;
+    const cv::Mat &roi = useBinaryImage ? m_ell.getBinarizedImage() : m_ell.getTransformedImage();
     roi.copyTo(draw);
 
     if (roi.type() == CV_8UC1) {
