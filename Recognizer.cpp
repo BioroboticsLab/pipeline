@@ -245,7 +245,7 @@ void Recognizer::visualizeEllipse(Tag const& tag, Ellipse const& ell, std::strin
     std::string text = "Score " + std::to_string(ell.vote);
     cv::putText(subroiTest, text, cv::Point(10, 30), cv::FONT_HERSHEY_COMPLEX_SMALL,
       0.7, cv::Scalar(0, 255, 0));
-    cv::namedWindow(title, cv::WINDOW_NORMAL);
+    cv::namedWindow(title, cv::WINDOW_AUTOSIZE);
     cv::imshow(title, subroiTest);
     cv::waitKey();
 }
@@ -261,7 +261,7 @@ cv::Mat Recognizer::computeCannyEdgeMap(cv::Mat grayImage) {
 	  this->_settings.canny_threshold_high);
 #ifdef PipelineStandalone
     if (config::DEBUG_MODE_RECOGNIZER_IMAGE) {
-		cv::namedWindow("Canny", cv::WINDOW_NORMAL);
+		cv::namedWindow("Canny", cv::WINDOW_AUTOSIZE);
 		cv::imshow("Canny", cannyEdgeMap);
 		cv::waitKey(0);
 		cv::destroyWindow("Canny");

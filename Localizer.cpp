@@ -122,7 +122,7 @@ cv::Mat Localizer::highlightTags(cv::Mat &grayImage) {
 
 #ifdef PipelineStandalone
     if (config::DEBUG_MODE_LOCALIZER) {
-        cv::namedWindow("binarized Image", cv::WINDOW_NORMAL);
+        cv::namedWindow("binarized Image", cv::WINDOW_AUTOSIZE);
         cv::imshow("binarized Image", imageCopy);
         cv::waitKey(0);
         cv::destroyWindow("binarized Image");
@@ -142,7 +142,7 @@ cv::Mat Localizer::highlightTags(cv::Mat &grayImage) {
 
 #ifdef PipelineStandalone
     if (config::DEBUG_MODE_LOCALIZER) {
-		cv::namedWindow("First Dilate", cv::WINDOW_NORMAL);
+		cv::namedWindow("First Dilate", cv::WINDOW_AUTOSIZE);
 		cv::imshow("First Dilate", imageCopy);
 		cv::waitKey(0);
 		cv::destroyWindow("First Dilate");
@@ -159,7 +159,7 @@ cv::Mat Localizer::highlightTags(cv::Mat &grayImage) {
 
 #ifdef PipelineStandalone
     if (config::DEBUG_MODE_LOCALIZER) {
-        cv::namedWindow("First Erode", cv::WINDOW_NORMAL);
+        cv::namedWindow("First Erode", cv::WINDOW_AUTOSIZE);
         cv::imshow("First Erode", imageCopy);
         cv::waitKey(0);
         cv::destroyWindow("First Erode");
@@ -175,7 +175,7 @@ cv::Mat Localizer::highlightTags(cv::Mat &grayImage) {
 
 #ifdef PipelineStandalone
     if (config::DEBUG_MODE_LOCALIZER) {
-        cv::namedWindow("My Window", cv::WINDOW_NORMAL);
+        cv::namedWindow("My Window", cv::WINDOW_AUTOSIZE);
         cv::imshow("My Window", imageCopy);
         cv::waitKey(0);
         cv::destroyWindow("My Window");
@@ -286,7 +286,7 @@ cv::Mat Localizer::computeSobelMap(cv::Mat grayImage) {
     cv::addWeighted(abs_grad_x, 0.5, abs_grad_y, 0.5, 0, sobel);
 #ifdef PipelineStandalone
     if (config::DEBUG_MODE_LOCALIZER) {
-        cv::namedWindow("Sobel", cv::WINDOW_NORMAL);
+        cv::namedWindow("Sobel", cv::WINDOW_AUTOSIZE);
         cv::imshow("Sobel", sobel);
         cv::waitKey(0);
         cv::destroyWindow("Sobel");
