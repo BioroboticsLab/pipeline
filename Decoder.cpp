@@ -47,7 +47,7 @@ std::vector<Tag> Decoder::process(std::vector<Tag>&& taglist) const {
                 stringstream ss;
                 ss << "Grid " << cnt << " | Decoding: " << decoding.tagId << " | Binary Digits: " << binDigits;
                 string windowName = ss.str();
-                namedWindow(windowName, WINDOW_NORMAL);
+                namedWindow(windowName, cv::WINDOW_AUTOSIZE);
                 imshow(windowName, draw);
                 ++cnt;
             }
