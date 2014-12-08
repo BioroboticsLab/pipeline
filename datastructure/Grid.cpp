@@ -54,9 +54,10 @@ double Grid::binaryCountScore() const {
     const cv::Mat &binImg = m_ell.binarizedImage;
 
     cv::Mat scores (3, 1, CV_64FC1);
+    cv::Mat mask(binImg.rows, binImg.cols, binImg.type());
     // for each cell calculate its size (cell size) and its mean intensity (means)
     for (int j = 12; j < 15; j++) {
-        cv::Mat mask(binImg.rows, binImg.cols, binImg.type(), cv::Scalar(0));
+        mask = cv::Scalar(0);
 
         std::vector< std::vector <cv::Point> > conts;
         conts.push_back(renderGridCell(j));
