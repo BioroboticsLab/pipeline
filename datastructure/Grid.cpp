@@ -49,13 +49,18 @@ double Grid::binaryCountScore() const {
     for (int j = 12; j < 15; j++) {
         mask = cv::Scalar(0);
 
-        std::vector< std::vector <cv::Point> > conts;
-        conts.push_back(renderGridCell(j));
-        cv::drawContours(mask, conts, 0, cv::Scalar(1), CV_FILLED);
+        const std::vector< std::vector <cv::Point> > conts{ renderGridCell(j) };
+        cv::drawContours(mask, conts, 0, cv::Scalar(1), CV_FILLED); // draw (filled) polygon in mask matrix
+        const auto num_masked_pixel = cv::countNonZero(mask);       // count polygon pixel (i.e. nonzero pixel)
 
-        const cv::Mat whiteCellPixel   = binImg.mul(mask);       // just keep the pixel within the cell
-        const double whitePixelAmount = static_cast<double>(countNonZero(whiteCellPixel));
-        const double blackPixelAmount = static_cast<double>(countNonZero(mask - whiteCellPixel));
+        // just keep the pixel that are in the binary image and in the polygon
+        mask &= binImg; // "cv::Mat whiteCellPixel = binImg.mul(mask);" yields the same result, BUT it is stored on a new matrix
+        const auto num_masked_white_pixel = countNonZero(mask);
+
+        const auto num_masked_black_pixel = num_masked_pixel - num_masked_white_pixel;
+
+        const double whitePixelAmount = static_cast<double>(num_masked_white_pixel);
+        const double blackPixelAmount = static_cast<double>(num_masked_black_pixel);
 
         if (j == 12 || j == 13) {
             // white inner half circle or white outer border
@@ -65,7 +70,6 @@ double Grid::binaryCountScore() const {
             scores.at<double>(14 - j) =  blackPixelAmount == 0. ? whitePixelAmount : whitePixelAmount / blackPixelAmount;
         }
     }
-
     return sum(scores)[0];
 }
 
