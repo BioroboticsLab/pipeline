@@ -7,6 +7,8 @@
 
 #include "Localizer.h"
 
+#include <opencv2/highgui/highgui.hpp>
+
 /**
  * Scales a given OpenCV rectangle by a factor, conserving the rectangle's center.
  *
