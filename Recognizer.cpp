@@ -41,7 +41,7 @@ void Recognizer::loadSettings(recognizer_settings_t &&settings)
 }
 
 #ifdef PipelineStandalone
-Recognizer::Recognizer(string configFile) {
+Recognizer::Recognizer(std::string configFile) {
     this->loadConfigVars(configFile);
 }
 #endif
