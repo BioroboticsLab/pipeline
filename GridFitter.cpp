@@ -248,18 +248,14 @@ int GridFitter::bestGridAngleCorrection(const Grid &g) const {
 
     for (int j = 0; j < 6; j++) {
         cv::Mat mask1(roi.rows, roi.cols, roi.type(), cv::Scalar(0));
-        std::vector<std::vector<cv::Point> > conts1;
-        conts1.push_back(g.renderGridCell(13, j));
-        drawContours(mask1, conts1, 0, cv::Scalar(255), CV_FILLED);
+        drawContours(mask1, g.renderGridCell(13, j), 0, cv::Scalar(255), CV_FILLED);
         cv::Scalar mean1;
         cv::Scalar std1;
 
         meanStdDev(roi, mean1, std1, mask1);
 
         cv::Mat mask2(roi.rows, roi.cols, roi.type(), cv::Scalar(0));
-        std::vector<std::vector<cv::Point> > conts2;
-        conts2.push_back(g.renderGridCell(14, j));
-        drawContours(mask2, conts2, 0, cv::Scalar(255), CV_FILLED);
+        drawContours(mask2, g.renderGridCell(14, j), 0, cv::Scalar(255), CV_FILLED);
         cv::Scalar mean2;
         cv::Scalar std2;
 
