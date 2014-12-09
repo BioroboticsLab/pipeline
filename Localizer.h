@@ -62,9 +62,9 @@ private:
 
 	localizer_settings_t _settings;
 
-	cv::Mat computeSobelMap(cv::Mat grayImage);
-	cv::Mat computeBlobs(cv::Mat sobel);
-	cv::Mat highlightTags(cv::Mat &grayImage);
+	cv::Mat computeSobelMap(const cv::Mat &grayImage) const;
+	cv::Mat computeBlobs(const cv::Mat &sobel) const;
+	cv::Mat highlightTags(const cv::Mat &grayImage) const;
 	std::vector<Tag> locateTagCandidates(cv::Mat blobImage, cv::Mat cannyEdgeMap, cv::Mat grayImage);
 
 

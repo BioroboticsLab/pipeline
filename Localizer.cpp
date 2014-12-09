@@ -111,7 +111,7 @@ std::vector<Tag> Localizer::process(cv::Mat&& grayImage) {
  * @param grayImage
  * @return image with highlighted tags
  */
-cv::Mat Localizer::highlightTags(cv::Mat &grayImage) {
+cv::Mat Localizer::highlightTags(const cv::Mat &grayImage) const {
 
     //binarization
 	cv::Mat binarizedImage;
@@ -257,7 +257,7 @@ std::vector<Tag> Localizer::locateTagCandidates(cv::Mat blobImage_old,
  * Computes the Sobel map for a given grayscale image.
  * @return sobelmap
  */
-cv::Mat Localizer::computeSobelMap(cv::Mat grayImage) {
+cv::Mat Localizer::computeSobelMap(const cv::Mat &grayImage) const {
 
     // We need a copy because the GuassianBlur makes changes to the image
     cv::Mat imageCopy = grayImage.clone();
@@ -302,7 +302,7 @@ cv::Mat Localizer::computeSobelMap(cv::Mat grayImage) {
    Computes Blobs and finally finds the ROI's using the sobel map. The ROI's are stored in the boundingBoxes Vector.
  */
 
-cv::Mat Localizer::computeBlobs(cv::Mat sobel) {
+cv::Mat Localizer::computeBlobs(const cv::Mat &sobel) const {
     cv::Mat blob = this->highlightTags(sobel);
 
     //DEBUG_IMSHOW("blob", blob);
