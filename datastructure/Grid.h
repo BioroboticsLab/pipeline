@@ -119,9 +119,11 @@ public:
      *
      * @param cell ID between [0,14]; which cell of the grid is to be rendered?
      * @param offset angle offset to draw inner half circles with different angles 1 offset = 30°
-     * @return a vector with the contours of the cell
+     * @return a reference to a vector containing a vector with the contours of the cell (thread local internal buffer)
      */
-    std::vector<cv::Point> renderGridCell(unsigned short cell, int offset = 0) const;
+    const std::vector<std::vector<cv::Point>>& renderGridCell(unsigned short cell, int offset = 0) const {
+    	return renderScaledGridCell(cell, 1, offset);
+    }
 
     /**
      * Render a grid cell of the given type and ID
@@ -129,9 +131,9 @@ public:
      * @param cell ID between [0,14]; which cell of the grid is to be rendered?
      * @param scale the scale of the cell within the interval [0, 1]
      * @param offset angle offset to draw inner half circles with different angles 1 offset = 30°
-     * @return a vector with the contours of the cell
+     * @return a reference to a vector containing a vector with the contours of the cell (thread local internal buffer)
      */
-    std::vector<cv::Point> renderScaledGridCell(unsigned short cell, double scale, int offset = 0) const;
+    const std::vector<std::vector<cv::Point>>& renderScaledGridCell(unsigned short cell, double scale, int offset = 0) const;
 
     /**
      * Determines whether the given grid is worser than itself (depending on the score).

@@ -1,4 +1,5 @@
 #include "Grid.h"
+#include <stdexcept> // std::invalid_argument
 
 namespace decoder {
 // === Constructors and initializer ===
@@ -41,6 +42,7 @@ double Grid::score() const {
 }
 
 double Grid::binaryCountScore() const {
+
     const cv::Mat &binImg = m_ell.getBinarizedImage();
 
     cv::Mat scores (3, 1, CV_64FC1);
@@ -49,8 +51,7 @@ double Grid::binaryCountScore() const {
     for (int j = 12; j < 15; j++) {
         mask = cv::Scalar(0);
 
-        const std::vector< std::vector <cv::Point> > conts{ renderGridCell(j) };
-        cv::drawContours(mask, conts, 0, cv::Scalar(1), CV_FILLED); // draw (filled) polygon in mask matrix
+        cv::drawContours(mask, renderGridCell(j), 0, cv::Scalar(1), CV_FILLED); // draw (filled) polygon in mask matrix
         const auto num_masked_pixel = cv::countNonZero(mask);       // count polygon pixel (i.e. nonzero pixel)
 
         // just keep the pixel that are in the binary image and in the polygon
@@ -95,9 +96,7 @@ double Grid::fisherScore() const {
     // for each cell calculate its size (cellsize) and its mean intensity (means)
     for (int j = 0; j < 15; j++) {
         cv::Mat mask(roi.rows, roi.cols, roi.type(), cv::Scalar(0));
-        std::vector< std::vector <cv::Point> > conts;
-        conts.push_back(renderGridCell(j));
-        drawContours(mask, conts, 0, cv::Scalar(255), CV_FILLED);
+        drawContours(mask, renderGridCell(j), 0, cv::Scalar(255), CV_FILLED);
         masks.push_back(mask);
 
         cv::Scalar mean;
@@ -247,51 +246,74 @@ double Grid::fisherScore() const {
 
 // ======
 
-std::vector<cv::Point> Grid::renderScaledGridCell(unsigned short cell, double scale, int offset) const {
-    // TODO caching???
-	std::vector<cv::Point> cont;
+const std::vector<std::vector<cv::Point>>& Grid::renderScaledGridCell(unsigned short cell, double scale, int offset) const {
 
+	static thread_local std::vector<std::vector<cv::Point>> result(1);
+	static thread_local std::vector<cv::Point> buffer;
+
+	const cv::Point2f center(m_x, m_y);
+	const int step_size = 1;
 
     // Outer cells
-    if (cell < 12) {
+    if (cell < 12)
+    {
         const double outerInnerRadiusDiff = ORR * m_size - IORR * m_size;
         const double outerCircleRadius    = IORR * m_size + outerInnerRadiusDiff * 0.5 + (outerInnerRadiusDiff * 0.5 * scale);
         const double innerCircleRadius    = IORR * m_size + outerInnerRadiusDiff * 0.5 - (outerInnerRadiusDiff * 0.5 * scale);
 
         const int arcStart = -180 + (cell    ) * 30 + 15 * (1 - scale);
         const int arcEnd   = -180 + (cell + 1) * 30 - 15 * (1 - scale);
+
         // outer arc
-        ellipse2Poly(cv::Point2f(m_x, m_y), cv::Size2f(outerCircleRadius, outerCircleRadius), m_angle, arcStart, arcEnd, 1, cont);
+        cv::ellipse2Poly(center, cv::Size2f(outerCircleRadius, outerCircleRadius), m_angle, arcStart, arcEnd, step_size, result[0]);
+
         // inner arc
-        std::vector<cv::Point> inner_arc_poly;
-        ellipse2Poly(cv::Point2f(m_x, m_y), cv::Size2f(innerCircleRadius, innerCircleRadius), m_angle, arcStart, arcEnd, 1, inner_arc_poly);
+        cv::ellipse2Poly(center, cv::Size2f(innerCircleRadius, innerCircleRadius), m_angle, arcStart, arcEnd, step_size, buffer);
+
         // join outer and inner arc
-        cont.insert(cont.end(), inner_arc_poly.rbegin(), inner_arc_poly.rend());
-        return cont;
-    } else if (cell == 13) {
+        result[0].insert(result[0].end(), buffer.rbegin(), buffer.rend());
+    }
+    else if (cell == 13)
+    {
+    	const double CircleRadius = IRR * m_size * scale;
+
+        const int arcStart = -180 + offset * 30;
+        const int arcEnd   =        offset * 30;
+
         // supposed white inner half circle
-        ellipse2Poly(cv::Point2f(m_x, m_y), cv::Size2f(IRR * m_size * scale, IRR * m_size * scale), m_angle, -180 + offset * 30, offset * 30, 1, cont);
-    } else if (cell == 14) {
+        cv::ellipse2Poly(center, cv::Size2f(CircleRadius, CircleRadius), m_angle, arcStart, arcEnd, step_size, result[0]);
+    }
+    else if (cell == 14)
+    {
+    	const double CircleRadius = IRR * m_size * scale;
+
+        const int arcStart =        offset * 30;
+        const int arcEnd   =  180 + offset * 30;
+
         //supposed black inner half circle
-        ellipse2Poly(cv::Point2f(m_x, m_y), cv::Size2f(IRR * m_size * scale, IRR * m_size * scale), m_angle, 180 + offset * 30, offset * 30, 1, cont);
-    } else if (cell == 12) {
+        cv::ellipse2Poly(center, cv::Size2f(CircleRadius, CircleRadius), m_angle, arcStart, arcEnd, step_size, result[0]);
+    }
+    else if (cell == 12)
+    {
         // outer (white) border
         const double outerInnerRadiusDiff = TRR * m_size - ORR * m_size;
         const double outerCircleRadius    = ORR * m_size + outerInnerRadiusDiff * 0.5 + (outerInnerRadiusDiff * 0.5 * scale);
         const double innerCircleRadius    = ORR * m_size + outerInnerRadiusDiff * 0.5 - (outerInnerRadiusDiff * 0.5 * scale);
 
-        std::vector < cv::Point > cont2;
-        ellipse2Poly(cv::Point2f(m_x, m_y), cv::Size(outerCircleRadius, outerCircleRadius), m_angle + 90, 0, 360, 1,cont);
-        ellipse2Poly(cv::Point2f(m_x, m_y), cv::Size(innerCircleRadius, innerCircleRadius), m_angle + 90, 0, 360, 1,cont2);
-        cont.insert(cont.end(), cont2.rbegin(), cont2.rend());
+        const int arcStart =   0;
+        const int arcEnd   = 360;
+
+        ellipse2Poly(center, cv::Size(outerCircleRadius, outerCircleRadius), m_angle + 90, arcStart, arcEnd, step_size, result[0]);
+        ellipse2Poly(center, cv::Size(innerCircleRadius, innerCircleRadius), m_angle + 90, arcStart, arcEnd, step_size, buffer);
+        result[0].insert(result[0].end(), buffer.rbegin(), buffer.rend());
+    }
+    else {
+    	throw std::invalid_argument("invalid cell id");
     }
 
-    return cont;
+    return result;
 }
 
-std::vector<cv::Point> Grid::renderGridCell(unsigned short cell, int offset) const {
-    return renderScaledGridCell(cell, 1, offset);
-}
 
 // === operators ===
 
@@ -455,7 +477,7 @@ cv::Mat Grid::drawGrid(double scale, bool useBinaryImage) const {
     conts.clear();
 
     for (int i = 0; i < ites; i++) {
-        conts.push_back(renderScaledGridCell(i, scale, 0));
+        conts.push_back(renderScaledGridCell(i, scale, 0)[0]);
     }
 
     drawContours(draw, conts, -1, cv::Scalar(255, 0, 0), 1);
