@@ -7,6 +7,8 @@
 
 #include "Localizer.h"
 
+#include <opencv2/highgui/highgui.hpp>
+
 /**
  * Scales a given OpenCV rectangle by a factor, conserving the rectangle's center.
  *
@@ -109,7 +111,7 @@ std::vector<Tag> Localizer::process(cv::Mat&& grayImage) {
  * @param grayImage the input image
  * @return image with highlighted tags
  */
-cv::Mat Localizer::highlightTags(cv::Mat &grayImage) {
+cv::Mat Localizer::highlightTags(const cv::Mat &grayImage) const {
 
     //binarization
 	cv::Mat binarizedImage;
@@ -120,7 +122,7 @@ cv::Mat Localizer::highlightTags(cv::Mat &grayImage) {
 
 #ifdef PipelineStandalone
     if (config::DEBUG_MODE_LOCALIZER) {
-        cv::namedWindow("binarized Image", cv::WINDOW_NORMAL);
+        cv::namedWindow("binarized Image", cv::WINDOW_AUTOSIZE);
         cv::imshow("binarized Image", imageCopy);
         cv::waitKey(0);
         cv::destroyWindow("binarized Image");
@@ -140,7 +142,7 @@ cv::Mat Localizer::highlightTags(cv::Mat &grayImage) {
 
 #ifdef PipelineStandalone
     if (config::DEBUG_MODE_LOCALIZER) {
-		cv::namedWindow("First Dilate", cv::WINDOW_NORMAL);
+		cv::namedWindow("First Dilate", cv::WINDOW_AUTOSIZE);
 		cv::imshow("First Dilate", imageCopy);
 		cv::waitKey(0);
 		cv::destroyWindow("First Dilate");
@@ -157,7 +159,7 @@ cv::Mat Localizer::highlightTags(cv::Mat &grayImage) {
 
 #ifdef PipelineStandalone
     if (config::DEBUG_MODE_LOCALIZER) {
-        cv::namedWindow("First Erode", cv::WINDOW_NORMAL);
+        cv::namedWindow("First Erode", cv::WINDOW_AUTOSIZE);
         cv::imshow("First Erode", imageCopy);
         cv::waitKey(0);
         cv::destroyWindow("First Erode");
@@ -173,7 +175,7 @@ cv::Mat Localizer::highlightTags(cv::Mat &grayImage) {
 
 #ifdef PipelineStandalone
     if (config::DEBUG_MODE_LOCALIZER) {
-        cv::namedWindow("My Window", cv::WINDOW_NORMAL);
+        cv::namedWindow("My Window", cv::WINDOW_AUTOSIZE);
         cv::imshow("My Window", imageCopy);
         cv::waitKey(0);
         cv::destroyWindow("My Window");
@@ -254,7 +256,7 @@ std::vector<Tag> Localizer::locateTagCandidates(cv::Mat blobImage_old,
  * Computes the Sobel map for a given grayscale image.
  * @return sobelmap
  */
-cv::Mat Localizer::computeSobelMap(cv::Mat grayImage) {
+cv::Mat Localizer::computeSobelMap(const cv::Mat &grayImage) const {
 
     // We need a copy because the GuassianBlur makes changes to the image
     cv::Mat imageCopy = grayImage.clone();
@@ -283,7 +285,7 @@ cv::Mat Localizer::computeSobelMap(cv::Mat grayImage) {
     cv::addWeighted(abs_grad_x, 0.5, abs_grad_y, 0.5, 0, sobel);
 #ifdef PipelineStandalone
     if (config::DEBUG_MODE_LOCALIZER) {
-        cv::namedWindow("Sobel", cv::WINDOW_NORMAL);
+        cv::namedWindow("Sobel", cv::WINDOW_AUTOSIZE);
         cv::imshow("Sobel", sobel);
         cv::waitKey(0);
         cv::destroyWindow("Sobel");
@@ -299,7 +301,7 @@ cv::Mat Localizer::computeSobelMap(cv::Mat grayImage) {
    Computes Blobs and finally finds the ROI's using the sobel map. The ROI's are stored in the boundingBoxes Vector.
  */
 
-cv::Mat Localizer::computeBlobs(cv::Mat sobel) {
+cv::Mat Localizer::computeBlobs(const cv::Mat &sobel) const {
     cv::Mat blob = this->highlightTags(sobel);
 
     //DEBUG_IMSHOW("blob", blob);

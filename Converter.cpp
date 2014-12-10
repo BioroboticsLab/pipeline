@@ -13,12 +13,12 @@ namespace decoder {
 Converter::Converter() {
 }
 
-cv::Mat Converter::process(const std::string& filename) {
+cv::Mat Converter::process(const std::string& filename) const {
     cv::Mat image = cv::imread(filename);
     return process(image);
 }
 
-cv::Mat Converter::process(cv::Mat &image)
+cv::Mat Converter::process(const cv::Mat &image) const
 {
     cv::Mat grayImage;
 
@@ -28,14 +28,12 @@ cv::Mat Converter::process(cv::Mat &image)
     return grayImage;
 }
 
-Converter::~Converter() {
-    // TODO Auto-generated destructor stub
-}
+Converter::~Converter() = default;
 
 /**
  * checks if the filename is valid for this converter
  */
-bool Converter::checkValidFilename(const std::string& filename) {
+bool Converter::checkValidFilename(const std::string& filename) const {
     //check if filename is given
     if (filename.size() == 0) {
         return false;

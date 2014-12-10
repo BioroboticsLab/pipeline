@@ -8,7 +8,9 @@
 
 namespace decoder {
 class Ellipse {
-public:
+
+private:
+
     // number of edge pixels supporting this ellipse
     int vote;
     // this ellipse' center pixel
@@ -21,30 +23,38 @@ public:
      * subimage of the cannyEdgeMap fpr the bounding box. transformed, so tht ellipse is now a circle with no angle.
      */
     cv::Mat transformedImage;
-    cv::Mat binarizedImage;
+    mutable cv::Mat binarizedImage;
 
-    double getAngle() const;
-    void setAngle(double angle);
-    cv::Size getAxis() const;
-    void setAxis(cv::Size axis);
-    cv::Point2i getCen() const;
-    void setCen(cv::Point2i cen);
-    int getVote() const;
-    void setVote(int vote);
+public:
 
-    Ellipse();
+    double getAngle() const       { return angle; }
+    void   setAngle(double angle) {this->angle = angle; }
 
-    Ellipse(int vote, cv::Point2i center, cv::Size axis_length, double angle);
+    cv::Size getAxis() const        { return axis; }
+    void     setAxis(cv::Size axis) { this->axis = axis; }
 
-    bool operator<(const Ellipse & elli2) const;
+    cv::Point2i getCen() const          { return cen; }
+    void        setCen(cv::Point2i cen) { this->cen = cen; }
 
-    const cv::Mat& getTransformedImage() const {
-        return transformedImage;
-    }
+    int  getVote() const   { return vote; }
+    void setVote(int vote) { this->vote = vote; }
 
-    void setTransformedImage(const cv::Mat& transformedImage) {
-        this->transformedImage = transformedImage;
-    }
+    const cv::Mat& getTransformedImage() const                          { return transformedImage; }
+    void           setTransformedImage(const cv::Mat& transformedImage);
+
+    const cv::Mat& getBinarizedImage() const;
+
+    explicit Ellipse();
+
+    explicit Ellipse(int vote, cv::Point2i center, cv::Size axis_length, double angle);
+
+
+
 };
+
+inline bool operator<(const Ellipse &lhs, const Ellipse &rhs) {
+	return lhs.getVote() < rhs.getVote();
+}
+
 }
 #endif /* ELLIPSE_H_ */

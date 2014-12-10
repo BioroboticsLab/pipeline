@@ -65,14 +65,14 @@ private:
     cv::Mat computeCannyEdgeMap(cv::Mat grayImage);
 
 #ifdef PipelineStandalone
-    void loadConfigVars(string filename);
+    void loadConfigVars(std::string filename);
     void visualizeEllipse(Ellipse const& ell, std::string const& title);
 #endif
 
 public:
     Recognizer();
 #ifdef PipelineStandalone
-    Recognizer(string configFile);
+    Recognizer(std::string configFile);
 #endif
     virtual ~Recognizer() {}
 
