@@ -5,7 +5,7 @@
 namespace decoder {
 
 Ellipse::Ellipse()
-	: vote(vote)
+	: vote(0)
 	, cen()
 	, axis()
 	, angle(0)
