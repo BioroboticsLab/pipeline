@@ -90,11 +90,9 @@ public:
     /**
      * @param size size of the grid
      * @param angle angle of the grid
-     * @param tilt tilt of the grid?
      * @param x horizontal part of the position
      * @param y vertical part of the position
      * @param ell ellipse the grid belongs to
-     * @param score initial score of the grid
      * @param scoringMethod used scoring method
      */
     explicit Grid(float size, float angle,  int x,  int y, Ellipse ell, ScoringMethod scoringMethod = BINARYCOUNT);
@@ -139,7 +137,6 @@ public:
      * read it that way: g1 fits better than g2.
      *
      * @param g the other grid
-     * @param true if the grid itself is better than the given grid
      */
     bool operator>(const Grid &g) const;
 
@@ -149,7 +146,6 @@ public:
      * quite similar to the > operator.
      *
      * @param g the other grid
-     * @param true if the grid itself is worser than the given grid
      */
     bool operator<(const Grid &g) const;
 
@@ -176,7 +172,7 @@ public:
      * Draw a known matrix grid on top of the corresponding region of interest
      * the region of interest needs to be transformed \see ellipseTransform
      *
-     * @param the scale of the cells
+     * @param scale the scale of the cells
      * @param useBinaryImage whether the binary image should be shown or ne normal one
      * @return the cv::Mat object the grid should be drawn into
      */

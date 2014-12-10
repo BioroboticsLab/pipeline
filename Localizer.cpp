@@ -106,7 +106,7 @@ std::vector<Tag> Localizer::process(cv::Mat&& grayImage) {
 /**
  * Highlight tag candidates in a comb image by intensity values
  *
- * @param grayImage
+ * @param grayImage the input image
  * @return image with highlighted tags
  */
 cv::Mat Localizer::highlightTags(cv::Mat &grayImage) {
@@ -185,10 +185,9 @@ cv::Mat Localizer::highlightTags(cv::Mat &grayImage) {
 /**
  *  Find blobs in the binary input image Ib and filter them by their size
  *
- * @param blobImage binary comb image with highlighted tag candidates
+ * @param blobImage_old binary comb image with highlighted tag candidates
  * @return boundingBoxes output vector of size-filtered bounding boxes
  */
-
 std::vector<Tag> Localizer::locateTagCandidates(cv::Mat blobImage_old,
   cv::Mat /*cannyEdgeMap*/, cv::Mat grayImage) {
     std::vector<Tag>  taglist;

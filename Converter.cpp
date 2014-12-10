@@ -13,10 +13,6 @@ namespace decoder {
 Converter::Converter() {
 }
 
-/**
- *
- * @param filename
- */
 cv::Mat Converter::process(const std::string& filename) {
     cv::Mat image = cv::imread(filename);
     return process(image);
@@ -38,9 +34,6 @@ Converter::~Converter() {
 
 /**
  * checks if the filename is valid for this converter
- *
- * @param filename
- * @return
  */
 bool Converter::checkValidFilename(const std::string& filename) {
     //check if filename is given

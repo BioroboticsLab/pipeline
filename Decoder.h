@@ -51,9 +51,6 @@ public:
 
     /**
      * constructor
-     *
-     * @param id the id of the roi
-     * @param grids a vector of possible grids of the SAME tag/roi
      */
     explicit Decoder();
 
