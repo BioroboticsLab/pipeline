@@ -69,7 +69,7 @@ public:
     **************************************/
 
     std::vector<TagCandidate> &getCandidates();
-    std::vector<TagCandidate> const& getCandidatesConst() const;
+	const std::vector<TagCandidate> &getCandidates() const;
     void setCandidates(std::vector<TagCandidate>&& candidates);
     const cv::Mat& getCannySubImage() const;
     void setCannySubImage(const cv::Mat& cannySubImage);

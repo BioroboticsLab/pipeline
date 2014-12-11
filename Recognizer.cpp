@@ -23,7 +23,7 @@ inline double pointDistanceNoSqrt(double px, double py, double qx, double qy)
 struct compareVote {
     inline bool operator()(decoder::Ellipse const& a, decoder::Ellipse const& b)
     {
-        return a.vote > b.vote;
+        return a.getVote() > b.getVote();
     }
 };
 }
@@ -31,14 +31,17 @@ struct compareVote {
 namespace decoder {
 Recognizer::Recognizer() {
 #ifdef PipelineStandalone
-    this->loadConfigVars(config::DEFAULT_RECOGNIZER_CONFIG);
-#else
-    loadConfigVars();
+	this->loadConfigVars(config::DEFAULT_RECOGNIZER_CONFIG);
 #endif
 }
 
+void Recognizer::loadSettings(recognizer_settings_t &&settings)
+{
+	_settings = std::move(settings);
+}
+
 #ifdef PipelineStandalone
-Recognizer::Recognizer(string configFile) {
+Recognizer::Recognizer(std::string configFile) {
     this->loadConfigVars(configFile);
 }
 #endif
@@ -47,10 +50,10 @@ Recognizer::Recognizer(string configFile) {
  * @param tag for which ellipses should be detected
  */
 void Recognizer::detectXieEllipse(Tag &tag) {
-    const double recognizer_max_minor = RECOGNIZER_MAX_MINOR;
-    const double recognizer_max_major = RECOGNIZER_MAX_MAJOR;
-    const double recognizer_min_major = RECOGNIZER_MIN_MAJOR;
-    const double recognizer_min_minor = RECOGNIZER_MIN_MINOR;
+	const double recognizer_max_minor = _settings.max_minor_axis;
+	const double recognizer_max_major = _settings.max_major_axis;
+	const double recognizer_min_major = _settings.min_major_axis;
+	const double recognizer_min_minor = _settings.min_minor_axis;
 
     const cv::Mat& subImage  = tag.getOrigSubImage();
     const cv::Mat cannyImage = computeCannyEdgeMap(subImage);
@@ -72,7 +75,7 @@ void Recognizer::detectXieEllipse(Tag &tag) {
     }
 
     // (2) initiate the accumulator array
-    std::vector<int> accu((this->RECOGNIZER_MAX_MINOR) / 2 + 1);
+	std::vector<int> accu((this->_settings.max_minor_axis) / 2 + 1);
 
     // (3) loop through each edge pixel in ep
     const size_t epsize = ep.size();
@@ -125,7 +128,7 @@ void Recognizer::detectXieEllipse(Tag &tag) {
                     const auto max_ind = std::distance(accu.begin(), max_it);
                     int vote_minor     = *max_it;
 
-                    if (vote_minor >= RECOGNIZER_THRESHOLD_EDGE) {
+					if (vote_minor >= _settings.threshold_edge_pixels) {
                         // (11) save ellipse parameters
                         const cv::Point2i cen(cvRound(centerx), cvRound(centery));
                         const cv::Size axis(cvRound(a), max_ind);
@@ -139,33 +142,31 @@ void Recognizer::detectXieEllipse(Tag &tag) {
 
                         if (candidates.size() == 0) {
                             candidates.emplace_back(vote_minor, cen, axis, angle);
-                            if (vote_minor >= RECOGNIZER_THRESHOLD_BEST_VOTE) {
+							if (vote_minor >= _settings.threshold_best_vote) {
                                 goto foundEllipse;
                             }
                         }
                         for (size_t idx = 0; idx < candidates.size(); idx++) {
                             Ellipse& ell = candidates[idx];
-                            if (abs(ell.cen.x - cen.x) < 8
-                              && abs(ell.cen.y - cen.y) < 8
-                              && abs(ell.axis.width - j) < 8
-                              && abs(ell.axis.height - n) < 8
+                            if (std::abs(ell.getCen().x - cen.x) < 8
+                              && std::abs(ell.getCen().y - cen.y) < 8
+                              && std::abs(ell.getAxis().width - j) < 8
+                              && std::abs(ell.getAxis().height - n) < 8
                               &&
                               //check angle in relation to minor/major axis
-                              abs(ell.angle - angle) < (180.0 * ell.axis.height) / ell.axis.width) {
-                                if (ell.vote < vote_minor) {
-                                    ell.cen.x       = cen.x;
-                                    ell.cen.y       = cen.y;
-                                    ell.axis.width  = j;
-                                    ell.axis.height = n;
-                                    ell.angle       = angle;
-                                    ell.vote        = vote_minor;
+                              std::abs(ell.getAngle() - angle) < (180.0 * ell.getAxis().height) / ell.getAxis().width) {
+                                if (ell.getVote() < vote_minor) {
+                                	ell.setCen(cen);
+                                	ell.setAxis(cv::Size(j, n));
+                                	ell.setAngle(angle);
+                                	ell.setVote(vote_minor);
                                 }
                                 break;
                             }
                             if (idx == candidates.size() - 1) {
                                 candidates.emplace_back(vote_minor, cen, axis, angle);
 
-                                if (vote_minor >= RECOGNIZER_THRESHOLD_BEST_VOTE) {
+								if (vote_minor >= _settings.threshold_best_vote) {
                                     goto foundEllipse;
                                 }
                             }
@@ -193,9 +194,9 @@ foundEllipse:
     if (config::DEBUG_MODE_RECOGNIZER) {
         for (size_t i = 0; i < candidates.size(); ++i) {
             Ellipse const& ell = candidates[i];
-            if ((i >= num) || (ell.vote < RECOGNIZER_THRESHOLD_VOTE)) {
+			if ((i >= num) || (ell.getVote() < _settings.threshold_vote)) {
                 if (config::DEBUG_MODE_RECOGNIZER) {
-                    std::cout << "Ignore Ellipse With Vote " << ell.vote << std::endl;
+                    std::cout << "Ignore Ellipse With Vote " << ell.getVote() << std::endl;
                     if (config::DEBUG_MODE_RECOGNIZER_IMAGE) {
                         visualizeEllipse(tag, ell, "ignored_ellipse");
                     }
@@ -208,13 +209,13 @@ foundEllipse:
     candidates.erase(candidates.begin() + num, candidates.end());
     // remove all candidates with vote < RECOGNIZER_THRESHOLD_VOTE
     candidates.erase(std::remove_if(candidates.begin(), candidates.end(),
-      [&](Ellipse& ell) { return ell.vote < RECOGNIZER_THRESHOLD_VOTE; }),
+	  [&](Ellipse& ell) { return ell.getVote() < _settings.threshold_vote; }),
       candidates.end());
     // add remaining candidates to tag
     for (Ellipse const& ell : candidates) {
 #ifdef PipelineStandalone
         if (config::DEBUG_MODE_RECOGNIZER) {
-            std::cout << "Add Ellipse With Vote " << ell.vote << std::endl;
+            std::cout << "Add Ellipse With Vote " << ell.getVote() << std::endl;
             if (config::DEBUG_MODE_RECOGNIZER_IMAGE) {
                 visualizeEllipse(tag, ell, "added_ellipse");
             }
@@ -227,7 +228,7 @@ foundEllipse:
     }
 #ifdef PipelineStandalone
     if (config::DEBUG_MODE_RECOGNIZER_IMAGE) {
-        destroyAllWindows();
+		cv::destroyAllWindows();
     }
     if (config::DEBUG_MODE_RECOGNIZER) {
         std::cout << "Found " << tag.getCandidates().size()
@@ -238,11 +239,11 @@ foundEllipse:
 
 void Recognizer::visualizeEllipse(Tag const& tag, Ellipse const& ell, std::string const& title) {
     cv::Mat subroiTest = tag.getOrigSubImage().clone();
-    ellipse(subroiTest, ell.cen, ell.axis, ell.angle, 0, 360, cv::Scalar(0, 0, 255));
-    std::string text = "Score " + std::to_string(ell.vote);
+    ellipse(subroiTest, ell.getCen(), ell.getAxis(), ell.getAngle(), 0, 360, cv::Scalar(0, 0, 255));
+    std::string text = "Score " + std::to_string(ell.getVote());
     cv::putText(subroiTest, text, cv::Point(10, 30), cv::FONT_HERSHEY_COMPLEX_SMALL,
       0.7, cv::Scalar(0, 255, 0));
-    cv::namedWindow(title, cv::WINDOW_NORMAL);
+    cv::namedWindow(title, cv::WINDOW_AUTOSIZE);
     cv::imshow(title, subroiTest);
     cv::waitKey();
 }
@@ -254,14 +255,14 @@ cv::Mat Recognizer::computeCannyEdgeMap(cv::Mat grayImage) {
       cv::BORDER_DEFAULT);
 
     cv::Mat cannyEdgeMap;
-    Canny(localGrayImage, cannyEdgeMap, this->RECOGNIZER_LCANNYTHRES,
-      this->RECOGNIZER_HCANNYTHRES);
+	Canny(localGrayImage, cannyEdgeMap, this->_settings.canny_threshold_low,
+	  this->_settings.canny_threshold_high);
 #ifdef PipelineStandalone
     if (config::DEBUG_MODE_RECOGNIZER_IMAGE) {
-        namedWindow("Canny", WINDOW_NORMAL);
-        imshow("Canny", cannyEdgeMap);
-        waitKey(0);
-        destroyWindow("Canny");
+		cv::namedWindow("Canny", cv::WINDOW_AUTOSIZE);
+		cv::imshow("Canny", cannyEdgeMap);
+		cv::waitKey(0);
+		cv::destroyWindow("Canny");
     }
 #endif
 
@@ -283,42 +284,29 @@ std::vector<Tag> Recognizer::process(std::vector<Tag>&& taglist) {
 }
 
 #ifdef PipelineStandalone
-void Recognizer::loadConfigVars(string filename) {
-    //TODO: add config in Tracker
+void Recognizer::loadConfigVars(std::string filename) {
     boost::property_tree::ptree pt;
     boost::property_tree::ini_parser::read_ini(filename, pt);
 
-    this->RECOGNIZER_MAX_MAJOR = pt.get<int>(
-        config::APPlICATION_ENVIROMENT + ".max_major_axis");
-    this->RECOGNIZER_MIN_MAJOR = pt.get<int>(
-        config::APPlICATION_ENVIROMENT + ".min_major_axis");
-    this->RECOGNIZER_MAX_MINOR = pt.get<int>(
-        config::APPlICATION_ENVIROMENT + ".max_minor_axis");
-    this->RECOGNIZER_MIN_MINOR = pt.get<int>(
-        config::APPlICATION_ENVIROMENT + ".min_minor_axis");
-    this->RECOGNIZER_THRESHOLD_EDGE = pt.get<int>(
-        config::APPlICATION_ENVIROMENT + ".threshold_edge_pixels");
-    this->RECOGNIZER_THRESHOLD_VOTE = pt.get<int>(
-        config::APPlICATION_ENVIROMENT + ".threshold_vote");
-    this->RECOGNIZER_THRESHOLD_BEST_VOTE = pt.get<int>(
-        config::APPlICATION_ENVIROMENT + ".threshold_best_vote");
-    this->RECOGNIZER_LCANNYTHRES = pt.get<int>(
-        config::APPlICATION_ENVIROMENT + ".canny_threshold_low");
-    this->RECOGNIZER_HCANNYTHRES = pt.get<int>(
-        config::APPlICATION_ENVIROMENT + ".canny_threshold_high");
+	_settings.max_major_axis =
+		pt.get<int>(config::APPlICATION_ENVIROMENT + ".max_major_axis");
+	_settings.min_major_axis =
+		pt.get<int>(config::APPlICATION_ENVIROMENT + ".min_major_axis");
+	_settings.max_minor_axis =
+		pt.get<int>(config::APPlICATION_ENVIROMENT + ".max_minor_axis");
+	_settings.min_minor_axis =
+		pt.get<int>(config::APPlICATION_ENVIROMENT + ".min_minor_axis");
+	_settings.threshold_edge_pixels =
+		pt.get<int>(config::APPlICATION_ENVIROMENT + ".threshold_edge_pixels");
+	_settings.threshold_vote =
+		pt.get<int>(config::APPlICATION_ENVIROMENT + ".threshold_vote");
+	_settings.threshold_best_vote =
+		pt.get<int>(config::APPlICATION_ENVIROMENT + ".threshold_best_vote");
+	_settings.canny_threshold_high =
+		pt.get<int>(config::APPlICATION_ENVIROMENT + ".canny_threshold_low");
+	_settings.canny_threshold_low =
+		pt.get<int>(config::APPlICATION_ENVIROMENT + ".canny_threshold_high");
 }
 #endif
 
-void Recognizer::loadConfigVars()
-{
-    RECOGNIZER_MAX_MAJOR = RecognizerParams::max_major_axis;
-    RECOGNIZER_MIN_MAJOR = RecognizerParams::min_major_axis;
-    RECOGNIZER_MAX_MINOR = RecognizerParams::max_minor_axis;
-    RECOGNIZER_MIN_MINOR = RecognizerParams::min_minor_axis;
-    RECOGNIZER_THRESHOLD_BEST_VOTE = RecognizerParams::threshold_best_vote;
-    RECOGNIZER_THRESHOLD_EDGE      = RecognizerParams::threshold_edge_pixels;
-    RECOGNIZER_THRESHOLD_VOTE      = RecognizerParams::threshold_vote;
-    RECOGNIZER_HCANNYTHRES         = RecognizerParams::canny_threshold_high;
-    RECOGNIZER_LCANNYTHRES         = RecognizerParams::canny_threshold_low;
-}
 } /* namespace decoder */

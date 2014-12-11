@@ -70,9 +70,7 @@ private:
     float m_x;
     float m_y;
     float m_angle;
-    float m_tilt;
     Ellipse m_ell;
-    bool m_permutation;     // Determines whether the grid is just a rotated grid or a fitted one
 
 public:
 
@@ -86,21 +84,18 @@ public:
      *
      * @see Grid(float size, float angle, float tilt,  int x,  int y, Ellipse ell, bool permutation, ScoringMethod scoringMethod);
      */
-    explicit Grid(float size, float angle, float tilt,  int x,  int y, Ellipse ell, ScoringMethod scoringMethod = BINARYCOUNT);
     explicit Grid(ScoringMethod scoringMethod = BINARYCOUNT);
     explicit Grid(float s, ScoringMethod scoringMethod = BINARYCOUNT);
 
     /**
      * @param size size of the grid
      * @param angle angle of the grid
-     * @param tilt tilt of the grid?
      * @param x horizontal part of the position
      * @param y vertical part of the position
      * @param ell ellipse the grid belongs to
-     * @param score initial score of the grid
      * @param scoringMethod used scoring method
      */
-    explicit Grid(float size, float angle, float tilt,  int x,  int y, Ellipse ell, bool permutation, ScoringMethod scoringMethod = BINARYCOUNT);
+    explicit Grid(float size, float angle,  int x,  int y, Ellipse ell, ScoringMethod scoringMethod = BINARYCOUNT);
     ~Grid();
 
     /**
@@ -122,9 +117,11 @@ public:
      *
      * @param cell ID between [0,14]; which cell of the grid is to be rendered?
      * @param offset angle offset to draw inner half circles with different angles 1 offset = 30°
-     * @return a vector with the contours of the cell
+     * @return a reference to a vector containing a vector with the contours of the cell (thread local internal buffer)
      */
-    std::vector<cv::Point> renderGridCell(unsigned short cell, int offset = 0) const;
+    const std::vector<std::vector<cv::Point>>& renderGridCell(unsigned short cell, int offset = 0) const {
+    	return renderScaledGridCell(cell, 1, offset);
+    }
 
     /**
      * Render a grid cell of the given type and ID
@@ -132,9 +129,9 @@ public:
      * @param cell ID between [0,14]; which cell of the grid is to be rendered?
      * @param scale the scale of the cell within the interval [0, 1]
      * @param offset angle offset to draw inner half circles with different angles 1 offset = 30°
-     * @return a vector with the contours of the cell
+     * @return a reference to a vector containing a vector with the contours of the cell (thread local internal buffer)
      */
-    std::vector<cv::Point> renderScaledGridCell(unsigned short cell, double scale, int offset = 0) const;
+    const std::vector<std::vector<cv::Point>>& renderScaledGridCell(unsigned short cell, double scale, int offset = 0) const;
 
     /**
      * Determines whether the given grid is worser than itself (depending on the score).
@@ -142,7 +139,6 @@ public:
      * read it that way: g1 fits better than g2.
      *
      * @param g the other grid
-     * @param true if the grid itself is better than the given grid
      */
     bool operator>(const Grid &g) const;
 
@@ -152,7 +148,6 @@ public:
      * quite similar to the > operator.
      *
      * @param g the other grid
-     * @param true if the grid itself is worser than the given grid
      */
     bool operator<(const Grid &g) const;
 
@@ -179,7 +174,7 @@ public:
      * Draw a known matrix grid on top of the corresponding region of interest
      * the region of interest needs to be transformed \see ellipseTransform
      *
-     * @param the scale of the cells
+     * @param scale the scale of the cells
      * @param useBinaryImage whether the binary image should be shown or ne normal one
      * @return the cv::Mat object the grid should be drawn into
      */

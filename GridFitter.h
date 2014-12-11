@@ -38,8 +38,6 @@ public:
     /**
      * constructor
      *
-     * @param id id of the roi
-     * @param ellipses a vector with possible ellipses for the roi
      * @param scoringMethod method that should be used for scoring (FOR LATER USE MAYBE)
      */
     GridFitter(Grid::ScoringMethod scoringMethod = Grid::BINARYCOUNT);
@@ -65,13 +63,10 @@ private:
      * @param ellipse the ellipse the grid should belong to
      * @return the hopefully best grid
      */
-    Grid fitGrid(Ellipse &ellipse) const;
+    Grid fitGrid(const Ellipse &ellipse) const;
 
     /**
      * guesses orientation of the tag
-     *
-     * @param roi part of the image where the tag is
-     * @param circle cv::Point3f object with position and radius of the tag circle
      */
     std::array<cv::Point2f, 2> getOrientationVector(const Ellipse &ellipse) const;
 
@@ -119,7 +114,7 @@ private:
      * @param g the grid
      * @return offset in cells
      */
-    int bestGridAngleCorrection(Grid g) const;
+    int bestGridAngleCorrection(const Grid &g) const;
 };
 }
 #endif /* GRIDFITTER_H_ */

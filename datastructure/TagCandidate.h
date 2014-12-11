@@ -63,6 +63,10 @@ public:
         return _ellipse;
     }
 
+	const Ellipse& getEllipse() const {
+		return _ellipse;
+	}
+
     void setEllipse(const Ellipse& ellipse) {
         _ellipse = ellipse;
     }
