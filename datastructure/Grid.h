@@ -15,7 +15,9 @@
 #include <boost/archive/text_oarchive.hpp>
 #endif
 
-#define BINARYCOUNT_INIT (100000) // initial score for binary count method
+#include <cmath> // INFINITY
+
+static const double BINARYCOUNT_INIT = INFINITY; //100000; // initial score for binary count method
 #define FISHER_INIT (-1) // initial score for fisher method
 
 // current tag design -- without inner border
@@ -64,6 +66,9 @@ private:
         	: value(scoringMethod == BINARYCOUNT ? BINARYCOUNT_INIT : FISHER_INIT)
         	, metric(scoringMethod)
         {}
+        bool is_initialized() const {
+        	return metric == BINARYCOUNT ? (value != BINARYCOUNT_INIT) : (value != FISHER_INIT);
+        }
     } m_score;
 
     float m_size;
@@ -113,25 +118,25 @@ public:
     ScoringMethod scoringMethod() const;
 
     /**
-     * Render a grid cell of the given type and ID
+     * Approximates a grid cell with a polyline.
      *
      * @param cell ID between [0,14]; which cell of the grid is to be rendered?
      * @param offset angle offset to draw inner half circles with different angles 1 offset = 30°
      * @return a reference to a vector containing a vector with the contours of the cell (thread local internal buffer)
      */
-    const std::vector<std::vector<cv::Point>>& renderGridCell(unsigned short cell, int offset = 0) const {
-    	return renderScaledGridCell(cell, 1, offset);
+    const std::vector<std::vector<cv::Point>>& gridCell2poly(unsigned short cell, int offset = 0) const {
+    	return gridCellScaled2poly(cell, 1, offset);
     }
 
     /**
-     * Render a grid cell of the given type and ID
+     * Approximates a grid cell with a polyline.
      *
      * @param cell ID between [0,14]; which cell of the grid is to be rendered?
      * @param scale the scale of the cell within the interval [0, 1]
      * @param offset angle offset to draw inner half circles with different angles 1 offset = 30°
      * @return a reference to a vector containing a vector with the contours of the cell (thread local internal buffer)
      */
-    const std::vector<std::vector<cv::Point>>& renderScaledGridCell(unsigned short cell, double scale, int offset = 0) const;
+    const std::vector<std::vector<cv::Point>>& gridCellScaled2poly(unsigned short cell, double scale, int offset = 0) const;
 
     /**
      * Determines whether the given grid is worser than itself (depending on the score).

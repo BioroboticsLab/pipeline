@@ -246,16 +246,16 @@ int GridFitter::bestGridAngleCorrection(const Grid &g) const {
     float mean1c = 0;
     float mean2c = 0;
 
-    for (int j = 0; j < 6; j++) {
+    for (int offset = 0; offset < 6; offset++) {
         cv::Mat mask1(roi.rows, roi.cols, roi.type(), cv::Scalar(0));
-        drawContours(mask1, g.renderGridCell(13, j), 0, cv::Scalar(255), CV_FILLED);
+        drawContours(mask1, g.gridCell2poly(13, offset), 0, cv::Scalar(255), CV_FILLED);
         cv::Scalar mean1;
         cv::Scalar std1;
 
         meanStdDev(roi, mean1, std1, mask1);
 
         cv::Mat mask2(roi.rows, roi.cols, roi.type(), cv::Scalar(0));
-        drawContours(mask2, g.renderGridCell(14, j), 0, cv::Scalar(255), CV_FILLED);
+        drawContours(mask2, g.gridCell2poly(14, offset), 0, cv::Scalar(255), CV_FILLED);
         cv::Scalar mean2;
         cv::Scalar std2;
 
@@ -264,7 +264,7 @@ int GridFitter::bestGridAngleCorrection(const Grid &g) const {
         if (std::abs(mean1c - mean2c) < std::abs(mean1[0] - mean2[0])) {
             mean1c = mean1[0];
             mean2c = mean2[0];
-            i      = j;
+            i      = offset;
         }
     }
 

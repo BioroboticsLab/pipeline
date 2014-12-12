@@ -71,8 +71,8 @@ Decoding Decoder::includeExcludeDecode(const Grid &g) const {
     cv::Mat whiteMask(image.rows, image.cols, image.type(), cv::Scalar(0));
     cv::Mat blackMask(image.rows, image.cols, image.type(), cv::Scalar(0));
 
-    drawContours(whiteMask, g.renderScaledGridCell(13, CELL_SCALE), 0, cv::Scalar(1), CV_FILLED);
-    drawContours(blackMask, g.renderScaledGridCell(14, CELL_SCALE), 0, cv::Scalar(1), CV_FILLED);
+    drawContours(whiteMask, g.gridCellScaled2poly(13, CELL_SCALE), 0, cv::Scalar(1), CV_FILLED);
+    drawContours(blackMask, g.gridCellScaled2poly(14, CELL_SCALE), 0, cv::Scalar(1), CV_FILLED);
 
     cv::Scalar mean;
     cv::Scalar std;
@@ -88,7 +88,7 @@ Decoding Decoder::includeExcludeDecode(const Grid &g) const {
     for (int i = 0; i < 12; i++) {
         cv::Mat cellMask(image.rows, image.cols, image.type(), cv::Scalar(0));
 
-        drawContours(cellMask, g.renderScaledGridCell(i, CELL_SCALE), 0, cv::Scalar(1), CV_FILLED);
+        drawContours(cellMask, g.gridCellScaled2poly(i, CELL_SCALE), 0, cv::Scalar(1), CV_FILLED);
         cv::Scalar mean;
         cv::Scalar std;
         meanStdDev(image, mean, std, cellMask);
@@ -153,8 +153,8 @@ double Decoder::fisherScore(const Grid &g, cv::Mat &labels, bool useBinaryImage)
     const cv::Mat &image = useBinaryImage ? g.ell().getBinarizedImage() : g.ell().getTransformedImage();
     cv::Mat whiteMask(image.rows, image.cols, image.type(), cv::Scalar(0));
     cv::Mat blackMask(image.rows, image.cols, image.type(), cv::Scalar(0));
-    drawContours(whiteMask, g.renderScaledGridCell(13, CELL_SCALE), 0, cv::Scalar(255), CV_FILLED);
-    drawContours(blackMask, g.renderScaledGridCell(14, CELL_SCALE), 0, cv::Scalar(255), CV_FILLED);
+    drawContours(whiteMask, g.gridCellScaled2poly(13, CELL_SCALE), 0, cv::Scalar(255), CV_FILLED);
+    drawContours(blackMask, g.gridCellScaled2poly(14, CELL_SCALE), 0, cv::Scalar(255), CV_FILLED);
 
     for (int i = 0; i < 12; i++) {
         // Add the cell to the mask of the designated group
@@ -164,7 +164,7 @@ double Decoder::fisherScore(const Grid &g, cv::Mat &labels, bool useBinaryImage)
         } else {
             cellMask = &blackMask;
         }
-        drawContours(*cellMask, g.renderScaledGridCell(i, CELL_SCALE), 0, cv::Scalar(255), CV_FILLED);
+        drawContours(*cellMask, g.gridCellScaled2poly(i, CELL_SCALE), 0, cv::Scalar(255), CV_FILLED);
     }
     cv::Scalar whiteMean;
     cv::Scalar whiteStd;
