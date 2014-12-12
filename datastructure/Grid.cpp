@@ -64,7 +64,7 @@ double Grid::binaryCountScore() const {
     for (int cell_id = 12; cell_id < 15; ++cell_id) {
         mask = cv::Scalar(0);
 
-        cv::drawContours(mask, gridCell2poly(cell_id), 0, cv::Scalar(1), CV_FILLED); // draw (filled) polygon in mask matrix
+        cv::fillPoly(mask, gridCell2poly(cell_id), cv::Scalar(1));  // draw (filled) polygon in mask matrix
         const auto num_masked_pixel = cv::countNonZero(mask);       // count polygon pixel (i.e. nonzero pixel)
 
         // just keep the pixel that are in the binary image and in the polygon
