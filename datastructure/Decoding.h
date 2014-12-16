@@ -29,7 +29,7 @@ struct Decoding {
      */
     Grid grid;
 
-    Decoding(unsigned int tagId, double score, Grid grid)
+    Decoding(unsigned int tagId, double score, const Grid &grid)
     	: tagId(tagId)
     	, score(score)
     	, grid(grid)
