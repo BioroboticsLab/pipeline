@@ -119,27 +119,6 @@ public:
     ScoringMethod scoringMethod() const;
 
     /**
-     * Approximates a grid cell with a polyline.
-     *
-     * @param cell ID between [0,14]; which cell of the grid is to be rendered?
-     * @param offset angle offset to draw inner half circles with different angles 1 offset = 30°
-     * @return a reference to a vector containing a vector with the contours of the cell (thread local internal buffer)
-     */
-    const std::vector<std::vector<cv::Point>>& gridCell2poly(unsigned short cell, int offset = 0) const {
-    	return gridCellScaled2poly(cell, 1.0, offset);
-    }
-
-    /**
-     * Approximates a grid cell with a polyline.
-     *
-     * @param cell ID between [0,14]; which cell of the grid is to be rendered?
-     * @param scale the scale of the cell within the interval [0, 1]
-     * @param offset angle offset to draw inner half circles with different angles 1 offset = 30°
-     * @return a reference to a vector containing a vector with the contours of the cell (thread local internal buffer)
-     */
-    const std::vector<std::vector<cv::Point>>& gridCellScaled2poly(unsigned short cell, double scale, int offset = 0) const;
-
-    /**
      * Approximates a grid cell with a polyline and renders it into img.
      *
      * @see: gridCell2poly
@@ -241,6 +220,27 @@ private:
      * @return the score
      */
     double fisherScore() const;
+
+    /**
+     * Approximates a grid cell with a polyline.
+     *
+     * @param cell ID between [0,14]; which cell of the grid is to be rendered?
+     * @param offset angle offset to draw inner half circles with different angles 1 offset = 30°
+     * @return a reference to a vector containing a vector with the contours of the cell (thread local internal buffer)
+     */
+    const std::vector<std::vector<cv::Point>>& gridCell2poly(unsigned short cell, int offset = 0) const {
+    	return gridCellScaled2poly(cell, 1.0, offset);
+    }
+
+    /**
+     * Approximates a grid cell with a polyline.
+     *
+     * @param cell ID between [0,14]; which cell of the grid is to be rendered?
+     * @param scale the scale of the cell within the interval [0, 1]
+     * @param offset angle offset to draw inner half circles with different angles 1 offset = 30°
+     * @return a reference to a vector containing a vector with the contours of the cell (thread local internal buffer)
+     */
+    const std::vector<std::vector<cv::Point>>& gridCellScaled2poly(unsigned short cell, double scale, int offset = 0) const;
 
     // ======
 };
