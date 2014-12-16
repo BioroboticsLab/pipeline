@@ -101,6 +101,7 @@ public:
      * @param scoringMethod used scoring method
      */
     explicit Grid(float size, float angle,  int x,  int y, Ellipse ell, ScoringMethod scoringMethod = BINARYCOUNT);
+    Grid(const Grid&) = default;
     ~Grid();
 
     /**
@@ -125,7 +126,7 @@ public:
      * @return a reference to a vector containing a vector with the contours of the cell (thread local internal buffer)
      */
     const std::vector<std::vector<cv::Point>>& gridCell2poly(unsigned short cell, int offset = 0) const {
-    	return gridCellScaled2poly(cell, 1, offset);
+    	return gridCellScaled2poly(cell, 1.0, offset);
     }
 
     /**
@@ -137,6 +138,28 @@ public:
      * @return a reference to a vector containing a vector with the contours of the cell (thread local internal buffer)
      */
     const std::vector<std::vector<cv::Point>>& gridCellScaled2poly(unsigned short cell, double scale, int offset = 0) const;
+
+    /**
+     * Approximates a grid cell with a polyline and renders it into img.
+     *
+     * @see: gridCell2poly
+     *
+     * @param img destination image
+     * @param color fill color
+     */
+    void renderGridCell(cv::Mat &img, const cv::Scalar &color, unsigned short cell, int offset = 0) const {
+    	renderGridCellScaled(img, color, cell, 1.0, offset);
+    }
+
+    /**
+     * Approximates a grid cell with a polyline and renders it into img.
+     *
+     * @see: gridCellScaled2poly
+     *
+     * @param img destination image
+     * @param color fill color
+     */
+    void renderGridCellScaled(cv::Mat &img, const cv::Scalar &color, unsigned short cell, double scale, int offset = 0) const;
 
     /**
      * Determines whether the given grid is worser than itself (depending on the score).

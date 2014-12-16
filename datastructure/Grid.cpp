@@ -64,7 +64,8 @@ double Grid::binaryCountScore() const {
     for (int cell_id = 12; cell_id < 15; ++cell_id) {
         mask = cv::Scalar(0);
 
-        cv::fillPoly(mask, gridCell2poly(cell_id), cv::Scalar(1));  // draw (filled) polygon in mask matrix
+        this->renderGridCell(mask, cv::Scalar(1), cell_id);
+
         const auto num_masked_pixel = cv::countNonZero(mask);       // count polygon pixel (i.e. nonzero pixel)
 
         // just keep the pixel that are in the binary image and in the polygon
@@ -328,16 +329,26 @@ const std::vector<std::vector<cv::Point>>& Grid::gridCellScaled2poly(unsigned sh
 }
 
 
+void Grid::renderGridCellScaled(cv::Mat &img, const cv::Scalar &color, unsigned short cell, double scale, int offset) const {
+
+	const auto &polylines = this->gridCellScaled2poly(cell, scale, offset);
+	// TODO: try using "cv::fillConvexPoly(img, polylines, color);" for half circles
+	cv::fillPoly(img, polylines, color);
+
+}
+
+
 // === operators ===
 
 bool Grid::operator>(const Grid &rhs) const {
-    assert(this->scoringMethod() == rhs.scoringMethod());     // both grids need the same scoring method
+	assert(this->scoringMethod() == rhs.scoringMethod());     // both grids need the same scoring method
 
-    if (this->scoringMethod() == BINARYCOUNT) {
-        return this->score() < rhs.score();
-    } else {
-        return this->score() > rhs.score();
-    }
+	switch (this->scoringMethod()) {
+		case BINARYCOUNT:
+			return this->score() < rhs.score();
+		case FISHER:
+			return this->score() > rhs.score();
+	}
 }
 
 bool Grid::operator<(const Grid &rhs) const {
