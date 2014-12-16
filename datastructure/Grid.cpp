@@ -22,6 +22,19 @@ Grid::Grid(float size, ScoringMethod scoringMethod)
 {
 }
 
+/**
+ * new-angle copy constructor
+ */
+Grid::Grid(const Grid &rhs, float angle)
+	: Grid(rhs)
+{
+	// angle has changed --> invalidate copied score
+	if (angle != m_angle) {
+		m_angle = angle;
+		m_score.value = this->scoringMethod() == BINARYCOUNT ? BINARYCOUNT_INIT : FISHER_INIT;
+	}
+}
+
 Grid::~Grid() = default;
 
 // ===

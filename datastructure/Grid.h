@@ -101,6 +101,7 @@ public:
      * @param scoringMethod used scoring method
      */
     explicit Grid(float size, float angle,  int x,  int y, Ellipse ell, ScoringMethod scoringMethod = BINARYCOUNT);
+    explicit Grid(const Grid &rhs, float angle);
     Grid(const Grid&) = default;
     ~Grid();
 
