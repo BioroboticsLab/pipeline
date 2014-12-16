@@ -190,6 +190,8 @@ Grid GridFitter::fitGridGradient(const Ellipse &ellipse, double angle, int start
 Grid GridFitter::fitGridAngle(const Ellipse &ellipse, float gsize, double angle,
   int x, int y) const
 {
+    const Grid g(gsize, angle, x, y, ellipse, scoringMethod);
+
     Grid best(gsize, scoringMethod);
 
     int step_size = 3;
@@ -207,8 +209,8 @@ Grid GridFitter::fitGridAngle(const Ellipse &ellipse, float gsize, double angle,
     while (step_size > 0) {
         const int g1_angle = a + step_size;
         const int g2_angle = a - step_size;
-        const Grid g1(gsize, g1_angle, x, y, ellipse, scoringMethod);
-        const Grid g2(gsize, g2_angle, x, y, ellipse, scoringMethod);
+        const Grid g1(g, g1_angle);
+        const Grid g2(g, g2_angle);
 
         const Grid &cur = (g1 > g2) ? g1 : g2;
         const int new_a = (g1 > g2) ? g1_angle : g2_angle;
