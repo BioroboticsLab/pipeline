@@ -1,5 +1,8 @@
 #include "Grid.h"
-#include <stdexcept> // std::invalid_argument
+#include <stdexcept>          // std::invalid_argument
+#include <iostream>           // std::cout
+#include <algorithm>          // std::rotate
+#include <opencv2/opencv.hpp> // cv::GaussianBlur,  cv::circle, cv::threshold, cv::cvtColor, cv::drawContours
 
 namespace decoder {
 // === Constructors and initializer ===
@@ -22,6 +25,19 @@ Grid::Grid(float size, ScoringMethod scoringMethod)
 {
 }
 
+/**
+ * new-angle copy constructor
+ */
+Grid::Grid(const Grid &rhs, float angle)
+	: Grid(rhs)
+{
+	// angle has changed --> invalidate copied score
+	if (angle != m_angle) {
+		m_angle = angle;
+		m_score.value = this->scoringMethod() == BINARYCOUNT ? BINARYCOUNT_INIT : FISHER_INIT;
+	}
+}
+
 Grid::~Grid() = default;
 
 // ===
@@ -32,15 +48,28 @@ Grid::ScoringMethod Grid::scoringMethod() const {
 }
 
 double Grid::score() const {
-    // determine whether the grid is a dummy or not
-    if (m_score.metric == BINARYCOUNT && m_score.value == BINARYCOUNT_INIT && ! m_ell.getBinarizedImage().empty() ) {
-        m_score.value = binaryCountScore();
-    } else if (m_score.metric == FISHER && m_score.value == FISHER_INIT && ! m_ell.getBinarizedImage().empty() ) {
-        m_score.value = fisherScore();
-    }
-    return m_score.value;
+	// determine whether the grid is a dummy or not
+	if (! m_score.is_initialized() && ! m_ell.getBinarizedImage().empty() ) {
+		switch (m_score.metric) {
+			case BINARYCOUNT:
+				m_score.value = binaryCountScore();
+				break;
+			case FISHER:
+				m_score.value = fisherScore();
+				break;
+		}
+	}
+	return m_score.value;
 }
 
+/**
+ * - total score = sum( score of each area )
+ * - score of an area: "#pixel that don't match" / "' pixel that match"
+ *
+ * --> the smaller the score, the better the match
+ *
+ * @return score >= 0
+ */
 double Grid::binaryCountScore() const {
 
     const cv::Mat &binImg = m_ell.getBinarizedImage();
@@ -48,10 +77,11 @@ double Grid::binaryCountScore() const {
     cv::Mat scores (3, 1, CV_64FC1);
     cv::Mat mask(binImg.rows, binImg.cols, binImg.type());
     // for each cell calculate its size (cell size) and its mean intensity (means)
-    for (int j = 12; j < 15; j++) {
+    for (int cell_id = 12; cell_id < 15; ++cell_id) {
         mask = cv::Scalar(0);
 
-        cv::drawContours(mask, renderGridCell(j), 0, cv::Scalar(1), CV_FILLED); // draw (filled) polygon in mask matrix
+        this->renderGridCell(mask, cv::Scalar(1), cell_id);
+
         const auto num_masked_pixel = cv::countNonZero(mask);       // count polygon pixel (i.e. nonzero pixel)
 
         // just keep the pixel that are in the binary image and in the polygon
@@ -63,12 +93,12 @@ double Grid::binaryCountScore() const {
         const double whitePixelAmount = static_cast<double>(num_masked_white_pixel);
         const double blackPixelAmount = static_cast<double>(num_masked_black_pixel);
 
-        if (j == 12 || j == 13) {
+        if (cell_id == 12 || cell_id == 13) {
             // white inner half circle or white outer border
-            scores.at<double>(14 - j) =  whitePixelAmount == 0. ? blackPixelAmount : blackPixelAmount / whitePixelAmount;
-        } else if (j == 14) {
+            scores.at<double>(14 - cell_id) =  whitePixelAmount == 0. ? blackPixelAmount : blackPixelAmount / whitePixelAmount;
+        } else if (cell_id == 14) {
             //supposed black inner half circle
-            scores.at<double>(14 - j) =  blackPixelAmount == 0. ? whitePixelAmount : whitePixelAmount / blackPixelAmount;
+            scores.at<double>(14 - cell_id) =  blackPixelAmount == 0. ? whitePixelAmount : whitePixelAmount / blackPixelAmount;
         }
     }
     return sum(scores)[0];
@@ -94,16 +124,16 @@ double Grid::fisherScore() const {
     std::vector<cv::Mat> masks;
 
     // for each cell calculate its size (cellsize) and its mean intensity (means)
-    for (int j = 0; j < 15; j++) {
+    for (int cell_id = 0; cell_id < 15; ++cell_id) {
         cv::Mat mask(roi.rows, roi.cols, roi.type(), cv::Scalar(0));
-        drawContours(mask, renderGridCell(j), 0, cv::Scalar(255), CV_FILLED);
+        this->renderGridCell(mask, cv::Scalar(255), cell_id);
         masks.push_back(mask);
 
         cv::Scalar mean;
         cv::Scalar std;
         meanStdDev(roi, mean, std, mask);
 
-        means.at<float>(j) = mean[0];
+        means.at<float>(cell_id) = mean[0];
     }
 
     // assume the color for each cell
@@ -246,7 +276,7 @@ double Grid::fisherScore() const {
 
 // ======
 
-const std::vector<std::vector<cv::Point>>& Grid::renderScaledGridCell(unsigned short cell, double scale, int offset) const {
+const std::vector<std::vector<cv::Point>>& Grid::gridCellScaled2poly(unsigned short cell, double scale, int offset) const {
 
 	static thread_local std::vector<std::vector<cv::Point>> result(1);
 	static thread_local std::vector<cv::Point> buffer;
@@ -315,16 +345,26 @@ const std::vector<std::vector<cv::Point>>& Grid::renderScaledGridCell(unsigned s
 }
 
 
+void Grid::renderGridCellScaled(cv::Mat &img, const cv::Scalar &color, unsigned short cell, double scale, int offset) const {
+
+	const auto &polylines = this->gridCellScaled2poly(cell, scale, offset);
+	// TODO: try using "cv::fillConvexPoly(img, polylines, color);" for half circles
+	cv::fillPoly(img, polylines, color);
+
+}
+
+
 // === operators ===
 
 bool Grid::operator>(const Grid &rhs) const {
-    assert(this->scoringMethod() == rhs.scoringMethod());     // both grids need the same scoring method
+	assert(this->scoringMethod() == rhs.scoringMethod());     // both grids need the same scoring method
 
-    if (this->scoringMethod() == BINARYCOUNT) {
-        return this->score() < rhs.score();
-    } else {
-        return this->score() > rhs.score();
-    }
+	switch (this->scoringMethod()) {
+		case BINARYCOUNT:
+			return this->score() < rhs.score();
+		case FISHER:
+			return this->score() > rhs.score();
+	}
 }
 
 bool Grid::operator<(const Grid &rhs) const {
@@ -455,7 +495,7 @@ cv::Mat Grid::drawGrid(double scale, bool useBinaryImage) const {
 
     if (roi.type() == CV_8UC1) {
         // the grid is drawn with several colors so a RGB image is needed
-        cvtColor(draw, draw, CV_GRAY2BGR);
+        cv::cvtColor(draw, draw, CV_GRAY2BGR);
     }
 
     // contour vector
@@ -465,23 +505,23 @@ cv::Mat Grid::drawGrid(double scale, bool useBinaryImage) const {
     std::vector < cv::Point > cont;
 
     // render half of the inner circle (circular matrix design)
-    ellipse2Poly(cv::Point2f(m_x, m_y), cv::Size2f(IRR * m_size, IRR * m_size), m_angle, 0, -180, 1, cont);
+    cv::ellipse2Poly(cv::Point2f(m_x, m_y), cv::Size2f(IRR * m_size, IRR * m_size), m_angle, 0, -180, 1, cont);
     std::vector < cv::Point > cont2;
 
     // take first and last vertex of the polygon to get the respective diameter of the inner circle
     cont2.push_back(cont[0]);
     cont2.push_back(cont[cont.size() - 1]);
     conts.push_back(cont2);
-    drawContours(draw, conts, 0, cv::Scalar(255, 0, 0), 1);
+    cv::drawContours(draw, conts, 0, cv::Scalar(255, 0, 0), 1);
 
     conts.clear();
 
     for (int i = 0; i < ites; i++) {
-        conts.push_back(renderScaledGridCell(i, scale, 0)[0]);
+        conts.push_back(gridCellScaled2poly(i, scale, 0)[0]);
     }
 
-    drawContours(draw, conts, -1, cv::Scalar(255, 0, 0), 1);
-    drawContours(draw, conts, 0, cv::Scalar(0, 255, 0), 1);
+    cv::drawContours(draw, conts, -1, cv::Scalar(255, 0, 0), 1);
+    cv::drawContours(draw, conts, 0, cv::Scalar(0, 255, 0), 1);
 
     return draw;
 }

@@ -8,11 +8,9 @@
 #ifndef TAG_H_
 #define TAG_H_
 
-#include "BoundingBox.h"
-#include "TagCandidate.h"
-#include "opencv2/highgui/highgui.hpp"
-#include <fstream>
-#include <iostream>
+#include "TagCandidate.h"        // TagCandidate
+#include "opencv2/core/core.hpp" // cv::Mat, cv::Rect
+#include <vector>                // std::vector
 
 #ifdef PipelineStandalone
 #include <boost/archive/text_iarchive.hpp>

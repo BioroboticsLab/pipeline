@@ -8,17 +8,12 @@
 #ifndef GRIDFITTER_H_
 #define GRIDFITTER_H_
 
-#include "datastructure/Ellipse.h"
-#include "datastructure/Grid.h"
-#include "datastructure/Tag.h"
-#include <cstdlib>
-#include <fstream>
-#include <iomanip>
-#include <iostream>
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/opencv.hpp>
-#include <array> // std::array
+#include "datastructure/Grid.h" // Grid
+#include "datastructure/Tag.h"  // Tag
+#include <vector>               // std::vector
+#include <array>                // std::array
+#include <opencv2/core/core.hpp> // cv::Point cv::Mat
+
 
 // Constants for optimized detection of the tag center
 // initial step size
@@ -32,6 +27,13 @@
 
 
 namespace decoder {
+
+/**
+ * forward declarations to reduce includes
+ */
+class Ellipse;
+
+
 class GridFitter {
 public:
 

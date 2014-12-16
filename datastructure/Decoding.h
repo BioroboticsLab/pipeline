@@ -1,7 +1,6 @@
 #ifndef DECODING_H_
 #define DECODING_H_
 
-#include "Ellipse.h"
 #include "Grid.h"
 
 namespace decoder {
@@ -29,7 +28,7 @@ struct Decoding {
      */
     Grid grid;
 
-    Decoding(unsigned int tagId, double score, Grid grid)
+    Decoding(unsigned int tagId, double score, const Grid &grid)
     	: tagId(tagId)
     	, score(score)
     	, grid(grid)

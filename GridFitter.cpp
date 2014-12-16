@@ -6,9 +6,13 @@
  */
 
 #include "GridFitter.h"
+
+#include "datastructure/Ellipse.h" // Ellipse
+
 #include "util/ThreadPool.h"
-#include <algorithm> // std::remove_if
-#include <iterator> // std::distance
+#include <opencv2/opencv.hpp>      // CV_FILLED, cv::moments, cv::threshold
+#include <algorithm>               // std::remove_if
+#include <iterator>                // std::distance
 
 
 namespace decoder {
@@ -94,8 +98,8 @@ std::array<cv::Point2f, 2> GridFitter::getOrientationVector(const Ellipse &ellip
     cv::Mat hcBlack = circMask.mul(255 - hcWhite);
 
     // Calculate moment => orientation of the tag
-    const cv::Moments momw = moments(hcWhite, true);
-    const cv::Moments momb = moments(hcBlack, true);
+    const cv::Moments momw = cv::moments(hcWhite, true);
+    const cv::Moments momb = cv::moments(hcBlack, true);
 
     const auto p0_x = momb.m10 / momb.m00;
     const auto p0_y = momb.m01 / momb.m00;
@@ -120,7 +124,7 @@ double GridFitter::getOtsuThreshold(const cv::Mat &srcMat) const {
     cv::Mat nz(cv::Size(1, std::distance(copyImg.datastart, new_dataend)), cv::DataType<uchar>::type, copyImg.datastart);
 
     // compute  Otsu threshold
-    const double thresh = threshold(nz, nz, 0, 255,
+    const double thresh = cv::threshold(nz, nz, 0, 255,
         CV_THRESH_BINARY | CV_THRESH_OTSU);
 
     return thresh;
@@ -189,8 +193,10 @@ Grid GridFitter::fitGridGradient(const Ellipse &ellipse, double angle, int start
 }
 
 Grid GridFitter::fitGridAngle(const Ellipse &ellipse, float gsize, double angle,
-  int x, int y) const {
-    Grid cur(scoringMethod);
+  int x, int y) const
+{
+    const Grid g(gsize, angle, x, y, ellipse, scoringMethod);
+
     Grid best(gsize, scoringMethod);
 
     int step_size = 3;
@@ -206,17 +212,13 @@ Grid GridFitter::fitGridAngle(const Ellipse &ellipse, float gsize, double angle,
 
     // Similar approach like in fitGridGradient, just using the angle
     while (step_size > 0) {
-        Grid g1(gsize, a + step_size, x, y, ellipse, scoringMethod);
-        Grid g2(gsize, a - step_size, x, y, ellipse, scoringMethod);
+        const int g1_angle = a + step_size;
+        const int g2_angle = a - step_size;
+        const Grid g1(g, g1_angle);
+        const Grid g2(g, g2_angle);
 
-        int new_a;
-        if (g1 > g2) {
-            cur   = g1;
-            new_a = a + step_size;
-        } else {
-            cur   = g2;
-            new_a = a - step_size;
-        }
+        const Grid &cur = (g1 > g2) ? g1 : g2;
+        const int new_a = (g1 > g2) ? g1_angle : g2_angle;
 
         if (cur > best) {
             best       = cur;
@@ -247,16 +249,16 @@ int GridFitter::bestGridAngleCorrection(const Grid &g) const {
     float mean1c = 0;
     float mean2c = 0;
 
-    for (int j = 0; j < 6; j++) {
+    for (int offset = 0; offset < 6; offset++) {
         cv::Mat mask1(roi.rows, roi.cols, roi.type(), cv::Scalar(0));
-        drawContours(mask1, g.renderGridCell(13, j), 0, cv::Scalar(255), CV_FILLED);
+        g.renderGridCell(mask1, cv::Scalar(255), 13, offset);
         cv::Scalar mean1;
         cv::Scalar std1;
 
         meanStdDev(roi, mean1, std1, mask1);
 
         cv::Mat mask2(roi.rows, roi.cols, roi.type(), cv::Scalar(0));
-        drawContours(mask2, g.renderGridCell(14, j), 0, cv::Scalar(255), CV_FILLED);
+        g.renderGridCell(mask2, cv::Scalar(255), 14, offset);
         cv::Scalar mean2;
         cv::Scalar std2;
 
@@ -265,7 +267,7 @@ int GridFitter::bestGridAngleCorrection(const Grid &g) const {
         if (std::abs(mean1c - mean2c) < std::abs(mean1[0] - mean2[0])) {
             mean1c = mean1[0];
             mean2c = mean2[0];
-            i      = j;
+            i      = offset;
         }
     }
 
