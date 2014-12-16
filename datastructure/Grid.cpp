@@ -364,6 +364,9 @@ bool Grid::operator>(const Grid &rhs) const {
 			return this->score() < rhs.score();
 		case FISHER:
 			return this->score() > rhs.score();
+		default:
+			assert(false);
+			return false;
 	}
 }
 
