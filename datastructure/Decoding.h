@@ -1,7 +1,6 @@
 #ifndef DECODING_H_
 #define DECODING_H_
 
-#include "Ellipse.h"
 #include "Grid.h"
 
 namespace decoder {

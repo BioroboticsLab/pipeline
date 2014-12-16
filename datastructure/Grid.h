@@ -1,21 +1,15 @@
 #ifndef GRID_H_
 #define GRID_H_
 
-#include "Ellipse.h"
-#include <algorithm>
-#include <iostream>
-#include <math.h>
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/opencv.hpp>
-#include <vector>
+#include "Ellipse.h"             // Ellipse
+#include <vector>                // std::vector
+#include <opencv2/core/core.hpp> // cv::Mat, cv::Point, cv::Scalar
+#include <cmath>                 // INFINITY, std::abs
 
 #ifdef PipelineStandalone
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
 #endif
-
-#include <cmath> // INFINITY
 
 static const double BINARYCOUNT_INIT = INFINITY; //100000; // initial score for binary count method
 #define FISHER_INIT (-1) // initial score for fisher method

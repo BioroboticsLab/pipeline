@@ -1,5 +1,8 @@
 #include "Grid.h"
-#include <stdexcept> // std::invalid_argument
+#include <stdexcept>          // std::invalid_argument
+#include <iostream>           // std::cout
+#include <algorithm>          // std::rotate
+#include <opencv2/opencv.hpp> // cv::GaussianBlur,  cv::circle, cv::threshold, cv::cvtColor, cv::drawContours
 
 namespace decoder {
 // === Constructors and initializer ===
@@ -492,7 +495,7 @@ cv::Mat Grid::drawGrid(double scale, bool useBinaryImage) const {
 
     if (roi.type() == CV_8UC1) {
         // the grid is drawn with several colors so a RGB image is needed
-        cvtColor(draw, draw, CV_GRAY2BGR);
+        cv::cvtColor(draw, draw, CV_GRAY2BGR);
     }
 
     // contour vector
@@ -502,14 +505,14 @@ cv::Mat Grid::drawGrid(double scale, bool useBinaryImage) const {
     std::vector < cv::Point > cont;
 
     // render half of the inner circle (circular matrix design)
-    ellipse2Poly(cv::Point2f(m_x, m_y), cv::Size2f(IRR * m_size, IRR * m_size), m_angle, 0, -180, 1, cont);
+    cv::ellipse2Poly(cv::Point2f(m_x, m_y), cv::Size2f(IRR * m_size, IRR * m_size), m_angle, 0, -180, 1, cont);
     std::vector < cv::Point > cont2;
 
     // take first and last vertex of the polygon to get the respective diameter of the inner circle
     cont2.push_back(cont[0]);
     cont2.push_back(cont[cont.size() - 1]);
     conts.push_back(cont2);
-    drawContours(draw, conts, 0, cv::Scalar(255, 0, 0), 1);
+    cv::drawContours(draw, conts, 0, cv::Scalar(255, 0, 0), 1);
 
     conts.clear();
 
@@ -517,8 +520,8 @@ cv::Mat Grid::drawGrid(double scale, bool useBinaryImage) const {
         conts.push_back(gridCellScaled2poly(i, scale, 0)[0]);
     }
 
-    drawContours(draw, conts, -1, cv::Scalar(255, 0, 0), 1);
-    drawContours(draw, conts, 0, cv::Scalar(0, 255, 0), 1);
+    cv::drawContours(draw, conts, -1, cv::Scalar(255, 0, 0), 1);
+    cv::drawContours(draw, conts, 0, cv::Scalar(0, 255, 0), 1);
 
     return draw;
 }

@@ -8,13 +8,13 @@
 #ifndef CANDIDATE_H_
 #define CANDIDATE_H_
 
-#include "Decoding.h"
-#include "Ellipse.h"
-#include "Grid.h"
-#include <utility> // std::move
+#include "Decoding.h"            // Decoding
+#include "Ellipse.h"             // Ellipse
+#include "Grid.h"                // Grid
+#include <utility>               // std::move
+#include <vector>                // std::vector
+#include <opencv2/core/core.hpp> // cv::Mat
 
-#include <opencv2/core/core.hpp>
-#include <opencv2/opencv.hpp>
 
 
 namespace decoder {

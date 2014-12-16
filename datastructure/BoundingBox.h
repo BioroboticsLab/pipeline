@@ -8,11 +8,7 @@
 #ifndef BOUNDINGBOX_H_
 #define BOUNDINGBOX_H_
 
-#include <opencv2/core/core.hpp>
-#include <opencv2/opencv.hpp>
-
-#include <fstream>
-#include <iostream>
+#include <opencv2/core/core.hpp> // cv::Rect, cv::Point
 
 #ifdef PipelineStandalone
 #include <boost/archive/text_iarchive.hpp>
