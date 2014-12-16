@@ -60,11 +60,13 @@ public:
 
 private:
     struct Score {
-        mutable double value;
         ScoringMethod metric;
+        mutable double value;
+        mutable double binary_outer_ring_score;
         Score(ScoringMethod scoringMethod)
-        	: value(scoringMethod == BINARYCOUNT ? BINARYCOUNT_INIT : FISHER_INIT)
-        	, metric(scoringMethod)
+            : metric(scoringMethod)
+            , value(scoringMethod == BINARYCOUNT ? BINARYCOUNT_INIT : FISHER_INIT)
+            , binary_outer_ring_score(BINARYCOUNT_INIT)
         {}
         bool is_initialized() const {
         	return metric == BINARYCOUNT ? (value != BINARYCOUNT_INIT) : (value != FISHER_INIT);

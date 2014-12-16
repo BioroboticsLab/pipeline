@@ -191,8 +191,10 @@ Grid GridFitter::fitGridAngle(const Ellipse &ellipse, float gsize, double angle,
   int x, int y) const
 {
     const Grid g(gsize, angle, x, y, ellipse, scoringMethod);
+    g.score(); // calculate g's score --> g's outer ring score is cached
 
-    Grid best(gsize, scoringMethod);
+    //Grid best(gsize, scoringMethod);
+    Grid best(g); // best = Grid with initial angle; otherwise this angle is never evaluated
 
     int step_size = 3;
     int a         = angle;
@@ -209,8 +211,8 @@ Grid GridFitter::fitGridAngle(const Ellipse &ellipse, float gsize, double angle,
     while (step_size > 0) {
         const int g1_angle = a + step_size;
         const int g2_angle = a - step_size;
-        const Grid g1(g, g1_angle);
-        const Grid g2(g, g2_angle);
+        const Grid g1(g, g1_angle); // g1 & g2 copy g's cached outer ring score --> comparison is faster
+        const Grid g2(g, g2_angle); //
 
         const Grid &cur = (g1 > g2) ? g1 : g2;
         const int new_a = (g1 > g2) ? g1_angle : g2_angle;

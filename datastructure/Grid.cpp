@@ -75,6 +75,13 @@ double Grid::binaryCountScore() const {
     cv::Mat mask(binImg.rows, binImg.cols, binImg.type());
     // for each cell calculate its size (cell size) and its mean intensity (means)
     for (int cell_id = 12; cell_id < 15; ++cell_id) {
+
+    	// use cached outer ring score
+    	if (cell_id == 12 && m_score.binary_outer_ring_score != BINARYCOUNT_INIT) {
+    		scores.at<double>(14 - cell_id) = m_score.binary_outer_ring_score;
+    		continue;
+    	}
+
         mask = cv::Scalar(0);
 
         this->renderGridCell(mask, cv::Scalar(1), cell_id);
@@ -97,6 +104,11 @@ double Grid::binaryCountScore() const {
             //supposed black inner half circle
             scores.at<double>(14 - cell_id) =  blackPixelAmount == 0. ? whitePixelAmount : whitePixelAmount / blackPixelAmount;
         }
+
+        // store outer ring score
+    	if (cell_id == 12) {
+    		m_score.binary_outer_ring_score = scores.at<double>(14 - cell_id);
+    	}
     }
     return sum(scores)[0];
 }
