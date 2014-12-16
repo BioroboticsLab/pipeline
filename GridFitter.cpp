@@ -6,9 +6,13 @@
  */
 
 #include "GridFitter.h"
+
+#include "datastructure/Ellipse.h" // Ellipse
+
 #include "util/ThreadPool.h"
-#include <algorithm> // std::remove_if
-#include <iterator> // std::distance
+#include <opencv2/opencv.hpp>      // CV_FILLED, cv::moments, cv::threshold
+#include <algorithm>               // std::remove_if
+#include <iterator>                // std::distance
 
 
 namespace decoder {
@@ -93,8 +97,8 @@ std::array<cv::Point2f, 2> GridFitter::getOrientationVector(const Ellipse &ellip
     cv::Mat hcBlack = circMask.mul(255 - hcWhite);
 
     // Calculate moment => orientation of the tag
-    const cv::Moments momw = moments(hcWhite, true);
-    const cv::Moments momb = moments(hcBlack, true);
+    const cv::Moments momw = cv::moments(hcWhite, true);
+    const cv::Moments momb = cv::moments(hcBlack, true);
 
     const auto p0_x = momb.m10 / momb.m00;
     const auto p0_y = momb.m01 / momb.m00;
@@ -119,7 +123,7 @@ double GridFitter::getOtsuThreshold(const cv::Mat &srcMat) const {
     cv::Mat nz(cv::Size(1, std::distance(copyImg.datastart, new_dataend)), cv::DataType<uchar>::type, copyImg.datastart);
 
     // compute  Otsu threshold
-    const double thresh = threshold(nz, nz, 0, 255,
+    const double thresh = cv::threshold(nz, nz, 0, 255,
         CV_THRESH_BINARY | CV_THRESH_OTSU);
 
     return thresh;
