@@ -71,8 +71,8 @@ Decoding Decoder::includeExcludeDecode(const Grid &g) const {
     cv::Mat whiteMask(image.rows, image.cols, image.type(), cv::Scalar(0));
     cv::Mat blackMask(image.rows, image.cols, image.type(), cv::Scalar(0));
 
-    drawContours(whiteMask, g.gridCellScaled2poly(13, CELL_SCALE), 0, cv::Scalar(1), CV_FILLED);
-    drawContours(blackMask, g.gridCellScaled2poly(14, CELL_SCALE), 0, cv::Scalar(1), CV_FILLED);
+    g.renderGridCellScaled(whiteMask, cv::Scalar(1), 13, CELL_SCALE);
+    g.renderGridCellScaled(blackMask, cv::Scalar(1), 14, CELL_SCALE);
 
     cv::Scalar mean;
     cv::Scalar std;
@@ -85,18 +85,18 @@ Decoding Decoder::includeExcludeDecode(const Grid &g) const {
     cv::Mat labels(12, 1, CV_8U);
     cv::Mat means(12, 1, CV_32F);
     cv::Mat stds(12, 1, CV_32F);
-    for (int i = 0; i < 12; i++) {
+    for (int cell_id = 0; cell_id < 12; cell_id++) {
         cv::Mat cellMask(image.rows, image.cols, image.type(), cv::Scalar(0));
 
-        drawContours(cellMask, g.gridCellScaled2poly(i, CELL_SCALE), 0, cv::Scalar(1), CV_FILLED);
+        g.renderGridCellScaled(cellMask, cv::Scalar(1), cell_id, CELL_SCALE);
         cv::Scalar mean;
         cv::Scalar std;
         meanStdDev(image, mean, std, cellMask);
-        labels.at<unsigned char>(i) =
+        labels.at<unsigned char>(cell_id) =
           std::abs(whiteCenter - mean[0]) < std::abs(blackCenter - mean[0]) ? 1 : 0;
 
-        means.at<float>(i) = mean[0];
-        stds.at<float>(i)  = std[0];
+        means.at<float>(cell_id) = mean[0];
+        stds.at<float>(cell_id)  = std[0];
     }
 
     double score = fisherScore(g, labels);
@@ -153,18 +153,13 @@ double Decoder::fisherScore(const Grid &g, cv::Mat &labels, bool useBinaryImage)
     const cv::Mat &image = useBinaryImage ? g.ell().getBinarizedImage() : g.ell().getTransformedImage();
     cv::Mat whiteMask(image.rows, image.cols, image.type(), cv::Scalar(0));
     cv::Mat blackMask(image.rows, image.cols, image.type(), cv::Scalar(0));
-    drawContours(whiteMask, g.gridCellScaled2poly(13, CELL_SCALE), 0, cv::Scalar(255), CV_FILLED);
-    drawContours(blackMask, g.gridCellScaled2poly(14, CELL_SCALE), 0, cv::Scalar(255), CV_FILLED);
+    g.renderGridCellScaled(whiteMask, cv::Scalar(255), 13, CELL_SCALE);
+    g.renderGridCellScaled(blackMask, cv::Scalar(255), 14, CELL_SCALE);
 
-    for (int i = 0; i < 12; i++) {
+    for (int cell_id = 0; cell_id < 12; cell_id++) {
         // Add the cell to the mask of the designated group
-        cv::Mat *cellMask;
-        if (labels.at<unsigned char>(i) == 1) {
-            cellMask = &whiteMask;
-        } else {
-            cellMask = &blackMask;
-        }
-        drawContours(*cellMask, g.gridCellScaled2poly(i, CELL_SCALE), 0, cv::Scalar(255), CV_FILLED);
+        cv::Mat &cellMask = (labels.at<unsigned char>(cell_id) == 1) ? whiteMask : blackMask;
+        g.renderGridCellScaled(cellMask, cv::Scalar(255), cell_id, CELL_SCALE);
     }
     cv::Scalar whiteMean;
     cv::Scalar whiteStd;
