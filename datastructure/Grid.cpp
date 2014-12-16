@@ -110,7 +110,7 @@ double Grid::fisherScore() const {
     // for each cell calculate its size (cellsize) and its mean intensity (means)
     for (int cell_id = 0; cell_id < 15; ++cell_id) {
         cv::Mat mask(roi.rows, roi.cols, roi.type(), cv::Scalar(0));
-        drawContours(mask, gridCell2poly(cell_id), 0, cv::Scalar(255), CV_FILLED);
+        this->renderGridCell(mask, cv::Scalar(255), cell_id);
         masks.push_back(mask);
 
         cv::Scalar mean;
