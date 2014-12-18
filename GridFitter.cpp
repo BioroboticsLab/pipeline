@@ -87,7 +87,8 @@ std::array<cv::Point2f, 2> GridFitter::getOrientationVector(const Ellipse &ellip
 
     // create circular cutout
     cv::Mat circMask(roi.rows, roi.cols, CV_8UC1, cv::Scalar(0));
-    cv::circle(circMask, cv::Point(circle.x, circle.y), circle.z, cv::Scalar(1),
+	cv::circle(circMask, cv::Point(static_cast<int>(circle.x), static_cast<int>(circle.y)),
+			   static_cast<int>(circle.z), cv::Scalar(1),
       CV_FILLED);
 
     // apply otsu binarization to this part
@@ -200,7 +201,7 @@ Grid GridFitter::fitGridAngle(const Ellipse &ellipse, float gsize, double angle,
     Grid best(gsize, scoringMethod);
 
     int step_size = 3;
-    int a         = angle;
+	int a         = static_cast<int>(angle);
 
     //for (int i = 0; i < 30; i++) {
     //cur = Grid(gsize, a + i, 0, x, y, ellipse, scoringMethod);

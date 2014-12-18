@@ -309,7 +309,7 @@ Decoding Decoder::edgeWalkerDecode(const Grid &g) const {
         transitionPoints[i].position = fmod(
             transitionPoints[i].position + correction + edgeSize, edgeSize);
         transitionPoints[i].value = edge.at<float>(
-            transitionPoints[i].position);
+			static_cast<int>(transitionPoints[i].position));
     }
 
     // At least the decoding
@@ -321,8 +321,8 @@ Decoding Decoder::edgeWalkerDecode(const Grid &g) const {
 
         const int curBit = leftPoint.dir == EdgePoint::UP;         // Compute possible current bit
 
-        const int leftCellId  = round(leftPoint.position / cellSize);
-        const int rightCellId = round(rightPoint.position / cellSize);
+		const int leftCellId  = static_cast<int>(round(leftPoint.position / cellSize));
+		const int rightCellId = static_cast<int>(round(rightPoint.position / cellSize));
 
         for (int j = 0; j < (rightCellId - leftCellId + 12) % 12; j++) {
             labels.at<unsigned char>((leftCellId + j) % 12) =
