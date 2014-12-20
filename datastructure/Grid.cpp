@@ -133,7 +133,7 @@ double Grid::fisherScore() const {
         cv::Scalar std;
         meanStdDev(roi, mean, std, mask);
 
-        means.at<float>(cell_id) = mean[0];
+        means.at<float>(cell_id) = static_cast<float>(mean[0]);
     }
 
     // assume the color for each cell
@@ -194,10 +194,10 @@ double Grid::fisherScore() const {
             for (int c = 0; c < roi.rows; c++) {
                 if (masks[j].at<unsigned char>(c, r) == 255) {
                     if (labels.at<int>(j) == 0) {
-                        vari += (roi.at<unsigned char>(c, r) - black) * (roi.at<unsigned char>(c, r) - black);
+                        vari += static_cast<float>((roi.at<unsigned char>(c, r) - black) * (roi.at<unsigned char>(c, r) - black));
                         nw_b++;
                     } else if (labels.at<int>(j) == 1) {
-                        vari += (roi.at<unsigned char>(c, r) - white) * (roi.at<unsigned char>(c, r) - white);
+                        vari += static_cast<float>((roi.at<unsigned char>(c, r) - white) * (roi.at<unsigned char>(c, r) - white));
                         nw_w++;
                     } else {
                         std::cout << "something went wrong" << std::endl;
@@ -207,9 +207,9 @@ double Grid::fisherScore() const {
         }
 
         if (j == 13) {
-            Sww += 2.5 * vari;
+            Sww += 2.5f * vari;
         } else if (j == 14) {
-            Swb += 2.5 * vari;
+            Swb += 2.5f * vari;
         } else if (labels.at<int>(j) == 0) {
             Swb += vari;
         } else if (labels.at<int>(j) == 1) {
@@ -276,7 +276,7 @@ double Grid::fisherScore() const {
 
 // ======
 
-const std::vector<std::vector<cv::Point>>& Grid::gridCellScaled2poly(unsigned short cell, double scale, int offset) const {
+const std::vector<std::vector<cv::Point>>& Grid::gridCellScaled2poly(unsigned short cell, float scale, int offset) const {
 
 	static thread_local std::vector<std::vector<cv::Point>> result(1);
 	static thread_local std::vector<cv::Point> buffer;
@@ -287,9 +287,9 @@ const std::vector<std::vector<cv::Point>>& Grid::gridCellScaled2poly(unsigned sh
     // Outer cells
     if (cell < 12)
     {
-        const double outerInnerRadiusDiff = ORR * m_size - IORR * m_size;
-        const double outerCircleRadius    = IORR * m_size + outerInnerRadiusDiff * 0.5 + (outerInnerRadiusDiff * 0.5 * scale);
-        const double innerCircleRadius    = IORR * m_size + outerInnerRadiusDiff * 0.5 - (outerInnerRadiusDiff * 0.5 * scale);
+        const float outerInnerRadiusDiff = ORR * m_size - IORR * m_size;
+        const float outerCircleRadius    = IORR * m_size + outerInnerRadiusDiff * 0.5f + (outerInnerRadiusDiff * 0.5f * scale);
+        const float innerCircleRadius    = IORR * m_size + outerInnerRadiusDiff * 0.5f - (outerInnerRadiusDiff * 0.5f * scale);
 
 		const int arcStart = static_cast<int>(-180 + (cell    ) * 30 + 15 * (1 - scale));
 		const int arcEnd   = static_cast<int>(-180 + (cell + 1) * 30 - 15 * (1 - scale));
@@ -305,7 +305,7 @@ const std::vector<std::vector<cv::Point>>& Grid::gridCellScaled2poly(unsigned sh
     }
     else if (cell == 13)
     {
-    	const double CircleRadius = IRR * m_size * scale;
+    	const float CircleRadius = IRR * m_size * scale;
 
         const int arcStart = -180 + offset * 30;
         const int arcEnd   =        offset * 30;
@@ -315,7 +315,7 @@ const std::vector<std::vector<cv::Point>>& Grid::gridCellScaled2poly(unsigned sh
     }
     else if (cell == 14)
     {
-    	const double CircleRadius = IRR * m_size * scale;
+    	const float CircleRadius = IRR * m_size * scale;
 
         const int arcStart =        offset * 30;
         const int arcEnd   =  180 + offset * 30;
@@ -326,9 +326,9 @@ const std::vector<std::vector<cv::Point>>& Grid::gridCellScaled2poly(unsigned sh
     else if (cell == 12)
     {
         // outer (white) border
-        const double outerInnerRadiusDiff = TRR * m_size - ORR * m_size;
-        const double outerCircleRadius    = ORR * m_size + outerInnerRadiusDiff * 0.5 + (outerInnerRadiusDiff * 0.5 * scale);
-        const double innerCircleRadius    = ORR * m_size + outerInnerRadiusDiff * 0.5 - (outerInnerRadiusDiff * 0.5 * scale);
+        const float outerInnerRadiusDiff = TRR * m_size - ORR * m_size;
+        const float outerCircleRadius    = ORR * m_size + outerInnerRadiusDiff * 0.5f + (outerInnerRadiusDiff * 0.5f * scale);
+        const float innerCircleRadius    = ORR * m_size + outerInnerRadiusDiff * 0.5f - (outerInnerRadiusDiff * 0.5f * scale);
 
         const int arcStart =   0;
         const int arcEnd   = 360;
@@ -347,7 +347,7 @@ const std::vector<std::vector<cv::Point>>& Grid::gridCellScaled2poly(unsigned sh
 
 void Grid::renderGridCellScaled(cv::Mat &img, const cv::Scalar &color, unsigned short cell, double scale, int offset) const {
 
-	const auto &polylines = gridCellScaled2poly(cell, scale, offset);
+	const auto &polylines = gridCellScaled2poly(cell, static_cast<float>(scale), offset);
 	// TODO: try using "cv::fillConvexPoly(img, polylines, color);" for half circles
 	cv::fillPoly(img, polylines, color);
 
@@ -489,12 +489,12 @@ float Grid::getMeanAlongLine(int xStart, int yStart, int xEnd, int yEnd, int siz
     cv::Scalar std;
     meanStdDev(profile, mean, std);
 
-    return mean[0];
+    return static_cast<float>(mean[0]);
 }
 // ======
 
 // ======= DEBUG METHODS ========
-cv::Mat Grid::drawGrid(double scale, bool useBinaryImage) const {
+cv::Mat Grid::drawGrid(float scale, bool useBinaryImage) const {
     cv::Mat draw;     // Matrix the image will be drawn into
     const cv::Mat &roi = useBinaryImage ? m_ell.getBinarizedImage() : m_ell.getTransformedImage();
     roi.copyTo(draw);
@@ -536,7 +536,7 @@ cv::Mat Grid::drawGrid() const {
     return drawGrid(1, false);
 }
 
-cv::Mat Grid::drawGrid(double scale) const {
+cv::Mat Grid::drawGrid(float scale) const {
     return drawGrid(scale, false);
 }
 

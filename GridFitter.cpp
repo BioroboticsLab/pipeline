@@ -82,7 +82,7 @@ Grid GridFitter::fitGrid(const Ellipse& ellipse) const {
 std::array<cv::Point2f, 2> GridFitter::getOrientationVector(const Ellipse &ellipse) const {
 
     const cv::Point3f circle(ellipse.getCen().x, ellipse.getCen().y,
-        (ellipse.getAxis().width / 3.0));
+        (ellipse.getAxis().width / 3.0f));
     const cv::Mat &roi = ellipse.getBinarizedImage();
 
     // create circular cutout
@@ -102,11 +102,11 @@ std::array<cv::Point2f, 2> GridFitter::getOrientationVector(const Ellipse &ellip
     const cv::Moments momw = cv::moments(hcWhite, true);
     const cv::Moments momb = cv::moments(hcBlack, true);
 
-    const auto p0_x = momb.m10 / momb.m00;
-    const auto p0_y = momb.m01 / momb.m00;
+    const float p0_x = static_cast<float>(momb.m10 / momb.m00);
+    const float p0_y = static_cast<float>(momb.m01 / momb.m00);
 
-    const auto p1_x = momw.m10 / momw.m00;
-    const auto p1_y = momw.m01 / momw.m00;
+    const float p1_x = static_cast<float>(momw.m10 / momw.m00);
+    const float p1_y = static_cast<float>(momw.m01 / momw.m00);
 
 	return {cv::Point2f(p0_x, p0_y), cv::Point2f(p1_x, p1_y)};
 }
@@ -135,12 +135,12 @@ Grid GridFitter::fitGridGradient(const Ellipse &ellipse, double angle, int start
   int startY) const {
     int step_size = INITIAL_STEP_SIZE;     // Amount of pixel the walk should jump
 
-    const float gsize = (ellipse.getAxis().width / 3.0);
+    const float gsize = (ellipse.getAxis().width / 3.0f);
     const int x       = startX;
     const int y       = startY;
     // best grid so far
     Grid best = fitGridAngle(ellipse, gsize, angle, x, y);
-    const int gs    = cvRound(ellipse.getAxis().width / 3.0);
+    const int gs    = cvRound(ellipse.getAxis().width / 3.0f);
 
     while (step_size > FINAL_STEP_SIZE) {
         // investigate the surrounding positions
@@ -196,7 +196,7 @@ Grid GridFitter::fitGridGradient(const Ellipse &ellipse, double angle, int start
 Grid GridFitter::fitGridAngle(const Ellipse &ellipse, float gsize, double angle,
   int x, int y) const
 {
-    const Grid g(gsize, angle, x, y, ellipse, scoringMethod);
+    const Grid g(gsize, static_cast<float>(angle), x, y, ellipse, scoringMethod);
 
     Grid best(gsize, scoringMethod);
 
@@ -266,8 +266,8 @@ int GridFitter::bestGridAngleCorrection(const Grid &g) const {
         meanStdDev(roi, mean2, std2, mask2);
 
         if (std::abs(mean1c - mean2c) < std::abs(mean1[0] - mean2[0])) {
-            mean1c = mean1[0];
-            mean2c = mean2[0];
+            mean1c = static_cast<float>(mean1[0]);
+            mean2c = static_cast<float>(mean2[0]);
             i      = offset;
         }
     }

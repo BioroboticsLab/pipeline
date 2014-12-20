@@ -95,8 +95,8 @@ Decoding Decoder::includeExcludeDecode(const Grid &g) const {
         labels.at<unsigned char>(cell_id) =
           std::abs(whiteCenter - mean[0]) < std::abs(blackCenter - mean[0]) ? 1 : 0;
 
-        means.at<float>(cell_id) = mean[0];
-        stds.at<float>(cell_id)  = std[0];
+        means.at<float>(cell_id) = static_cast<float>(mean[0]);
+        stds.at<float>(cell_id)  = static_cast<float>(std[0]);
     }
 
     double score = fisherScore(g, labels);
