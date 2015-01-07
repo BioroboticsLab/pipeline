@@ -81,6 +81,9 @@ public:
     const cv::Rect& getBox() const;
     void setBox(const cv::Rect& box);
 };
+
+bool operator<(const Tag& lhs, const Tag& rhs);
+
 } /* namespace decoder */
 
 // needed to be included for the function template
