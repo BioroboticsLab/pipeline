@@ -6,9 +6,13 @@
  */
 
 #include "GridFitter.h"
+
+#include "datastructure/Ellipse.h" // Ellipse
+
 #include "util/ThreadPool.h"
-#include <algorithm> // std::remove_if
-#include <iterator> // std::distance
+#include <opencv2/opencv.hpp>      // CV_FILLED, cv::moments, cv::threshold
+#include <algorithm>               // std::remove_if
+#include <iterator>                // std::distance
 
 
 namespace decoder {
@@ -21,7 +25,8 @@ GridFitter::~GridFitter() = default;
 std::vector<Tag> GridFitter::process(std::vector<Tag>&& taglist) const {
     // remove invalid tags
     taglist.erase(std::remove_if(taglist.begin(), taglist.end(), [](const Tag& tag) { return !tag.isValid(); }), taglist.end());
-    static const size_t numThreads = 8;
+    static const size_t numThreads = std::thread::hardware_concurrency() ?
+                std::thread::hardware_concurrency() * 2 : 1;
     ThreadPool pool(numThreads);
     std::vector<std::future<void>> results;
     for (Tag& tag : taglist) {
@@ -77,12 +82,13 @@ Grid GridFitter::fitGrid(const Ellipse& ellipse) const {
 std::array<cv::Point2f, 2> GridFitter::getOrientationVector(const Ellipse &ellipse) const {
 
     const cv::Point3f circle(ellipse.getCen().x, ellipse.getCen().y,
-        (ellipse.getAxis().width / 3.0));
+        (ellipse.getAxis().width / 3.0f));
     const cv::Mat &roi = ellipse.getBinarizedImage();
 
     // create circular cutout
     cv::Mat circMask(roi.rows, roi.cols, CV_8UC1, cv::Scalar(0));
-    cv::circle(circMask, cv::Point(circle.x, circle.y), circle.z, cv::Scalar(1),
+	cv::circle(circMask, cv::Point(static_cast<int>(circle.x), static_cast<int>(circle.y)),
+			   static_cast<int>(circle.z), cv::Scalar(1),
       CV_FILLED);
 
     // apply otsu binarization to this part
@@ -93,14 +99,14 @@ std::array<cv::Point2f, 2> GridFitter::getOrientationVector(const Ellipse &ellip
     cv::Mat hcBlack = circMask.mul(255 - hcWhite);
 
     // Calculate moment => orientation of the tag
-    const cv::Moments momw = moments(hcWhite, true);
-    const cv::Moments momb = moments(hcBlack, true);
+    const cv::Moments momw = cv::moments(hcWhite, true);
+    const cv::Moments momb = cv::moments(hcBlack, true);
 
-    const auto p0_x = momb.m10 / momb.m00;
-    const auto p0_y = momb.m01 / momb.m00;
+    const float p0_x = static_cast<float>(momb.m10 / momb.m00);
+    const float p0_y = static_cast<float>(momb.m01 / momb.m00);
 
-    const auto p1_x = momw.m10 / momw.m00;
-    const auto p1_y = momw.m01 / momw.m00;
+    const float p1_x = static_cast<float>(momw.m10 / momw.m00);
+    const float p1_y = static_cast<float>(momw.m01 / momw.m00);
 
 	return {cv::Point2f(p0_x, p0_y), cv::Point2f(p1_x, p1_y)};
 }
@@ -119,7 +125,7 @@ double GridFitter::getOtsuThreshold(const cv::Mat &srcMat) const {
     cv::Mat nz(cv::Size(1, std::distance(copyImg.datastart, new_dataend)), cv::DataType<uchar>::type, copyImg.datastart);
 
     // compute  Otsu threshold
-    const double thresh = threshold(nz, nz, 0, 255,
+    const double thresh = cv::threshold(nz, nz, 0, 255,
         CV_THRESH_BINARY | CV_THRESH_OTSU);
 
     return thresh;
@@ -129,12 +135,12 @@ Grid GridFitter::fitGridGradient(const Ellipse &ellipse, double angle, int start
   int startY) const {
     int step_size = INITIAL_STEP_SIZE;     // Amount of pixel the walk should jump
 
-    const float gsize = (ellipse.getAxis().width / 3.0);
+    const float gsize = (ellipse.getAxis().width / 3.0f);
     const int x       = startX;
     const int y       = startY;
     // best grid so far
     Grid best = fitGridAngle(ellipse, gsize, angle, x, y);
-    const int gs    = cvRound(ellipse.getAxis().width / 3.0);
+    const int gs    = cvRound(ellipse.getAxis().width / 3.0f);
 
     while (step_size > FINAL_STEP_SIZE) {
         // investigate the surrounding positions
@@ -190,14 +196,14 @@ Grid GridFitter::fitGridGradient(const Ellipse &ellipse, double angle, int start
 Grid GridFitter::fitGridAngle(const Ellipse &ellipse, float gsize, double angle,
   int x, int y) const
 {
-    const Grid g(gsize, angle, x, y, ellipse, scoringMethod);
+	const Grid g(gsize, static_cast<float>(angle), x, y, ellipse, scoringMethod);
     g.score(); // calculate g's score --> g's outer ring score is cached
 
     //Grid best(gsize, scoringMethod);
     Grid best(g); // best = Grid with initial angle; otherwise this angle is never evaluated
 
     int step_size = 3;
-    int a         = angle;
+	int a         = static_cast<int>(angle);
 
     //for (int i = 0; i < 30; i++) {
     //cur = Grid(gsize, a + i, 0, x, y, ellipse, scoringMethod);
@@ -262,8 +268,8 @@ int GridFitter::bestGridAngleCorrection(const Grid &g) const {
         meanStdDev(roi, mean2, std2, mask2);
 
         if (std::abs(mean1c - mean2c) < std::abs(mean1[0] - mean2[0])) {
-            mean1c = mean1[0];
-            mean2c = mean2[0];
+            mean1c = static_cast<float>(mean1[0]);
+            mean2c = static_cast<float>(mean2[0]);
             i      = offset;
         }
     }

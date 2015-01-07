@@ -96,6 +96,12 @@ void Tag::serialize(Archive & ar, const unsigned int version) {
 #endif
 
 void Tag::addCandidate(TagCandidate c){
-    this->_candidates.push_back(c);
+	this->_candidates.push_back(c);
 }
+
+bool operator<(const Tag &lhs, const Tag &rhs)
+{
+	return lhs.getId() < rhs.getId();
+}
+
 } /* namespace decoder */

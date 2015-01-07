@@ -1,10 +1,7 @@
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-
 #ifndef ELLIPSE_H_
 #define ELLIPSE_H_
 
+#include <opencv2/core/core.hpp> // cv::Size, cv::Point, cv::Mat
 
 namespace decoder {
 class Ellipse {

@@ -95,8 +95,8 @@ Decoding Decoder::includeExcludeDecode(const Grid &g) const {
         labels.at<unsigned char>(cell_id) =
           std::abs(whiteCenter - mean[0]) < std::abs(blackCenter - mean[0]) ? 1 : 0;
 
-        means.at<float>(cell_id) = mean[0];
-        stds.at<float>(cell_id)  = std[0];
+        means.at<float>(cell_id) = static_cast<float>(mean[0]);
+        stds.at<float>(cell_id)  = static_cast<float>(std[0]);
     }
 
     double score = fisherScore(g, labels);
@@ -309,7 +309,7 @@ Decoding Decoder::edgeWalkerDecode(const Grid &g) const {
         transitionPoints[i].position = fmod(
             transitionPoints[i].position + correction + edgeSize, edgeSize);
         transitionPoints[i].value = edge.at<float>(
-            transitionPoints[i].position);
+			static_cast<int>(transitionPoints[i].position));
     }
 
     // At least the decoding
@@ -321,8 +321,8 @@ Decoding Decoder::edgeWalkerDecode(const Grid &g) const {
 
         const int curBit = leftPoint.dir == EdgePoint::UP;         // Compute possible current bit
 
-        const int leftCellId  = round(leftPoint.position / cellSize);
-        const int rightCellId = round(rightPoint.position / cellSize);
+		const int leftCellId  = static_cast<int>(round(leftPoint.position / cellSize));
+		const int rightCellId = static_cast<int>(round(rightPoint.position / cellSize));
 
         for (int j = 0; j < (rightCellId - leftCellId + 12) % 12; j++) {
             labels.at<unsigned char>((leftCellId + j) % 12) =

@@ -1,5 +1,8 @@
 #include "Grid.h"
-#include <stdexcept> // std::invalid_argument
+#include <stdexcept>          // std::invalid_argument
+#include <iostream>           // std::cout
+#include <algorithm>          // std::rotate
+#include <opencv2/opencv.hpp> // cv::GaussianBlur,  cv::circle, cv::threshold, cv::cvtColor, cv::drawContours
 
 namespace decoder {
 // === Constructors and initializer ===
@@ -31,7 +34,7 @@ Grid::Grid(const Grid &rhs, float angle)
 	// angle has changed --> invalidate copied score
 	if (angle != m_angle) {
 		m_angle = angle;
-		m_score.value = this->scoringMethod() == BINARYCOUNT ? BINARYCOUNT_INIT : FISHER_INIT;
+		m_score.value = scoringMethod() == BINARYCOUNT ? BINARYCOUNT_INIT : FISHER_INIT;
 	}
 }
 
@@ -84,7 +87,7 @@ double Grid::binaryCountScore() const {
 
         mask = cv::Scalar(0);
 
-        this->renderGridCell(mask, cv::Scalar(1), cell_id);
+		renderGridCell(mask, cv::Scalar(1), cell_id);
 
         const auto num_masked_pixel = cv::countNonZero(mask);       // count polygon pixel (i.e. nonzero pixel)
 
@@ -135,14 +138,14 @@ double Grid::fisherScore() const {
     // for each cell calculate its size (cellsize) and its mean intensity (means)
     for (int cell_id = 0; cell_id < 15; ++cell_id) {
         cv::Mat mask(roi.rows, roi.cols, roi.type(), cv::Scalar(0));
-        this->renderGridCell(mask, cv::Scalar(255), cell_id);
+		renderGridCell(mask, cv::Scalar(255), cell_id);
         masks.push_back(mask);
 
         cv::Scalar mean;
         cv::Scalar std;
         meanStdDev(roi, mean, std, mask);
 
-        means.at<float>(cell_id) = mean[0];
+        means.at<float>(cell_id) = static_cast<float>(mean[0]);
     }
 
     // assume the color for each cell
@@ -203,10 +206,10 @@ double Grid::fisherScore() const {
             for (int c = 0; c < roi.rows; c++) {
                 if (masks[j].at<unsigned char>(c, r) == 255) {
                     if (labels.at<int>(j) == 0) {
-                        vari += (roi.at<unsigned char>(c, r) - black) * (roi.at<unsigned char>(c, r) - black);
+                        vari += static_cast<float>((roi.at<unsigned char>(c, r) - black) * (roi.at<unsigned char>(c, r) - black));
                         nw_b++;
                     } else if (labels.at<int>(j) == 1) {
-                        vari += (roi.at<unsigned char>(c, r) - white) * (roi.at<unsigned char>(c, r) - white);
+                        vari += static_cast<float>((roi.at<unsigned char>(c, r) - white) * (roi.at<unsigned char>(c, r) - white));
                         nw_w++;
                     } else {
                         std::cout << "something went wrong" << std::endl;
@@ -216,9 +219,9 @@ double Grid::fisherScore() const {
         }
 
         if (j == 13) {
-            Sww += 2.5 * vari;
+            Sww += 2.5f * vari;
         } else if (j == 14) {
-            Swb += 2.5 * vari;
+            Swb += 2.5f * vari;
         } else if (labels.at<int>(j) == 0) {
             Swb += vari;
         } else if (labels.at<int>(j) == 1) {
@@ -266,7 +269,7 @@ double Grid::fisherScore() const {
     cv::circle(tagMask, m_ell.getCen(), static_cast<int>(m_size * TRR), cv::Scalar(1), CV_FILLED);
 
     cv::Mat matMask(roi.rows, roi.cols, CV_8UC1, cv::Scalar(0));
-    cv::circle(matMask, cv::Point(m_x, m_y), static_cast<int>(m_size * ORR), cv::Scalar(1), CV_FILLED);
+	cv::circle(matMask, cv::Point(static_cast<int>(m_x), static_cast<int>(m_y)), static_cast<int>(m_size * ORR), cv::Scalar(1), CV_FILLED);
 
     cv::Mat tagBlack;
     cv::threshold(roi, tagBlack, (black + white) / 2, 255, CV_THRESH_BINARY_INV);
@@ -285,7 +288,7 @@ double Grid::fisherScore() const {
 
 // ======
 
-const std::vector<std::vector<cv::Point>>& Grid::gridCellScaled2poly(unsigned short cell, double scale, int offset) const {
+const std::vector<std::vector<cv::Point>>& Grid::gridCellScaled2poly(unsigned short cell, float scale, int offset) const {
 
 	static thread_local std::vector<std::vector<cv::Point>> result(1);
 	static thread_local std::vector<cv::Point> buffer;
@@ -296,54 +299,54 @@ const std::vector<std::vector<cv::Point>>& Grid::gridCellScaled2poly(unsigned sh
     // Outer cells
     if (cell < 12)
     {
-        const double outerInnerRadiusDiff = ORR * m_size - IORR * m_size;
-        const double outerCircleRadius    = IORR * m_size + outerInnerRadiusDiff * 0.5 + (outerInnerRadiusDiff * 0.5 * scale);
-        const double innerCircleRadius    = IORR * m_size + outerInnerRadiusDiff * 0.5 - (outerInnerRadiusDiff * 0.5 * scale);
+        const float outerInnerRadiusDiff = ORR * m_size - IORR * m_size;
+        const float outerCircleRadius    = IORR * m_size + outerInnerRadiusDiff * 0.5f + (outerInnerRadiusDiff * 0.5f * scale);
+        const float innerCircleRadius    = IORR * m_size + outerInnerRadiusDiff * 0.5f - (outerInnerRadiusDiff * 0.5f * scale);
 
-        const int arcStart = -180 + (cell    ) * 30 + 15 * (1 - scale);
-        const int arcEnd   = -180 + (cell + 1) * 30 - 15 * (1 - scale);
+		const int arcStart = static_cast<int>(-180 + (cell    ) * 30 + 15 * (1 - scale));
+		const int arcEnd   = static_cast<int>(-180 + (cell + 1) * 30 - 15 * (1 - scale));
 
         // outer arc
-        cv::ellipse2Poly(center, cv::Size2f(outerCircleRadius, outerCircleRadius), m_angle, arcStart, arcEnd, step_size, result[0]);
+		cv::ellipse2Poly(center, cv::Size2f(outerCircleRadius, outerCircleRadius), static_cast<int>(m_angle), arcStart, arcEnd, step_size, result[0]);
 
         // inner arc
-        cv::ellipse2Poly(center, cv::Size2f(innerCircleRadius, innerCircleRadius), m_angle, arcStart, arcEnd, step_size, buffer);
+		cv::ellipse2Poly(center, cv::Size2f(innerCircleRadius, innerCircleRadius), static_cast<int>(m_angle), arcStart, arcEnd, step_size, buffer);
 
         // join outer and inner arc
         result[0].insert(result[0].end(), buffer.rbegin(), buffer.rend());
     }
     else if (cell == 13)
     {
-    	const double CircleRadius = IRR * m_size * scale;
+    	const float CircleRadius = IRR * m_size * scale;
 
         const int arcStart = -180 + offset * 30;
         const int arcEnd   =        offset * 30;
 
         // supposed white inner half circle
-        cv::ellipse2Poly(center, cv::Size2f(CircleRadius, CircleRadius), m_angle, arcStart, arcEnd, step_size, result[0]);
+		cv::ellipse2Poly(center, cv::Size2f(CircleRadius, CircleRadius), static_cast<int>(m_angle), arcStart, arcEnd, step_size, result[0]);
     }
     else if (cell == 14)
     {
-    	const double CircleRadius = IRR * m_size * scale;
+    	const float CircleRadius = IRR * m_size * scale;
 
         const int arcStart =        offset * 30;
         const int arcEnd   =  180 + offset * 30;
 
         //supposed black inner half circle
-        cv::ellipse2Poly(center, cv::Size2f(CircleRadius, CircleRadius), m_angle, arcStart, arcEnd, step_size, result[0]);
+		cv::ellipse2Poly(center, cv::Size2f(CircleRadius, CircleRadius), static_cast<int>(m_angle), arcStart, arcEnd, step_size, result[0]);
     }
     else if (cell == 12)
     {
         // outer (white) border
-        const double outerInnerRadiusDiff = TRR * m_size - ORR * m_size;
-        const double outerCircleRadius    = ORR * m_size + outerInnerRadiusDiff * 0.5 + (outerInnerRadiusDiff * 0.5 * scale);
-        const double innerCircleRadius    = ORR * m_size + outerInnerRadiusDiff * 0.5 - (outerInnerRadiusDiff * 0.5 * scale);
+        const float outerInnerRadiusDiff = TRR * m_size - ORR * m_size;
+        const float outerCircleRadius    = ORR * m_size + outerInnerRadiusDiff * 0.5f + (outerInnerRadiusDiff * 0.5f * scale);
+        const float innerCircleRadius    = ORR * m_size + outerInnerRadiusDiff * 0.5f - (outerInnerRadiusDiff * 0.5f * scale);
 
         const int arcStart =   0;
         const int arcEnd   = 360;
 
-        ellipse2Poly(center, cv::Size(outerCircleRadius, outerCircleRadius), m_angle + 90, arcStart, arcEnd, step_size, result[0]);
-        ellipse2Poly(center, cv::Size(innerCircleRadius, innerCircleRadius), m_angle + 90, arcStart, arcEnd, step_size, buffer);
+		ellipse2Poly(center, cv::Size2f(outerCircleRadius, outerCircleRadius), static_cast<int>(m_angle + 90), arcStart, arcEnd, step_size, result[0]);
+		ellipse2Poly(center, cv::Size2f(innerCircleRadius, innerCircleRadius), static_cast<int>(m_angle + 90), arcStart, arcEnd, step_size, buffer);
         result[0].insert(result[0].end(), buffer.rbegin(), buffer.rend());
     }
     else {
@@ -356,7 +359,7 @@ const std::vector<std::vector<cv::Point>>& Grid::gridCellScaled2poly(unsigned sh
 
 void Grid::renderGridCellScaled(cv::Mat &img, const cv::Scalar &color, unsigned short cell, double scale, int offset) const {
 
-	const auto &polylines = this->gridCellScaled2poly(cell, scale, offset);
+	const auto &polylines = gridCellScaled2poly(cell, static_cast<float>(scale), offset);
 	// TODO: try using "cv::fillConvexPoly(img, polylines, color);" for half circles
 	cv::fillPoly(img, polylines, color);
 
@@ -366,13 +369,16 @@ void Grid::renderGridCellScaled(cv::Mat &img, const cv::Scalar &color, unsigned 
 // === operators ===
 
 bool Grid::operator>(const Grid &rhs) const {
-	assert(this->scoringMethod() == rhs.scoringMethod());     // both grids need the same scoring method
+	assert(scoringMethod() == rhs.scoringMethod());     // both grids need the same scoring method
 
-	switch (this->scoringMethod()) {
+	switch (scoringMethod()) {
 		case BINARYCOUNT:
-			return this->score() < rhs.score();
+			return score() < rhs.score();
 		case FISHER:
-			return this->score() > rhs.score();
+			return score() > rhs.score();
+		default:
+			assert(false);
+			return false;
 	}
 }
 
@@ -383,7 +389,7 @@ bool Grid::operator<(const Grid &rhs) const {
 std::vector<float> Grid::generateEdge(int radius, int width, bool useBinaryImage) const {
     // Uses some kind of super resolution with getMeanAlongLine
 
-    const int outerRadius = width > 1 ? radius + ceil(width / 2) : radius;
+	const int outerRadius = width > 1 ? static_cast<int>(radius + ceil(width / 2)) : radius;
 
     // Using the Bresenham algorithm to generate a circle
     int x   = outerRadius;
@@ -392,10 +398,13 @@ std::vector<float> Grid::generateEdge(int radius, int width, bool useBinaryImage
 
     std::vector< std::vector<float> > subEdges (8);
 
-    subEdges[0].push_back(getMeanAlongLine(this->m_x - outerRadius, this->m_y, this->m_x, this->m_y, width, useBinaryImage));
-    subEdges[2].push_back(getMeanAlongLine(this->m_x, this->m_y - outerRadius, this->m_x, this->m_y, width, useBinaryImage));
-    subEdges[4].push_back(getMeanAlongLine(this->m_x + outerRadius, this->m_y, this->m_x, this->m_y, width, useBinaryImage));
-    subEdges[6].push_back(getMeanAlongLine(this->m_x, this->m_y + outerRadius, this->m_x, this->m_y, width, useBinaryImage));
+	const int mx = static_cast<int>(m_x);
+	const int my = static_cast<int>(m_y);
+
+	subEdges[0].push_back(getMeanAlongLine(mx - outerRadius, my, mx, my, width, useBinaryImage));
+	subEdges[2].push_back(getMeanAlongLine(mx, my - outerRadius, mx, my, width, useBinaryImage));
+	subEdges[4].push_back(getMeanAlongLine(mx + outerRadius, my, mx, my, width, useBinaryImage));
+	subEdges[6].push_back(getMeanAlongLine(mx, my + outerRadius, mx, my, width, useBinaryImage));
 
     // Generating the octant in clockwise order
     while (x > y + 1) {
@@ -407,24 +416,24 @@ std::vector<float> Grid::generateEdge(int radius, int width, bool useBinaryImage
             err += 2 * (y - x + 1);
         }
 
-        subEdges[0].push_back(getMeanAlongLine(this->m_x - x, this->m_y - y, this->m_x, this->m_y, width, useBinaryImage));
-        subEdges[1].push_back(getMeanAlongLine(this->m_x - y, this->m_y - x, this->m_x, this->m_y, width, useBinaryImage));
-        subEdges[2].push_back(getMeanAlongLine(this->m_x + y, this->m_y - x, this->m_x, this->m_y, width, useBinaryImage));
-        subEdges[3].push_back(getMeanAlongLine(this->m_x + x, this->m_y - y, this->m_x, this->m_y, width, useBinaryImage));
-        subEdges[4].push_back(getMeanAlongLine(this->m_x + x, this->m_y + y, this->m_x, this->m_y, width, useBinaryImage));
-        subEdges[5].push_back(getMeanAlongLine(this->m_x + y, this->m_y + x, this->m_x, this->m_y, width, useBinaryImage));
-        subEdges[6].push_back(getMeanAlongLine(this->m_x - y, this->m_y + x, this->m_x, this->m_y, width, useBinaryImage));
-        subEdges[7].push_back(getMeanAlongLine(this->m_x - x, this->m_y + y, this->m_x, this->m_y, width, useBinaryImage));
+		subEdges[0].push_back(getMeanAlongLine(mx - x, my - y, mx, my, width, useBinaryImage));
+		subEdges[1].push_back(getMeanAlongLine(mx - y, my - x, mx, my, width, useBinaryImage));
+		subEdges[2].push_back(getMeanAlongLine(mx + y, my - x, mx, my, width, useBinaryImage));
+		subEdges[3].push_back(getMeanAlongLine(mx + x, my - y, mx, my, width, useBinaryImage));
+		subEdges[4].push_back(getMeanAlongLine(mx + x, my + y, mx, my, width, useBinaryImage));
+		subEdges[5].push_back(getMeanAlongLine(mx + y, my + x, mx, my, width, useBinaryImage));
+		subEdges[6].push_back(getMeanAlongLine(mx - y, my + x, mx, my, width, useBinaryImage));
+		subEdges[7].push_back(getMeanAlongLine(mx - x, my + y, mx, my, width, useBinaryImage));
 
         // This part is sometimes useful for debugging
-        //image.at<unsigned char>(cv::Point(this->x - x, this->y - y)) = 255;
-        //image.at<unsigned char>(cv::Point(this->x - y, this->y - x)) = 255;
-        //image.at<unsigned char>(cv::Point(this->x + y, this->y - x)) = 255;
-        //image.at<unsigned char>(cv::Point(this->x + x, this->y - y)) = 255;
-        //image.at<unsigned char>(cv::Point(this->x + x, this->y + y)) = 255;
-        //image.at<unsigned char>(cv::Point(this->x + y, this->y + x)) = 255;
-        //image.at<unsigned char>(cv::Point(this->x - y, this->y + x)) = 255;
-        //image.at<unsigned char>(cv::Point(this->x - x, this->y + y)) = 255;
+		//image.at<unsigned char>(cv::Point(x - x, y - y)) = 255;
+		//image.at<unsigned char>(cv::Point(x - y, y - x)) = 255;
+		//image.at<unsigned char>(cv::Point(x + y, y - x)) = 255;
+		//image.at<unsigned char>(cv::Point(x + x, y - y)) = 255;
+		//image.at<unsigned char>(cv::Point(x + x, y + y)) = 255;
+		//image.at<unsigned char>(cv::Point(x + y, y + x)) = 255;
+		//image.at<unsigned char>(cv::Point(x - y, y + x)) = 255;
+		//image.at<unsigned char>(cv::Point(x - x, y + y)) = 255;
     }
 
     // Merge all subedges
@@ -492,19 +501,19 @@ float Grid::getMeanAlongLine(int xStart, int yStart, int xEnd, int yEnd, int siz
     cv::Scalar std;
     meanStdDev(profile, mean, std);
 
-    return mean[0];
+    return static_cast<float>(mean[0]);
 }
 // ======
 
 // ======= DEBUG METHODS ========
-cv::Mat Grid::drawGrid(double scale, bool useBinaryImage) const {
+cv::Mat Grid::drawGrid(float scale, bool useBinaryImage) const {
     cv::Mat draw;     // Matrix the image will be drawn into
     const cv::Mat &roi = useBinaryImage ? m_ell.getBinarizedImage() : m_ell.getTransformedImage();
     roi.copyTo(draw);
 
     if (roi.type() == CV_8UC1) {
         // the grid is drawn with several colors so a RGB image is needed
-        cvtColor(draw, draw, CV_GRAY2BGR);
+        cv::cvtColor(draw, draw, CV_GRAY2BGR);
     }
 
     // contour vector
@@ -514,14 +523,14 @@ cv::Mat Grid::drawGrid(double scale, bool useBinaryImage) const {
     std::vector < cv::Point > cont;
 
     // render half of the inner circle (circular matrix design)
-    ellipse2Poly(cv::Point2f(m_x, m_y), cv::Size2f(IRR * m_size, IRR * m_size), m_angle, 0, -180, 1, cont);
+	cv::ellipse2Poly(cv::Point2f(m_x, m_y), cv::Size2f(IRR * m_size, IRR * m_size), static_cast<int>(m_angle), 0, -180, 1, cont);
     std::vector < cv::Point > cont2;
 
     // take first and last vertex of the polygon to get the respective diameter of the inner circle
     cont2.push_back(cont[0]);
     cont2.push_back(cont[cont.size() - 1]);
     conts.push_back(cont2);
-    drawContours(draw, conts, 0, cv::Scalar(255, 0, 0), 1);
+    cv::drawContours(draw, conts, 0, cv::Scalar(255, 0, 0), 1);
 
     conts.clear();
 
@@ -529,8 +538,8 @@ cv::Mat Grid::drawGrid(double scale, bool useBinaryImage) const {
         conts.push_back(gridCellScaled2poly(i, scale, 0)[0]);
     }
 
-    drawContours(draw, conts, -1, cv::Scalar(255, 0, 0), 1);
-    drawContours(draw, conts, 0, cv::Scalar(0, 255, 0), 1);
+    cv::drawContours(draw, conts, -1, cv::Scalar(255, 0, 0), 1);
+    cv::drawContours(draw, conts, 0, cv::Scalar(0, 255, 0), 1);
 
     return draw;
 }
@@ -539,7 +548,7 @@ cv::Mat Grid::drawGrid() const {
     return drawGrid(1, false);
 }
 
-cv::Mat Grid::drawGrid(double scale) const {
+cv::Mat Grid::drawGrid(float scale) const {
     return drawGrid(scale, false);
 }
 

@@ -1,34 +1,28 @@
 #ifndef GRID_H_
 #define GRID_H_
 
-#include "Ellipse.h"
-#include <algorithm>
-#include <iostream>
-#include <math.h>
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/opencv.hpp>
-#include <vector>
+#include "Ellipse.h"             // Ellipse
+#include <vector>                // std::vector
+#include <opencv2/core/core.hpp> // cv::Mat, cv::Point, cv::Scalar
+#include <cmath>                 // INFINITY, std::abs
 
 #ifdef PipelineStandalone
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
 #endif
 
-#include <cmath> // INFINITY
-
 static const double BINARYCOUNT_INIT = INFINITY; //100000; // initial score for binary count method
 #define FISHER_INIT (-1) // initial score for fisher method
 
 // current tag design -- without inner border
 /** outer radius to grid size ratio (tag design constant) */
-#define ORR 2.31
+#define ORR 2.31f
 /** tag radius to grid size ratio */
-#define TRR 2.85
+#define TRR 2.85f
 /** inner outer radius to grid size ratio */
-#define IORR 1.289
+#define IORR 1.289f
 /** inner radius to grid size ratio (tag design constant)*/
-#define IRR 1.289
+#define IRR 1.289f
 
 // the confidence interval between the standard deviations of separate cells (for the angle correction)
 #define STD_EPS 10
@@ -188,8 +182,8 @@ public:
      * @param useBinaryImage whether the binary image should be shown or ne normal one
      * @return the cv::Mat object the grid should be drawn into
      */
-    cv::Mat drawGrid(double scale, bool useBinaryImage) const;
-    cv::Mat drawGrid(double scale) const;
+    cv::Mat drawGrid(float scale, bool useBinaryImage) const;
+    cv::Mat drawGrid(float scale) const;
     cv::Mat drawGrid() const;
     cv::Mat drawGrid(bool useBinaryImage) const;
 private:
@@ -243,7 +237,7 @@ private:
      * @param offset angle offset to draw inner half circles with different angles 1 offset = 30°
      * @return a reference to a vector containing a vector with the contours of the cell (thread local internal buffer)
      */
-    const std::vector<std::vector<cv::Point>>& gridCellScaled2poly(unsigned short cell, double scale, int offset = 0) const;
+    const std::vector<std::vector<cv::Point>>& gridCellScaled2poly(unsigned short cell, float scale, int offset = 0) const;
 
     // ======
 };

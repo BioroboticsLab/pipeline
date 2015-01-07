@@ -1,6 +1,7 @@
 #include "Ellipse.h"
 
-#include <stdexcept> // std::invalid argument
+#include <opencv2/imgproc/imgproc.hpp> // cv::adaptiveThreshold
+#include <stdexcept>                   // std::invalid argument
 
 namespace decoder {
 

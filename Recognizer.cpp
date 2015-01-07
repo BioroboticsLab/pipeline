@@ -138,7 +138,7 @@ void Recognizer::detectXieEllipse(Tag &tag) {
                         const float n = max_ind;
 
                         // more "circular" ellipses are weighted more than very thin ellipses
-                        vote_minor = vote_minor * (50 * n / j);
+						vote_minor = static_cast<int>(vote_minor * (50 * n / j));
 
                         if (candidates.size() == 0) {
                             candidates.emplace_back(vote_minor, cen, axis, angle);
@@ -157,7 +157,7 @@ void Recognizer::detectXieEllipse(Tag &tag) {
                               std::abs(ell.getAngle() - angle) < (180.0 * ell.getAxis().height) / ell.getAxis().width) {
                                 if (ell.getVote() < vote_minor) {
                                 	ell.setCen(cen);
-                                	ell.setAxis(cv::Size(j, n));
+									ell.setAxis(cv::Size2f(j, n));
                                 	ell.setAngle(angle);
                                 	ell.setVote(vote_minor);
                                 }
@@ -270,7 +270,8 @@ cv::Mat Recognizer::computeCannyEdgeMap(cv::Mat grayImage) {
 }
 
 std::vector<Tag> Recognizer::process(std::vector<Tag>&& taglist) {
-    static const size_t numThreads = 8;
+    static const size_t numThreads = std::thread::hardware_concurrency() ?
+                std::thread::hardware_concurrency() * 2 : 1;
     ThreadPool pool(numThreads);
     std::vector < std::future < void >> results;
     for (Tag& tag : taglist) {

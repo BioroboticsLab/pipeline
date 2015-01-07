@@ -16,9 +16,9 @@
  * \param scale factor by which the rectangle is scaled
  */
 cv::Rect operator*(const cv::Rect rectangle, double scale) {
-    cv::Size    s((rectangle.height * scale), (rectangle.width * scale));
-    cv::Point2i c(rectangle.x - (0.5 * (s.width - rectangle.width)),
-        rectangle.y - (0.5 * (s.height - rectangle.height)));
+	cv::Size    s(static_cast<int>(rectangle.height * scale), static_cast<int>(rectangle.width * scale));
+	cv::Point2i c(static_cast<int>(rectangle.x - (0.5 * (s.width - rectangle.width))),
+				  static_cast<int>(rectangle.y - (0.5 * (s.height - rectangle.height))));
     return (cv::Rect(c, s));
 }
 
