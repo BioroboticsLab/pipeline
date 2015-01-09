@@ -91,6 +91,10 @@ public:
         return _grids;
     }
 
+    const std::vector<Grid>& getGrids() const {
+        return _grids;
+    }
+
     void setGrids(std::vector<Grid>&& grids) {
         _grids = std::move(grids);
     }

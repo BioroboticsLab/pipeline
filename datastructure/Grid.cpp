@@ -543,4 +543,9 @@ cv::Mat Grid::drawGrid(float scale) const {
 cv::Mat Grid::drawGrid(bool useBinaryImage) const {
     return drawGrid(1, useBinaryImage);
 }
+
+Grid3D Grid::grid2Grid3D(cv::Point cen) const{
+    //TODO: double radius_px, double angle_z, double angle_y, double angle_x
+    return Grid3D(cen, m_ell.getAxis().height, m_ell.getAngle(), 0, 0);
+}
 }
