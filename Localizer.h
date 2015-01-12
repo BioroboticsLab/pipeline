@@ -8,91 +8,124 @@
 #ifndef LOCALIZER_H_
 #define LOCALIZER_H_
 
-#include <fstream>
-#include <iostream>
-#include <cmath>
-#include <cstdio>
-#include <vector>
-
-#include <opencv2/imgproc/imgproc.hpp>
+#include <stdio.h>
+#include <unistd.h>
+#include <opencv2/opencv.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
-#include <opencv2/opencv.hpp>
-
-#include "datastructure/BoundingBox.h"
-#include "datastructure/Tag.h"
-
-#ifdef PipelineStandalone
+#include <boost/lexical_cast.hpp>
+#include <iostream>
+#include "opencv2/imgproc/imgproc.hpp"
+#include <vector>
+#include <math.h>
+#include <fstream>
+#include "./datastructure/BoundingBox.h"
+#include "./datastructure/Tag.h"
 #include "../config.h"
-#include <boost/property_tree/ini_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
-#endif
+#include <boost/property_tree/ini_parser.hpp>
 
+using namespace std;
+using namespace cv;
 
 namespace decoder {
-typedef struct {
-	// Threshold for binarisation
-	int binary_threshold = 29;
 
-	// number of first dilation iterations
-	int dilation_1_iteration_number = 4;
 
-	// size of dilation-radius
-	int dilation_1_size = 2;
+struct SubImage{
+	Mat image;
+	int x;
+	int y;
+};
 
-	// erosion-size
-	int erosion_size = 25;
 
-	// second dilation-size
-	int dilation_2_size = 2;
 
-	// maximal size of a possible tag
-	unsigned int max_tag_size =  250;
+/*
+ * vars that are usually be filled by an ini file
+ */
 
-	// minimal size of bounding box
-	int min_tag_size =  100;
-} localizer_settings_t;
+struct LocalizerOptions{
+	float resizeRatio;
+	int initThres1;
+	float minMean1;
+	float maxMean1;
+	int initThres2;
+	float minMean2;
+	float maxMean2;
+	int dilateSize1;
+	int erodeSize;
+	int dilateSize2;
+	int minSizeComb;
+	int blurSize;
+	int maxTagSize;
+	int minTagSize;
+};
 
 class Localizer {
+
 private:
-	cv::Mat gray_image_;
-	cv::Mat sobel_;
-	cv::Mat blob_;
-	cv::Mat canny_map_;
 
-	localizer_settings_t _settings;
+	/**************************************
+	 *
+	 * 			constructor
+	 *
+	 **************************************/
 
-	cv::Mat computeSobelMap(const cv::Mat &grayImage) const;
-	cv::Mat computeBlobs(const cv::Mat &sobel) const;
-	cv::Mat highlightTags(const cv::Mat &grayImage) const;
-	std::vector<Tag> locateTagCandidates(cv::Mat blobImage, cv::Mat cannyEdgeMap, cv::Mat grayImage);
+	LocalizerOptions _options;
 
 
-#ifdef PipelineStandalone
-	void loadConfigVars(const std::string &filename);
-#endif
+	/**************************************
+	 *
+	 * 			stuff
+	 *
+	 **************************************/
+
+	Mat _computeSobel(Mat grayImage);
+	Mat computeBlobs(Mat binarizedImage, Mat grayImage);
+	vector <Tag> _locateTagCandidates(Mat blobImage, Mat grayImage);
+	cv::Mat _generateThresholdImage(cv::Mat image, int initial_thres, float min_mean, float max_mean);
+	void _removeCombs(cv::Mat &image);
+	void _filterNoise(cv::Mat &image);
+	void loadConfigVars(string filename);
+	void _filterColors(vector<Tag> &taglist);
+	vector <SubImage> _divideImage(Mat image);
 
 public:
+
+	/**************************************
+	 *
+	 * 			constructor
+	 *
+	 **************************************/
+
 	Localizer();
-#ifdef PipelineStandalone
-	Localizer(const std::string &configFile);
-#endif
+	Localizer(string configFile);
+	Localizer(LocalizerOptions options);
+
 	virtual ~Localizer();
 
-	void loadSettings(localizer_settings_t&& settings);
+	/**************************************
+	 *
+	 * 			getter/setter
+	 *
+	 **************************************/
 
-	const cv::Mat& getBlob() const;
-	void setBlob(const cv::Mat& blob);
-	const cv::Mat& getCannyMap() const;
-	void setCannyMap(const cv::Mat& cannyMap);
-	const cv::Mat& getGrayImage() const;
-	void setGrayImage(const cv::Mat& grayImage);
-	const cv::Mat& getSobel() const;
-	void setSobel(const cv::Mat& sobel);
 
-	std::vector<Tag> process(cv::Mat &&image);
+	const LocalizerOptions& getOptions() const;
+	void setOptions(const LocalizerOptions& options);
+
+
+	/**************************************
+	 *
+	 * 			stuff
+	 *
+	 **************************************/
+
+	vector<Tag> process(Mat image);
 	void reset();
+
 };
+
 } /* namespace decoder */
+
 
 #endif /* LOCALIZER_H_ */

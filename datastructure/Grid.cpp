@@ -276,10 +276,13 @@ double Grid::fisherScore() const {
 
 // ======
 
-const std::vector<std::vector<cv::Point>>& Grid::gridCellScaled2poly(unsigned short cell, float scale, int offset) const {
+const std::vector<std::vector<cv::Point> >& Grid::gridCellScaled2poly(unsigned short cell, float scale, int offset) const {
 
-	static thread_local std::vector<std::vector<cv::Point>> result(1);
-	static thread_local std::vector<cv::Point> buffer;
+	//static thread_local std::vector<std::vector<cv::Point>> result(1);
+	//static thread_local std::vector<cv::Point> buffer;
+
+	static  std::vector<std::vector<cv::Point> > result(1);
+	static  std::vector<cv::Point> buffer;
 
 	const cv::Point2f center(m_x, m_y);
 	const int step_size = 1;
