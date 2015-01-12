@@ -18,7 +18,16 @@
 namespace decoder {
 GridFitter::GridFitter(Grid::ScoringMethod scoringMethod) {
     this->scoringMethod = scoringMethod;
+#ifdef PipelineStandalone
+    loadConfigVars(config::DEFAULT_GRIDFITTER_CONFIG);
+#endif
 }
+
+#ifdef PipelineStandalone
+Localizer::Localizer(const std::string &configFile) {
+    loadConfigVars(configFile);
+}
+#endif
 
 GridFitter::~GridFitter() = default;
 
@@ -133,7 +142,7 @@ double GridFitter::getOtsuThreshold(const cv::Mat &srcMat) const {
 
 Grid GridFitter::fitGridGradient(const Ellipse &ellipse, double angle, int startX,
   int startY) const {
-    int step_size = INITIAL_STEP_SIZE;     // Amount of pixel the walk should jump
+    int step_size = this->_settings.initial_step_size;     // Amount of pixel the walk should jump
 
     const float gsize = (ellipse.getAxis().width / 3.0f);
     const int x       = startX;
@@ -142,7 +151,7 @@ Grid GridFitter::fitGridGradient(const Ellipse &ellipse, double angle, int start
     Grid best = fitGridAngle(ellipse, gsize, angle, x, y);
     const int gs    = cvRound(ellipse.getAxis().width / 3.0f);
 
-    while (step_size > FINAL_STEP_SIZE) {
+    while (step_size > this->_settings.final_step_size) {
         // investigate the surrounding positions
         std::vector<Grid> grids;
 
@@ -184,9 +193,9 @@ Grid GridFitter::fitGridGradient(const Ellipse &ellipse, double angle, int start
         // the < is for the new score
         if (best_neighbor > best) {
             best      = best_neighbor;
-            step_size = static_cast<int>(ceil(step_size * UP_SPEED));
+            step_size = static_cast<int>(ceil(step_size * this->_settings.up_speed));
         } else {
-            step_size = static_cast<int>(step_size * DOWN_SPEED);
+            step_size = static_cast<int>(step_size * _DOWN_SPEED);//this->_settings.down_speed);
         }
     }
 
@@ -278,4 +287,32 @@ int GridFitter::bestGridAngleCorrection(const Grid &g) const {
 
     return i;
 }
+
+
+#ifdef PipelineStandalone
+/**
+ * loads param from config
+ *
+ * @param filename absolute path to the config file
+ */
+void GridFitter::loadConfigVars(const std::string &filename) {
+    boost::property_tree::ptree pt;
+    boost::property_tree::ini_parser::read_ini(filename, pt);
+
+    _settings.initial_step_size =
+            pt.get<int>(config::APPlICATION_ENVIROMENT + ".initial_step_size");
+    _settings.final_step_size =
+            pt.get<int>(config::APPlICATION_ENVIROMENT + ".final_step_size");
+    _settings.up_speed =
+            pt.get<float>(config::APPlICATION_ENVIROMENT + ".up_speed");
+    _settings.down_speed =
+            pt.get<float>(config::APPlICATION_ENVIROMENT + ".down_speed");
+}
+#endif
+
+void GridFitter::loadSettings(gridfitter_settings_t &&settings)
+{
+    _settings = std::move(settings);
+}
+
 }

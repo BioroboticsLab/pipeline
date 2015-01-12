@@ -6,6 +6,8 @@
 #include <opencv2/core/core.hpp> // cv::Mat, cv::Point, cv::Scalar
 #include <cmath>                 // INFINITY, std::abs
 
+#include "source/tracking/algorithm/BeesBook/BeesBookTagMatcher/resources/Grid3D.h"
+
 #ifdef PipelineStandalone
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
@@ -184,6 +186,8 @@ public:
     cv::Mat drawGrid(float scale) const;
     cv::Mat drawGrid() const;
     cv::Mat drawGrid(bool useBinaryImage) const;
+
+    Grid3D grid2Grid3D(cv::Point cen) const;
 private:
 
     /**
