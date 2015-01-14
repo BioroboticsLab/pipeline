@@ -248,7 +248,7 @@ void Recognizer::visualizeEllipse(Tag const& tag, Ellipse const& ell, std::strin
     cv::waitKey();
 }
 
-cv::Mat Recognizer::computeCannyEdgeMap(cv::Mat grayImage) {
+cv::Mat Recognizer::computeCannyEdgeMap(cv::Mat const& grayImage) const {
     cv::Mat localGrayImage = grayImage.clone();
 
     cv::GaussianBlur(localGrayImage, localGrayImage, cv::Size(3, 3), 0, 0,

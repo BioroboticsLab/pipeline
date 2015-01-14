@@ -62,7 +62,6 @@ private:
 	recognizer_settings_t _settings;
 
     void detectXieEllipse(Tag &tag);
-    cv::Mat computeCannyEdgeMap(cv::Mat grayImage);
 
 #ifdef PipelineStandalone
     void loadConfigVars(std::string filename);
@@ -80,6 +79,8 @@ public:
 
     std::vector<Tag> process(std::vector<Tag> &&taglist);
     void visualizeEllipse(Tag const& tag , Ellipse const& ell, std::string const& title);
+
+	cv::Mat computeCannyEdgeMap(const cv::Mat &grayImage) const;
 };
 } /* namespace decoder */
 
