@@ -1,8 +1,11 @@
 #include "Grid.h"
+
 #include <stdexcept>          // std::invalid_argument
 #include <iostream>           // std::cout
 #include <algorithm>          // std::rotate
 #include <opencv2/opencv.hpp> // cv::GaussianBlur,  cv::circle, cv::threshold, cv::cvtColor, cv::drawContours
+
+#include "../compat.h"
 
 namespace decoder {
 // === Constructors and initializer ===
@@ -290,8 +293,8 @@ double Grid::fisherScore() const {
 
 const std::vector<std::vector<cv::Point>>& Grid::gridCellScaled2poly(unsigned short cell, float scale, int offset) const {
 
-	static thread_local std::vector<std::vector<cv::Point>> result(1);
-	static thread_local std::vector<cv::Point> buffer;
+	static THREAD_LOCAL std::vector<std::vector<cv::Point>> result(1);
+	static THREAD_LOCAL std::vector<cv::Point> buffer;
 
 	const cv::Point2f center(m_x, m_y);
 	const int step_size = 1;
