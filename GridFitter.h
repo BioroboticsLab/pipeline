@@ -14,19 +14,29 @@
 #include <array>                // std::array
 #include <opencv2/core/core.hpp> // cv::Point cv::Mat
 
+#ifdef PipelineStandalone
+#include "../config.h"
+#include <boost/property_tree/ini_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
+#endif
 
-// Constants for optimized detection of the tag center
-// initial step size
-#define INITIAL_STEP_SIZE 20
-// step size the fitting-algorithm should terminate
-#define FINAL_STEP_SIZE 0
-// growth speed for the step size (on position change)
-#define UP_SPEED 3
-// speed decrease for step size (on position stay)
-#define DOWN_SPEED 0.5
-
+#define _DOWN_SPEED 0.5
 
 namespace decoder {
+typedef struct {
+    // initial step size
+    int initial_step_size = 20;
+
+    // step size at which the fitting-algorithm should terminate 
+    int final_step_size = 0;
+
+    // growth speed for the step size (on position change)
+    float up_speed = 3;
+
+    // speed decrease for step size (on position stay)
+    float down_speed =  0.5;
+} gridfitter_settings_t;
+
 
 /**
  * forward declarations to reduce includes
@@ -45,6 +55,12 @@ public:
     GridFitter(Grid::ScoringMethod scoringMethod = Grid::BINARYCOUNT);
     ~GridFitter();
 
+#ifdef PipelineStandalone
+    GridFitter(const std::string &configFile);
+#endif
+
+    void loadSettings(gridfitter_settings_t&& settings);
+
     /**
      * processes all ellipses and returns the grids which fit to the given ellipses
      *
@@ -53,6 +69,12 @@ public:
     std::vector<Tag> process(std::vector<Tag> &&taglist) const;
 
 private:
+
+    gridfitter_settings_t _settings;
+
+#ifdef PipelineStandalone
+    void loadConfigVars(const std::string &filename);
+#endif
 
     /**
      * method used for gridscoring

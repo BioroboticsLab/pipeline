@@ -288,10 +288,13 @@ double Grid::fisherScore() const {
 
 // ======
 
-const std::vector<std::vector<cv::Point>>& Grid::gridCellScaled2poly(unsigned short cell, float scale, int offset) const {
+const std::vector<std::vector<cv::Point> >& Grid::gridCellScaled2poly(unsigned short cell, float scale, int offset) const {
 
-	static thread_local std::vector<std::vector<cv::Point>> result(1);
-	static thread_local std::vector<cv::Point> buffer;
+	//static thread_local std::vector<std::vector<cv::Point>> result(1);
+	//static thread_local std::vector<cv::Point> buffer;
+
+	static  std::vector<std::vector<cv::Point> > result(1);
+	static  std::vector<cv::Point> buffer;
 
 	const cv::Point2f center(m_x, m_y);
 	const int step_size = 1;
@@ -554,5 +557,10 @@ cv::Mat Grid::drawGrid(float scale) const {
 
 cv::Mat Grid::drawGrid(bool useBinaryImage) const {
     return drawGrid(1, useBinaryImage);
+}
+
+Grid3D Grid::grid2Grid3D(cv::Point cen) const{
+    //TODO: double radius_px, double angle_z, double angle_y, double angle_x
+    return Grid3D(cen, m_ell.getAxis().height, m_ell.getAngle(), 0, 0);
 }
 }

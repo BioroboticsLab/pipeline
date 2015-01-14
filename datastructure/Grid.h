@@ -6,6 +6,8 @@
 #include <opencv2/core/core.hpp> // cv::Mat, cv::Point, cv::Scalar
 #include <cmath>                 // INFINITY, std::abs
 
+#include "source/tracking/algorithm/BeesBook/BeesBookTagMatcher/resources/Grid3D.h"
+
 #ifdef PipelineStandalone
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
@@ -186,6 +188,8 @@ public:
     cv::Mat drawGrid(float scale) const;
     cv::Mat drawGrid() const;
     cv::Mat drawGrid(bool useBinaryImage) const;
+
+    Grid3D grid2Grid3D(cv::Point cen) const;
 private:
 
     /**
@@ -225,7 +229,7 @@ private:
      * @param offset angle offset to draw inner half circles with different angles 1 offset = 30°
      * @return a reference to a vector containing a vector with the contours of the cell (thread local internal buffer)
      */
-    const std::vector<std::vector<cv::Point>>& gridCell2poly(unsigned short cell, int offset = 0) const {
+    const std::vector<std::vector<cv::Point> >& gridCell2poly(unsigned short cell, int offset = 0) const {
     	return gridCellScaled2poly(cell, 1.0, offset);
     }
 
@@ -237,7 +241,7 @@ private:
      * @param offset angle offset to draw inner half circles with different angles 1 offset = 30°
      * @return a reference to a vector containing a vector with the contours of the cell (thread local internal buffer)
      */
-    const std::vector<std::vector<cv::Point>>& gridCellScaled2poly(unsigned short cell, float scale, int offset = 0) const;
+    const std::vector<std::vector<cv::Point> >& gridCellScaled2poly(unsigned short cell, float scale, int offset = 0) const;
 
     // ======
 };
