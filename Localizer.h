@@ -55,16 +55,15 @@ typedef struct {
 
 class Localizer {
 private:
-	cv::Mat gray_image_;
-	cv::Mat sobel_;
 	cv::Mat blob_;
 	cv::Mat canny_map_;
+	cv::Mat _threshold_image;
 
 	localizer_settings_t _settings;
 
-	cv::Mat computeSobelMap(const cv::Mat &grayImage) const;
-	cv::Mat computeBlobs(const cv::Mat &sobel) const;
-	cv::Mat highlightTags(const cv::Mat &grayImage) const;
+
+	cv::Mat computeBlobs(const cv::Mat &sobel) ;
+	cv::Mat highlightTags(const cv::Mat &grayImage) ;
 	std::vector<Tag> locateTagCandidates(cv::Mat blobImage, cv::Mat cannyEdgeMap, cv::Mat grayImage);
 
 
@@ -87,11 +86,13 @@ public:
 	void setCannyMap(const cv::Mat& cannyMap);
 	const cv::Mat& getGrayImage() const;
 	void setGrayImage(const cv::Mat& grayImage);
-	const cv::Mat& getSobel() const;
-	void setSobel(const cv::Mat& sobel);
 
-	std::vector<Tag> process(cv::Mat &&image);
+
+
+	std::vector<Tag> process(cv::Mat &&originalImage, cv::Mat &&preprocessedImage);
 	void reset();
+	const cv::Mat& getThresholdImage() const;
+	void setThresholdImage(const cv::Mat& thresholdImage);
 };
 } /* namespace decoder */
 

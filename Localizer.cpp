@@ -65,20 +65,13 @@ void Localizer::setCannyMap(const cv::Mat& cannyMap) {
     canny_map_ = cannyMap;
 }
 
-const cv::Mat& Localizer::getGrayImage() const {
-    return gray_image_;
+
+const cv::Mat& Localizer::getThresholdImage() const {
+	return _threshold_image;
 }
 
-void Localizer::setGrayImage(const cv::Mat& grayImage) {
-    gray_image_ = grayImage;
-}
-
-const cv::Mat& Localizer::getSobel() const {
-    return sobel_;
-}
-
-void Localizer::setSobel(const cv::Mat& sobel) {
-    sobel_ = sobel;
+void Localizer::setThresholdImage(const cv::Mat& thresholdImage) {
+	_threshold_image = thresholdImage;
 }
 
 /**************************************
@@ -87,20 +80,17 @@ void Localizer::setSobel(const cv::Mat& sobel) {
 *
 **************************************/
 
-std::vector<Tag> Localizer::process(cv::Mat&& grayImage) {
-    this->gray_image_ = grayImage;
+std::vector<Tag> Localizer::process(cv::Mat &&originalImage, cv::Mat &&preprocessedImage){
 
-    // compute the sobel derivative first
-    this->sobel_ = this->computeSobelMap(grayImage);
+
 
     // and then locate the tags using the sobel map
-    this->blob_ = this->computeBlobs(this->sobel_);
+    this->blob_ = this->computeBlobs(preprocessedImage);
 
     // compute canny edge map. Needed for ellipse detection but needs to be done only once per image.
     //this->canny_map_ = this->computeCannyEdgeMap(grayImage);
 
-    std::vector<Tag> taglist = this->locateTagCandidates(this->blob_,
-        this->canny_map_, this->gray_image_);
+    std::vector<Tag> taglist= this->locateTagCandidates(this->blob_, this->canny_map_,originalImage);
 
     return taglist;
 }
@@ -111,14 +101,28 @@ std::vector<Tag> Localizer::process(cv::Mat&& grayImage) {
  * @param grayImage the input image
  * @return image with highlighted tags
  */
-cv::Mat Localizer::highlightTags(const cv::Mat &grayImage) const {
+cv::Mat Localizer::highlightTags(const cv::Mat &grayImage)  {
 
+	cv::Mat image;
+	grayImage.copyTo(image);
     //binarization
 	cv::Mat binarizedImage;
-    cv::threshold(grayImage, binarizedImage, this->_settings.binary_threshold, 255,
-      CV_THRESH_BINARY);
 
-    cv::Mat imageCopy = binarizedImage.clone();
+
+	// Threshold each block (3x3 grid) of the image separately to
+	// correct for minor differences in contrast across the image.
+	for (int i = 0; i < 30; i++) {
+	    for (int j = 0; j < 40; j++) {
+	        cv::Mat block = image.rowRange(100*i, 100*(i+1)).colRange(100*j, 100*(j+1));
+	        cv::Scalar mean_sobel = mean(block);
+	        double average_value = mean_sobel.val[0];
+	        cv::threshold(block, block, average_value+ this->_settings.binary_threshold, 255, cv::THRESH_BINARY);
+	    }
+	}
+
+    cv::Mat imageCopy; //= binarizedImage.clone();
+    this->setThresholdImage(image);
+    image.copyTo(imageCopy);
 
 #ifdef PipelineStandalone
     if (config::DEBUG_MODE_LOCALIZER) {
@@ -239,7 +243,6 @@ std::vector<Tag> Localizer::locateTagCandidates(cv::Mat blobImage_old,
             if ((rec.height * rec.width) > 800
               && (rec.height * rec.width) < 20000) {
                 Tag tag(rec, taglist.size() + 1);
-
                 cv::Mat sub_image_orig(grayImage, rec);
                 cv::Mat subImageOrig_cp = sub_image_orig.clone();
                 tag.setOrigSubImage(subImageOrig_cp);
@@ -252,56 +255,12 @@ std::vector<Tag> Localizer::locateTagCandidates(cv::Mat blobImage_old,
     return taglist;
 }
 
-/**
- * Computes the Sobel map for a given grayscale image.
- * @return sobelmap
- */
-cv::Mat Localizer::computeSobelMap(const cv::Mat &grayImage) const {
-
-    // We need a copy because the GuassianBlur makes changes to the image
-    cv::Mat imageCopy = grayImage.clone();
-
-    int scale  = 1;
-    int delta  = 0;
-    int ddepth = CV_16S;
-    cv::GaussianBlur(imageCopy, imageCopy, cv::Size(7, 7), 0, 0, cv::BORDER_DEFAULT);
-
-    /// Generate grad_x and grad_y
-    cv::Mat grad_x, grad_y;
-    cv::Mat abs_grad_x, abs_grad_y;
-
-    /// Gradient X
-    //Scharr( src_gray, grad_x, ddepth, 1, 0, scale, delta, BORDER_DEFAULT );
-    cv::Sobel(imageCopy, grad_x, ddepth, 1, 0, 3, scale, delta, cv::BORDER_DEFAULT);
-    cv::convertScaleAbs(grad_x, abs_grad_x);
-
-    /// Gradient Y
-    //Scharr( src_gray, grad_y, ddepth, 0, 1, scale, delta, BORDER_DEFAULT );
-    cv::Sobel(imageCopy, grad_y, ddepth, 0, 1, 3, scale, delta, cv::BORDER_DEFAULT);
-    cv::convertScaleAbs(grad_y, abs_grad_y);
-
-    /// Total Gradient (approximate)
-    cv::Mat sobel;
-    cv::addWeighted(abs_grad_x, 0.5, abs_grad_y, 0.5, 0, sobel);
-#ifdef PipelineStandalone
-    if (config::DEBUG_MODE_LOCALIZER) {
-        cv::namedWindow("Sobel", cv::WINDOW_AUTOSIZE);
-        cv::imshow("Sobel", sobel);
-        cv::waitKey(0);
-        cv::destroyWindow("Sobel");
-    }
-#endif
-
-    return sobel;
-
-    //DEBUG_IMSHOW( "sobel", sobel );
-}
 
 /*
    Computes Blobs and finally finds the ROI's using the sobel map. The ROI's are stored in the boundingBoxes Vector.
  */
 
-cv::Mat Localizer::computeBlobs(const cv::Mat &sobel) const {
+cv::Mat Localizer::computeBlobs(const cv::Mat &sobel)  {
     cv::Mat blob = this->highlightTags(sobel);
 
     //DEBUG_IMSHOW("blob", blob);
@@ -351,3 +310,5 @@ void Localizer::loadSettings(localizer_settings_t &&settings)
 	_settings = std::move(settings);
 }
 }
+
+
