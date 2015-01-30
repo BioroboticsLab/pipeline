@@ -37,7 +37,7 @@ static const std::string COMB_LINE_COLOR =   "COMB_LINE_COLOR";
 }
 
 
-namespace decoder {
+namespace pipeline {
 
 
  struct preprocessor_settings_t{

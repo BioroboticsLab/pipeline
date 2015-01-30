@@ -8,7 +8,7 @@
 #include "Tag.h"
 #include <utility> // std::move
 
-namespace decoder {
+namespace pipeline {
 /**************************************
 *
 *           constructor
@@ -18,11 +18,9 @@ namespace decoder {
 Tag::Tag(cv::Rect rec, int id)
 	: _box(rec)
 	, _valid(true)
-	, id(id)
+	, _id(id)
 {
 }
-
-Tag::~Tag() = default;
 
 /**************************************
 *
@@ -67,11 +65,11 @@ void Tag::setValid(bool valid) {
 }
 
 int Tag::getId() const {
-    return id;
+    return _id;
 }
 
 void Tag::setId(int id) {
-    this->id = id;
+    this->_id = id;
 }
 
 const cv::Rect& Tag::getBox() const {

@@ -7,7 +7,7 @@
 
 #include <tracking/algorithm/BeesBook/BeesBookImgAnalysisTracker/pipeline/Preprocessor.h>
 
-namespace decoder {
+namespace pipeline {
 /**************************************
  *
  *           getter/setter
@@ -86,10 +86,10 @@ cv::Mat Preprocessor::process(const cv::Mat &image) {
 		}
 	}
 
-	_sobel = this->_computeSobel(grayImage);
+	_sobel = this->computeSobel(grayImage);
 
 	if (this->_options.use_comb_detection == 1) {
-		this->_filterCombs(_sobel);
+		this->filterCombs(_sobel);
 	}
 
 	return _sobel;
@@ -124,7 +124,7 @@ void Preprocessor::loadSettings(preprocessor_settings_t &&settings) {
  * Computes the Sobel map for a given grayscale image.
  * @return sobelmap
  */
-cv::Mat Preprocessor::_computeSobel(const cv::Mat &grayImage) const {
+cv::Mat Preprocessor::computeSobel(const cv::Mat &grayImage) const {
 
 	// We need a copy because the GuassianBlur makes changes to the image
 	cv::Mat imageCopy = grayImage.clone();
@@ -176,7 +176,7 @@ cv::Mat Preprocessor::_computeSobel(const cv::Mat &grayImage) const {
 	//DEBUG_IMSHOW( "sobel", sobel );
 }
 
-void Preprocessor::_filterCombs(cv::Mat& sobel) {
+void Preprocessor::filterCombs(cv::Mat& sobel) {
 	cv::Mat threshold_image, img_copy, threshold_image_contours;
 	std::vector<std::vector<cv::Point> > contours;
 	std::vector<cv::Vec4i> hierarchy;

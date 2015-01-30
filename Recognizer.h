@@ -1,14 +1,5 @@
-/*
- * Recognizer.h
- *
- *  Created on: 12.08.2014
- *      Author: mareikeziese
- */
+#pragma once
 
-#ifndef RECOGNIZER_H_
-#define RECOGNIZER_H_
-
-#include "./datastructure/Tag.h"
 #include <fstream>
 #include <iostream>
 #include <math.h>
@@ -19,6 +10,9 @@
 #include <unistd.h>
 #include <vector>
 
+#include "datastructure/Tag.h"
+#include "datastructure/Ellipse.h"
+
 #ifdef PipelineStandalone
 #include "../config.h"
 #include <boost/property_tree/ini_parser.hpp>
@@ -26,7 +20,7 @@
 #endif
 
 
-namespace decoder {
+namespace pipeline {
 
 typedef struct {
 	// Lower Threshold for Canny
@@ -82,6 +76,4 @@ public:
 
 	cv::Mat computeCannyEdgeMap(const cv::Mat &grayImage) const;
 };
-} /* namespace decoder */
-
-#endif /* RECOGNIZER_H_ */
+}

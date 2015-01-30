@@ -1,112 +1,25 @@
-/*
- * Candidate.h
- *
- *  Created on: 18.08.2014
- *      Author: mareikeziese
- */
+#pragma once
 
-#ifndef CANDIDATE_H_
-#define CANDIDATE_H_
+#include <vector>
 
-#include "Decoding.h"            // Decoding
-#include "Ellipse.h"             // Ellipse
-#include "Grid.h"                // Grid
-#include <utility>               // std::move
-#include <vector>                // std::vector
-#include <opencv2/core/core.hpp> // cv::Mat
+#include "Ellipse.h"
+#include "source/tracking/algorithm/BeesBook/Common/Grid.h"
 
-
-
-namespace decoder {
+namespace pipeline {
 class TagCandidate {
-private:
-    /**************************************
-    *
-    *           members
-    *
-    **************************************/
-    //score of the candidate
-    //double _score;
-    Ellipse _ellipse;
-    std::vector<Grid> _grids;
-    std::vector<Decoding> _decodings;
-    //decoded Id
-    //int _decodedId;
 public:
-    /**************************************
-    *
-    *           constructor
-    *
-    **************************************/
+	explicit TagCandidate(Ellipse const& ellipse)
+	    : _ellipse(ellipse)
+	{}
 
-    TagCandidate(Ellipse e){
-        this->_ellipse = e;
-    }
-    ~TagCandidate(){
-    }
+	Ellipse const& getEllipse() const { return _ellipse; }
 
-    /**************************************
-    *
-    *           getter/setter
-    *
-    **************************************/
+	std::vector<Grid> const& getGrids() { return _grids; }
+	void setGrids(std::vector<Grid>&& grids) { _grids = std::move(grids); }
+	void addGrid(Grid&& grid) { _grids.push_back(std::move(grid)); }
 
-//    int getDecodedId() const {
-//        return _decodedId;
-//    }
-//
-//    void setDecodedId(int decodedId) {
-//        _decodedId = decodedId;
-//    }
-
-    Ellipse& getEllipse() {
-        return _ellipse;
-    }
-
-	const Ellipse& getEllipse() const {
-		return _ellipse;
-	}
-
-    void setEllipse(const Ellipse& ellipse) {
-        _ellipse = ellipse;
-    }
-
-//    double getScore() const {
-//        return _score;
-//    }
-//
-//    void setScore(double score) {
-//        _score = score;
-//    }
-
-    const cv::Mat& getTransformedImage() const {
-        return _ellipse.getTransformedImage();
-    }
-
-    void setTransformedImage(const cv::Mat& transformedImage) {
-        _ellipse.setTransformedImage(transformedImage);
-    }
-
-    std::vector<Grid>& getGrids() {
-        return _grids;
-    }
-
-    const std::vector<Grid>& getGrids() const {
-        return _grids;
-    }
-
-    void setGrids(std::vector<Grid>&& grids) {
-        _grids = std::move(grids);
-    }
-
-    const std::vector<Decoding>& getDecodings() const {
-        return _decodings;
-    }
-
-    void setDecodings(std::vector<Decoding>&& decodings) {
-        _decodings = std::move(decodings);
-    }
+private:
+	Ellipse _ellipse;
+	std::vector<Grid> _grids;
 };
-} /* namespace decoder */
-
-#endif /* CANDIDATE_H_ */
+}

@@ -9,6 +9,9 @@
 
 #include <opencv2/highgui/highgui.hpp>
 
+#include "datastructure/BoundingBox.h"
+#include "datastructure/Tag.h"
+
 /**
  * Scales a given OpenCV rectangle by a factor, conserving the rectangle's center.
  *
@@ -22,7 +25,7 @@ cv::Rect operator*(const cv::Rect rectangle, double scale) {
     return (cv::Rect(c, s));
 }
 
-namespace decoder {
+namespace pipeline {
 /**************************************
 *
 *           constructor

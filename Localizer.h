@@ -1,12 +1,4 @@
-/*
- * Localizer.h
- *
- *  Created on: 03.07.2014
- *      Author: mareikeziese
- */
-
-#ifndef LOCALIZER_H_
-#define LOCALIZER_H_
+#pragma once
 
 #include <fstream>
 #include <iostream>
@@ -19,17 +11,17 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/opencv.hpp>
 
-#include "datastructure/BoundingBox.h"
-#include "datastructure/Tag.h"
-
 #ifdef PipelineStandalone
 #include "../config.h"
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 #endif
 
+namespace pipeline {
 
-namespace decoder {
+class BoundingBox;
+class Tag;
+
 typedef struct {
 	// Threshold for binarisation
 	int binary_threshold = 29;
@@ -61,11 +53,9 @@ private:
 
 	localizer_settings_t _settings;
 
-
 	cv::Mat computeBlobs(const cv::Mat &sobel) ;
 	cv::Mat highlightTags(const cv::Mat &grayImage) ;
 	std::vector<Tag> locateTagCandidates(cv::Mat blobImage, cv::Mat cannyEdgeMap, cv::Mat grayImage);
-
 
 #ifdef PipelineStandalone
 	void loadConfigVars(const std::string &filename);
@@ -87,13 +77,9 @@ public:
 	const cv::Mat& getGrayImage() const;
 	void setGrayImage(const cv::Mat& grayImage);
 
-
-
 	std::vector<Tag> process(cv::Mat &&originalImage, cv::Mat &&preprocessedImage);
 	void reset();
 	const cv::Mat& getThresholdImage() const;
 	void setThresholdImage(const cv::Mat& thresholdImage);
 };
-} /* namespace decoder */
-
-#endif /* LOCALIZER_H_ */
+}

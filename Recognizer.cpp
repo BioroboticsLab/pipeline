@@ -21,14 +21,14 @@ inline double pointDistanceNoSqrt(double px, double py, double qx, double qy)
 }
 
 struct compareVote {
-    inline bool operator()(decoder::Ellipse const& a, decoder::Ellipse const& b)
+    inline bool operator()(pipeline::Ellipse const& a, pipeline::Ellipse const& b)
     {
         return a.getVote() > b.getVote();
     }
 };
 }
 
-namespace decoder {
+namespace pipeline {
 Recognizer::Recognizer() {
 #ifdef PipelineStandalone
 	this->loadConfigVars(config::DEFAULT_RECOGNIZER_CONFIG);
@@ -141,7 +141,7 @@ void Recognizer::detectXieEllipse(Tag &tag) {
 						vote_minor = static_cast<int>(vote_minor * (50 * n / j));
 
                         if (candidates.size() == 0) {
-                            candidates.emplace_back(vote_minor, cen, axis, angle);
+                            candidates.emplace_back(vote_minor, cen, axis, angle, tag.getBox().size());
 							if (vote_minor >= _settings.threshold_best_vote) {
                                 goto foundEllipse;
                             }
@@ -164,7 +164,7 @@ void Recognizer::detectXieEllipse(Tag &tag) {
                                 break;
                             }
                             if (idx == candidates.size() - 1) {
-                                candidates.emplace_back(vote_minor, cen, axis, angle);
+                                candidates.emplace_back(vote_minor, cen, axis, angle, tag.getBox().size());
 
 								if (vote_minor >= _settings.threshold_best_vote) {
                                     goto foundEllipse;

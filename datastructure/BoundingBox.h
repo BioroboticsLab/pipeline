@@ -17,7 +17,7 @@
 #endif
 
 
-namespace decoder {
+namespace pipeline {
 class BoundingBox {
 private:
 
