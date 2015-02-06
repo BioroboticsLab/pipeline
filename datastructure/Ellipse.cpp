@@ -26,8 +26,7 @@ const cv::Mat Ellipse::getMask() const
 	static const cv::Scalar COLOR_WHITE(255);
 
 	// 8 bit grayscale
-	cv::Mat mask(_roiSize, CV_8UC1);
-	mask.setTo(cv::Scalar(0));
+	cv::Mat mask(_roiSize, CV_8UC1, cv::Scalar(0));
 	cv::ellipse(mask, _cen, _axis, _angle, 0, 360, COLOR_WHITE, -1);
 
 	return mask;
