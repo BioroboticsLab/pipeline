@@ -46,7 +46,7 @@ cv::Mat PipelineGrid::getProjectedImage(const cv::Size2i size) const
 
 	cv::fillPoly(img, pointvecvec_t{_coordinates2D[INDEX_OUTER_WHITE_RING]}, white, 8, 0, _center);
 	cv::fillPoly(img, pointvecvec_t{_coordinates2D[INDEX_INNER_WHITE_SEMICIRCLE]}, white, 8, 0, _center);
-	cv::fillPoly(img, pointvecvec_t{_coordinates2D[INDEX_INNER_BLACK_SEMICIRCLE]}, black, 8, 0, _center);
+	cv::fillPoly(img, pointvecvec_t{_coordinates2D[INDEX_INNER_BLACK_SEMICIRCLE]}, gray, 8, 0, _center);
 	for (size_t i = INDEX_MIDDLE_CELLS_BEGIN; i < INDEX_MIDDLE_CELLS_BEGIN + NUM_MIDDLE_CELLS; ++i)
 	{
 		cv::Scalar col = white; // distribution(generator) ? black : white;
@@ -58,7 +58,7 @@ cv::Mat PipelineGrid::getProjectedImage(const cv::Size2i size) const
 	{
 		CvHelper::drawPolyline(img, _coordinates2D, i, gray, false, _center);
 	}
-	CvHelper::drawPolyline(img, _coordinates2D, INDEX_OUTER_WHITE_RING,       gray, false, _center);
+	CvHelper::drawPolyline(img, _coordinates2D, INDEX_OUTER_WHITE_RING, gray, false, _center);
 
 	return img;
 }
@@ -304,7 +304,7 @@ Grid::coordinates2D_t PipelineGrid::generate_3D_coordinates_from_parameters_and_
 	_innerWhiteRingCoordinates = cv::Mat();
 	_innerBlackRingCoordinates = cv::Mat();
 	_outerRingCoordinates = cv::Mat();
-	_gridCellCoordinates.clear();
+	_gridCellCoordinates = std::vector<cv::Mat>(NUM_MIDDLE_CELLS);
 
 	return Grid::generate_3D_coordinates_from_parameters_and_project_to_2D();
 }

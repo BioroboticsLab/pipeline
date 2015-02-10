@@ -47,8 +47,6 @@ std::vector<Grid> GridFitter::fitGrid(const Tag& tag, const TagCandidate &candid
 {
 	const Ellipse& ellipse_orig = candidate.getEllipse();
 
-	double min_error = std::numeric_limits<double>::max();
-
     // region of interest of tag candidate
     const cv::Size2i roiSize = tag.getBox().size();
     cv::Mat roi;
@@ -56,7 +54,7 @@ std::vector<Grid> GridFitter::fitGrid(const Tag& tag, const TagCandidate &candid
     cv::cvtColor(tag.getOrigSubImage(), roi, CV_BGR2GRAY);
 
     // size of neighbourhood area
-    static const int adaptiveBlockSize = 21;;
+    static const int adaptiveBlockSize = 23;;
     // constant which is substracted from mean of neighborhood area
     static const double adaptiveC      = 3;
     cv::Mat binarizedROI(roiSize, CV_8UC1);
@@ -64,10 +62,10 @@ std::vector<Grid> GridFitter::fitGrid(const Tag& tag, const TagCandidate &candid
                           cv::THRESH_BINARY, adaptiveBlockSize, adaptiveC);
 
 	// error function weights
-	static const double alpha_inner    = 150.0;
+	static const double alpha_inner    = 275.0;
 	static const double alpha_outer    = 100.0;
-	static const double alpha_variance = 50.0;
-	static const double alpha_edge     = 100.0;
+	static const double alpha_variance = 0.3;
+	static const double alpha_edge     = 5.0;
 
     // calculate error of given candidate grid
     auto evaluateCandidate = [&](PipelineGrid& grid) {
@@ -108,7 +106,7 @@ std::vector<Grid> GridFitter::fitGrid(const Tag& tag, const TagCandidate &candid
             // no branching => better performance
             outerCircleError += 255 - value;
         }
-        error += (alpha_outer * outerCircleError);// / outerRingCoordinates.total();
+        error += (alpha_outer * outerCircleError) / outerRingCoordinates.total();
 
         // compare inner white semicircle
         size_t innerWhiteError = 0;
@@ -117,7 +115,7 @@ std::vector<Grid> GridFitter::fitGrid(const Tag& tag, const TagCandidate &candid
             const uint8_t value      = subBinarized.at<uint8_t>(coords);
             innerWhiteError += 255 - value;
         }
-        error += (alpha_inner * innerWhiteError);// / innerWhiteCoordinates.total();
+        error += (alpha_inner * innerWhiteError) / innerWhiteCoordinates.total();
 
         // compare inner black semicircle
         size_t innerBlackError = 0;
@@ -126,15 +124,16 @@ std::vector<Grid> GridFitter::fitGrid(const Tag& tag, const TagCandidate &candid
             const uint8_t value      = subBinarized.at<uint8_t>(coords);
             innerBlackError += value;
         }
-        error += (alpha_inner * innerBlackError);// / innerBlackCoordinates.total();
+        error += (alpha_inner * innerBlackError) / innerBlackCoordinates.total();
 
         // compare outer edge
         size_t outerEdgeError = 0.;
-        for (const cv::Point2i& coords : grid.getOuterRingEdgeCoordinates()) {
+        auto const outerRingEdgeCoordinates = grid.getOuterRingEdgeCoordinates();
+        for (const cv::Point2i& coords : outerRingEdgeCoordinates) {
             const uint8_t value = subBinarized.at<uint8_t>(coords);
             outerEdgeError += value;
         }
-        error += (alpha_edge * outerEdgeError);// / innerBlackCoordinates.total();
+        error += (alpha_edge * outerEdgeError / outerRingEdgeCoordinates.size());
 
         error /= 255.;
 
@@ -171,9 +170,6 @@ std::vector<Grid> GridFitter::fitGrid(const Tag& tag, const TagCandidate &candid
 		return error;
 	};
 
-	// initial search parameter space
-	static const auto rotations = util::linspace<double>(0, 2 * CV_PI, 16);
-
     struct candidate_t {
         double error;
         PipelineGrid::gridconfig_t config;
@@ -187,33 +183,44 @@ std::vector<Grid> GridFitter::fitGrid(const Tag& tag, const TagCandidate &candid
         }
     };
 
+	// initial search parameter space
+	static const auto initial_rotations        = util::linspace<double>(0, 2 * CV_PI, 32);
+	static const auto initial_position_offsets = util::linspace<int>(-5, 5, 11);
+
+
     // initial search for gradiant descent candidates
     std::multiset<candidate_t> gridCandidates;
-    for (const double rotation : rotations) {
-        const std::array<PipelineGrid::gridconfig_t, 2> configCandidates =
-                Util::gridCandidatesFromEllipse(ellipse_orig, rotation);
-        for (PipelineGrid::gridconfig_t const& config : configCandidates) {
-            PipelineGrid candidate(config);
-            const double error = evaluateCandidate(candidate);
-            gridCandidates.insert({error, config});
+    for (const int pos_x_offset : initial_position_offsets) {
+        for (const int pos_y_offset : initial_position_offsets) {
+            for (const double rotation : initial_rotations) {
+                Ellipse ell(ellipse_orig);
+                ell.setCen(ellipse_orig.getCen() + cv::Point2i(pos_x_offset, pos_y_offset));
+                const std::array<PipelineGrid::gridconfig_t, 2> configCandidates =
+                        Util::gridCandidatesFromEllipse(ell, rotation);
+                for (PipelineGrid::gridconfig_t const& config : configCandidates) {
+                    PipelineGrid candidate(config);
+                    const double error = evaluateCandidate(candidate);
+                    gridCandidates.insert({error, config});
+                }
+            }
         }
     }
 
     std::cout << "min initial candidate error: " << gridCandidates.begin()->error << std::endl;
 
-    static const size_t num_best_gradient = 8;
-    static const size_t num_best_results  = 3;
+    static const size_t num_best_gradient = 2;
+    static const size_t num_best_results  = 1;
 
 	// gradient descent parameter space
-//	static const auto angle_z_offsets  = util::linspace<double>(-CV_PI / 20, CV_PI / 20, 5);
-//	static const auto angle_y_offsets  = util::linspace<double>(-CV_PI / 20, CV_PI / 20, 5);
-//	static const auto angle_x_offsets  = util::linspace<double>(-CV_PI / 20, CV_PI / 20, 5);
-	static const auto position_offsets = util::linspace<int>(-10, 10, 21);
-	static const auto scale_offsets    = util::linspace<double>(-0.3, 0.3, 7);
+	static const auto angle_z_offsets  = util::linspace<double>(-CV_PI / 20, CV_PI / 20, 9);
+	static const auto angle_y_offsets  = util::linspace<double>(-CV_PI / 20, CV_PI / 20, 9);
+	static const auto angle_x_offsets  = util::linspace<double>(-CV_PI / 20, CV_PI / 20, 9);
+	static const auto position_offsets = util::linspace<int>(-2, 2, 5);
+	static const auto scale_offsets    = util::linspace<double>(-0.1, 0.1, 3);
 
-	static const auto angle_z_offsets  = std::array<double, 1>({0});//util::linspace<double>(0, 0, 1);
-	static const auto angle_y_offsets  = std::array<double, 1>({0});//util::linspace<double>(0, 0, 1);
-	static const auto angle_x_offsets  = std::array<double, 1>({0});//util::linspace<double>(0, 0, 1);
+//	static const auto angle_z_offsets  = std::array<double, 1>({0});//util::linspace<double>(0, 0, 1);
+//	static const auto angle_y_offsets  = std::array<double, 1>({0});//util::linspace<double>(0, 0, 1);
+//	static const auto angle_x_offsets  = std::array<double, 1>({0});//util::linspace<double>(0, 0, 1);
 //	static const auto position_offsets = std::array<int, 1>({0});//util::linspace<int>(0, 0, 1);
 //	static const auto scale_offsets    = std::array<double, 1>({0});//util::linspace<double>(0, 0, 1);
 
@@ -264,36 +271,36 @@ std::vector<Grid> GridFitter::fitGrid(const Tag& tag, const TagCandidate &candid
 
 #ifdef DEBUG_GRIDFITTER
     cv::cvtColor(binarizedROI, binarizedROI, CV_GRAY2BGR);
-    {
-    const size_t to = std::min(num_best_gradient, gridCandidates.size());
-    size_t idx = 0;
-    for (candidate_t const& candidate : gridCandidates) {
-        std::vector<cv::Mat> images;
+//    {
+//    const size_t to = std::min(num_best_gradient, gridCandidates.size());
+//    size_t idx = 0;
+//    for (candidate_t const& candidate : gridCandidates) {
+//        std::vector<cv::Mat> images;
 
-        PipelineGrid grid(candidate.config);
+//        PipelineGrid grid(candidate.config);
 
-        images.push_back(tag.getOrigSubImage());
-        images.push_back(binarizedROI);
-        images.push_back(grid.getProjectedImage(roiSize));
+//        images.push_back(tag.getOrigSubImage());
+//        images.push_back(binarizedROI);
+//        images.push_back(grid.getProjectedImage(roiSize));
 
-        cv::Mat blendedBin;
-        cv::addWeighted(binarizedROI, 0.8, grid.getProjectedImage(roiSize), 0.2, 0.0, blendedBin);
-        images.push_back(blendedBin);
+//        cv::Mat blendedBin;
+//        cv::addWeighted(binarizedROI, 0.6, grid.getProjectedImage(roiSize), 0.4, 0.0, blendedBin);
+//        images.push_back(blendedBin);
 
-        cv::Mat blended;
-        cv::addWeighted(tag.getOrigSubImage(), 0.8, grid.getProjectedImage(roiSize), 0.2, 0.0, blended);
-        images.push_back(blended);
+//        cv::Mat blended;
+//        cv::addWeighted(tag.getOrigSubImage(), 0.8, grid.getProjectedImage(roiSize), 0.2, 0.0, blended);
+//        images.push_back(blended);
 
-        const auto canvas = CvHelper::makeCanvas(images, images[0].rows + 10, 1);
+//        const auto canvas = CvHelper::makeCanvas(images, images[0].rows + 10, 1);
 
-        std::string title("candidate (error: " + std::to_string(candidate.error) + ")");
-        cv::namedWindow(title);
-        cv::imshow(title, canvas);
+//        std::string title("candidate (error: " + std::to_string(candidate.error) + ")");
+//        cv::namedWindow(title);
+//        cv::imshow(title, canvas);
 
-        ++idx;
-        if (idx == to) break;
-    }
-    }
+//        ++idx;
+//        if (idx == to) break;
+//    }
+//    }
 
     const size_t to = std::min(num_best_results, bestGrids.size());
     size_t idx = 0;
@@ -307,7 +314,7 @@ std::vector<Grid> GridFitter::fitGrid(const Tag& tag, const TagCandidate &candid
         images.push_back(grid.getProjectedImage(roiSize));
 
         cv::Mat blendedBin;
-        cv::addWeighted(binarizedROI, 0.8, grid.getProjectedImage(roiSize), 0.2, 0.0, blendedBin);
+        cv::addWeighted(binarizedROI, 0.6, grid.getProjectedImage(roiSize), 0.4, 0.0, blendedBin);
         images.push_back(blendedBin);
 
         cv::Mat blended;
@@ -325,16 +332,17 @@ std::vector<Grid> GridFitter::fitGrid(const Tag& tag, const TagCandidate &candid
     }
 #endif
 
-	bool cont = true;
-	while (cont) {
-		const char c = cv::waitKey();
-		if (c == 'd') {
-			cv::destroyAllWindows();
-			cont = false;
-		} else if (c == 'c') {
-			cont = false;
-		}
-	}
+    cv::waitKey(1000);
+//	bool cont = true;
+//	while (cont) {
+//		const char c = cv::waitKey();
+//		if (c == 'd') {
+//			cv::destroyAllWindows();
+//			cont = false;
+//		} else if (c == 'c') {
+//			cont = false;
+//		}
+//	}
 
 
 	// TODO
