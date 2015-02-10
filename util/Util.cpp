@@ -7,7 +7,7 @@
 
 namespace Util {
 
-std::pair<PipelineGrid, PipelineGrid> gridCandidatesFromEllipse(const pipeline::Ellipse& ellipse, const double rotation)
+std::array<PipelineGrid::gridconfig_t, 2> gridCandidatesFromEllipse(const pipeline::Ellipse& ellipse, const double rotation)
 {
 	const cv::Point2i& cen = ellipse.getCen();
 	const cv::Size2i& axes = ellipse.getAxis();
@@ -40,7 +40,7 @@ std::pair<PipelineGrid, PipelineGrid> gridCandidatesFromEllipse(const pipeline::
         const cv::Point2i shiftedCen(static_cast<int>(cen.x + base_proj[0] * std::sin(roll) * major / Grid::FOCAL_LENGTH),
                                      static_cast<int>(cen.y + base_proj[1] * std::sin(roll) * major / Grid::FOCAL_LENGTH));
 
-        return PipelineGrid(shiftedCen, radius, angle_z, angle_y, angle_x);
+        return PipelineGrid::gridconfig_t { shiftedCen, radius, angle_z, angle_y, angle_x };
     };
 
     return {getGrid(ellipse_roll), getGrid(-ellipse_roll)};

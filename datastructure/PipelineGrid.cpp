@@ -19,6 +19,16 @@ PipelineGrid::PipelineGrid(cv::Point2i center, double radius, double angle_z, do
 	, _gridCellCoordinates(NUM_MIDDLE_CELLS)
 {}
 
+PipelineGrid::PipelineGrid(const PipelineGrid::gridconfig_t& config)
+	: PipelineGrid(config.center, config.radius, config.angle_z,
+				   config.angle_y, config.angle_x)
+{}
+
+PipelineGrid::gridconfig_t PipelineGrid::getConfig() const
+{
+	return {_center, _radius, _angle_z, _angle_y, _angle_x};
+}
+
 cv::Mat PipelineGrid::getProjectedImage(const cv::Size2i size) const
 {
 	static const cv::Scalar white(255, 255, 255);
@@ -263,6 +273,16 @@ const cv::Mat& PipelineGrid::getOuterRingCoordinates(const cv::Size2i& size)
 	return _outerRingCoordinates;
 }
 
+const std::vector<cv::Point2i> PipelineGrid::getOuterRingEdgeCoordinates()
+{
+	std::vector<cv::Point2i> coords(_coordinates2D[INDEX_OUTER_WHITE_RING]);
+	for (cv::Point2i& point : coords) {
+		point += _center;
+	}
+
+	return coords;
+}
+
 cv::Mat PipelineGrid::getRingPoly(const size_t ringIndex, const cv::Size2i& size)
 {
 	cv::Mat img(size, CV_8UC1, cv::Scalar::all(0));
@@ -271,5 +291,20 @@ cv::Mat PipelineGrid::getRingPoly(const size_t ringIndex, const cv::Size2i& size
     const int numpoints[1] = { static_cast<int>(_coordinates2D[ringIndex].size()) };
     cv::fillPoly(img, points, numpoints, 1, whiteC1, 8, 0, _center);
 
-	return img;
+    return img;
+}
+
+Grid::coordinates2D_t PipelineGrid::generate_3D_coordinates_from_parameters_and_project_to_2D()
+{
+	_innerWhiteRingCached = false;
+	_innerBlackRingCached = false;
+	_gridCellsCached      = false;
+	_outerRingCached      = false;
+
+	_innerWhiteRingCoordinates = cv::Mat();
+	_innerBlackRingCoordinates = cv::Mat();
+	_outerRingCoordinates = cv::Mat();
+	_gridCellCoordinates.clear();
+
+	return Grid::generate_3D_coordinates_from_parameters_and_project_to_2D();
 }

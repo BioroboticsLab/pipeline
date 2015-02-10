@@ -5,6 +5,6 @@
 
 namespace Util {
 
-std::pair<PipelineGrid, PipelineGrid> gridCandidatesFromEllipse(const pipeline::Ellipse& ellipse, const double rotation = 0);
+std::array<PipelineGrid::gridconfig_t, 2> gridCandidatesFromEllipse(const pipeline::Ellipse& ellipse, const double rotation = 0);
 
 }
