@@ -2,7 +2,7 @@
 
 #include "source/tracking/algorithm/BeesBook/Common/Grid.h"
 
-class PipelineGrid : Grid {
+class PipelineGrid : public Grid {
 public:
 	explicit PipelineGrid(cv::Point2i center, double radius, double angle_z, double angle_y, double angle_x);
 	virtual ~PipelineGrid() {}

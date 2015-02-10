@@ -113,7 +113,32 @@ const cv::Mat& PipelineGrid::getInnerWhiteRingCoordinates(const cv::Size2i& size
 {
 	if (_innerWhiteRingCached) return _innerWhiteRingCoordinates;
 
-	cv::findNonZero(getRingPoly(INDEX_INNER_WHITE_SEMICIRCLE, size), _innerWhiteRingCoordinates);
+    // determine bounding box of polygon
+    int minx = std::numeric_limits<int>::max();
+    int miny = std::numeric_limits<int>::max();
+    int maxx = std::numeric_limits<int>::min();
+    int maxy = std::numeric_limits<int>::min();
+    for (cv::Point2i const& point : _coordinates2D[INDEX_INNER_WHITE_SEMICIRCLE]) {
+            minx = std::min(minx, point.x);
+            miny = std::min(miny, point.y);
+            maxx = std::max(maxx, point.x);
+            maxy = std::max(maxy, point.y);
+    }
+    const cv::Rect boundingBox(minx + _center.x, miny + _center.y, maxx - minx, maxy - miny);
+
+    const cv::Mat img = getRingPoly(INDEX_INNER_WHITE_SEMICIRCLE, size);
+
+    cv::Mat& outputArray = _innerWhiteRingCoordinates;
+
+    // find non zero elements only inside of bounding box
+    cv::Mat roi;
+    roi = img(boundingBox);
+    cv::findNonZero(roi, outputArray);
+
+    // shift roi coordinates -> img coordinates
+    for (size_t idx = 0; idx < outputArray.total(); ++idx) {
+        outputArray.at<cv::Point2i>(idx) += boundingBox.tl();
+    }
 
 	_innerWhiteRingCached = true;
 	return _innerWhiteRingCoordinates;
@@ -123,7 +148,36 @@ const cv::Mat& PipelineGrid::getInnerBlackRingCoordinates(const cv::Size2i& size
 {
 	if (_innerBlackRingCached) return _innerBlackRingCoordinates;
 
-	cv::findNonZero(getRingPoly(INDEX_INNER_BLACK_SEMICIRCLE, size), _innerBlackRingCoordinates);
+    // determine bounding box of polygon
+    int minx = std::numeric_limits<int>::max();
+    int miny = std::numeric_limits<int>::max();
+    int maxx = std::numeric_limits<int>::min();
+    int maxy = std::numeric_limits<int>::min();
+    for (cv::Point2i const& point : _coordinates2D[INDEX_INNER_BLACK_SEMICIRCLE]) {
+        // TODO: debug points with invalid coordinates!
+        if (point.x + _center.x >= 0 && point.y + _center.y >= 0 &&
+                point.x + _center.x < size.width && point.y + _center.y < size.height) {
+            minx = std::min(minx, point.x);
+            miny = std::min(miny, point.y);
+            maxx = std::max(maxx, point.x);
+            maxy = std::max(maxy, point.y);
+        }
+    }
+    const cv::Rect boundingBox(minx + _center.x, miny + _center.y, maxx - minx, maxy - miny);
+
+    const cv::Mat img = getRingPoly(INDEX_INNER_BLACK_SEMICIRCLE, size);
+
+    cv::Mat& outputArray = _innerBlackRingCoordinates;
+
+    // find non zero elements only inside of bounding box
+    cv::Mat roi;
+    roi = img(boundingBox);
+    cv::findNonZero(roi, outputArray);
+
+    // shift roi coordinates -> img coordinates
+    for (size_t idx = 0; idx < outputArray.total(); ++idx) {
+        outputArray.at<cv::Point2i>(idx) += boundingBox.tl();
+    }
 
 	_innerBlackRingCached = true;
 	return _innerBlackRingCoordinates;
@@ -136,9 +190,40 @@ const std::vector<cv::Mat>& PipelineGrid::getGridCellCoordinates(const cv::Size2
 	cv::Mat img(size, CV_8UC1, cv::Scalar::all(0));
 	for (size_t i = INDEX_MIDDLE_CELLS_BEGIN; i < INDEX_MIDDLE_CELLS_BEGIN + NUM_MIDDLE_CELLS; ++i)
 	{
-		std::vector<std::vector<cv::Point>> points { _coordinates2D[i] };
-		cv::fillPoly(img, points, whiteC1, 8, 0, _center);
-		cv::findNonZero(img, _gridCellCoordinates[i - INDEX_MIDDLE_CELLS_BEGIN]);
+		// determine bounding box of polygon
+		int minx = std::numeric_limits<int>::max();
+		int miny = std::numeric_limits<int>::max();
+		int maxx = std::numeric_limits<int>::min();
+		int maxy = std::numeric_limits<int>::min();
+		for (cv::Point2i const& point : _coordinates2D[i]) {
+			// TODO: debug points with invalid coordinates!
+			if (point.x + _center.x >= 0 && point.y + _center.y >= 0 &&
+					point.x + _center.x < size.width && point.y + _center.y < size.height) {
+				minx = std::min(minx, point.x);
+				miny = std::min(miny, point.y);
+				maxx = std::max(maxx, point.x);
+				maxy = std::max(maxy, point.y);
+			}
+		}
+		const cv::Rect boundingBox(minx + _center.x, miny + _center.y, maxx - minx, maxy - miny);
+
+		// avoid copy
+		const cv::Point* points[1] = { &_coordinates2D[i].front() };
+		const int numpoints[1] = { static_cast<int>(_coordinates2D[i].size()) };
+		cv::fillPoly(img, points, numpoints, 1, whiteC1, 8, 0, _center);
+
+		cv::Mat& outputArray = _gridCellCoordinates[i - INDEX_MIDDLE_CELLS_BEGIN];
+
+		// find non zero elements only inside of bounding box
+		cv::Mat roi;
+		roi = img(boundingBox);
+		cv::findNonZero(roi, outputArray);
+
+        // shift roi coordinates -> img coordinates
+        for (size_t idx = 0; idx < outputArray.total(); ++idx) {
+            outputArray.at<cv::Point2i>(idx) += boundingBox.tl();
+        }
+
 		img.setTo(0);
 	}
 
@@ -182,10 +267,9 @@ cv::Mat PipelineGrid::getRingPoly(const size_t ringIndex, const cv::Size2i& size
 {
 	cv::Mat img(size, CV_8UC1, cv::Scalar::all(0));
 
-	// TODO: unnecessary overhead
-	typedef std::vector<std::vector<cv::Point>> pointvecvec_t;
-
-	cv::fillPoly(img, pointvecvec_t{_coordinates2D[ringIndex]}, whiteC1, 8, 0, _center);
+    const cv::Point* points[1] = { &_coordinates2D[ringIndex].front() };
+    const int numpoints[1] = { static_cast<int>(_coordinates2D[ringIndex].size()) };
+    cv::fillPoly(img, points, numpoints, 1, whiteC1, 8, 0, _center);
 
 	return img;
 }

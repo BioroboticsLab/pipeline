@@ -58,64 +58,144 @@ std::vector<Grid> GridFitter::fitGrid(const Tag& tag, const TagCandidate &candid
     // TODO: shouldn't be BGR in the first place
     cv::cvtColor(tag.getOrigSubImage(), roi, CV_BGR2GRAY);
 
+    cv::Mat binarizedROI(roiSize, CV_8UC1);
+    cv::adaptiveThreshold(roi, binarizedROI, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY, 21, 3);
+
 //    cv::Mat binarizedROI;
 //    cv::adaptiveThreshold(roi, binarizedROI, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY, 21, 3);
 
-	// TODO: use compile-time evaluation
-	static const auto pos_offsets   = util::linspace<int>(-2, 2, 1);
-	static const auto scale_offsets = util::linspace<int>(-1, 1, 1);
-	static const auto theta_offsets = util::linspace<double>(-0.3, 0.3, 0.1);
-	static const auto rotations     = util::linspace<double>(0., CV_PI, (CV_PI) / 64.);
+	static const auto pos_offsets   = util::linspace<int>(-2, 2, 5);
+	static const auto scale_offsets = util::linspace<int>(-2, 2, 5);
+	static const auto theta_offsets = util::linspace<double>(-0.2, 0.2, 5);
+	static const auto rotations     = util::linspace<double>(0, 2 * CV_PI, 32);
 
-    auto evaluateCandidate = [&](PipelineGrid& grid, Ellipse const& ellipse) {
+	static const double alpha_inner    = 4.0;
+	static const double alpha_outer    = 2.0;
+	static const double alpha_variance = 1.0;
+
+    auto evaluateCandidate = [&](PipelineGrid grid) {
         double error = 0;
 
+        const cv::Rect boundingBox = grid.getBoundingBox();
+
+        const cv::Point2i gridCenter = grid.getCenter();
+        // temporarily shift grid position so that top left corner is at
+        // position (0, 0) of boundingBox
+        // TODO: maybe it's better to adjust get*Coordinates functions so that
+        // they take the roi location into account
+        grid.setCenter(gridCenter - boundingBox.tl());
+
+        // define region of interest based on bounding box of grid candidate
+        cv::Mat subROI;
+        subROI = roi(boundingBox);
+        const cv::Size subROIsize = subROI.size();
+
+        cv::Mat subBinarized;
+        subBinarized = binarizedROI(boundingBox);
+
         // get coordinates of current grid configuration
-        const cv::Mat& outerRingCoordinates  = grid.getOuterRingCoordinates(roiSize);
-        const cv::Mat& innerWhiteCoordinates = grid.getInnerWhiteRingCoordinates(roiSize);
-        const cv::Mat& innerBlackCoordinates = grid.getInnerBlackRingCoordinates(roiSize);
-        const std::vector<cv::Mat>& cellCoordinates = grid.getGridCellCoordinates(roiSize);
+        const cv::Mat& outerRingCoordinates  = grid.getOuterRingCoordinates(subROIsize);
+        const cv::Mat& innerWhiteCoordinates = grid.getInnerWhiteRingCoordinates(subROIsize);
+        const cv::Mat& innerBlackCoordinates = grid.getInnerBlackRingCoordinates(subROIsize);
+        const std::vector<cv::Mat>& cellCoordinates = grid.getGridCellCoordinates(subROIsize);
 
-        cv::Mat maskedROI;
-        roi.copyTo(maskedROI, grid.getOuterRingMask(roiSize));
-
-        cv::Mat binarizedROI;
-        cv::adaptiveThreshold(maskedROI, binarizedROI, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY, 21, 3);
-
-        cv::cvtColor(binarizedROI, binarizedROI, CV_GRAY2BGR);
-        cv::namedWindow("test");
-        cv::imshow("test", binarizedROI);
-        cv::waitKey();
+//        cv::Mat errorMat(roiSize, CV_8UC1, cv::Scalar::all(128));
 
         // compare outer circle
         for (size_t idx = 0; idx < outerRingCoordinates.total(); ++idx) {
             const cv::Point2i coords = outerRingCoordinates.at<cv::Point2i>(idx);
-            const uint8_t pixel = binarizedROI.at<uint8_t>(coords);
+            const uint8_t pixel = subBinarized.at<uint8_t>(coords);
             assert(pixel == 0 || pixel == 255);
             // no branching for better performance
-            error += (255 - pixel);
+            error += alpha_outer * (255 - pixel);
+//            errorMat.at<uint8_t>(coords) = pixel;
         }
 
         // compare inner white semicircle
         for (size_t idx = 0; idx < innerWhiteCoordinates.total(); ++idx) {
             const cv::Point2i coords = innerWhiteCoordinates.at<cv::Point2i>(idx);
-            const uint8_t pixel = binarizedROI.at<uint8_t>(coords);
+            const uint8_t pixel = subBinarized.at<uint8_t>(coords);
             assert(pixel == 0 || pixel == 255);
             // no branching for better performance
-            error += (255 - pixel);
+            error += alpha_inner * (255 - pixel);
+//            errorMat.at<uint8_t>(coords) = pixel;
         }
 
         // compare inner black semicircle
         for (size_t idx = 0; idx < innerBlackCoordinates.total(); ++idx) {
             const cv::Point2i coords = innerBlackCoordinates.at<cv::Point2i>(idx);
-            const uint8_t pixel = binarizedROI.at<uint8_t>(coords);
+            const uint8_t pixel = subBinarized.at<uint8_t>(coords);
             assert(pixel == 0 || pixel == 255);
             // no branching for better performance
-            error += pixel;
+            error += alpha_inner * pixel;
+//            errorMat.at<uint8_t>(coords) = 255 - pixel;
         }
 
         error /= 255.;
 
+        // add variance of each grid cells to error
+        for (cv::Mat const& cell : cellCoordinates) {
+            size_t sum = 0;
+            for (size_t idx = 0; idx < cell.total(); ++idx) {
+                const cv::Point2i coords = cell.at<cv::Point2i>(idx);
+                const uint8_t pixel = subBinarized.at<uint8_t>(coords);
+                sum += pixel;
+            }
+            const double mean = static_cast<double>(sum) / static_cast<double>(cell.total());
+
+            double sum2 = 0;
+            for (size_t idx = 0; idx < cell.total(); ++idx) {
+                const cv::Point2i coords = cell.at<cv::Point2i>(idx);
+                const uint8_t pixel = subBinarized.at<uint8_t>(coords);
+                const double val = static_cast<double>(pixel);
+                sum2 += (val - mean) * (val - mean);
+            }
+
+            const double variance = (sum2 / (cell.total() - 1)) / 255.;
+
+//            for (size_t idx = 0; idx < cell.total(); ++idx) {
+//                const cv::Point2i coords = cell.at<cv::Point2i>(idx);
+//                errorMat.at<uint8_t>(coords) = 255 - static_cast<uint8_t>(variance);
+//            }
+
+            error += alpha_variance * variance;
+
+//            // online variance calculation
+//            // see: http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Online_algorithm
+//            double n = 0;
+//            double mean = 0;
+//            double m2 = 0;
+//            for (size_t idx = 0; idx < cell.total(); ++idx) {
+//                const cv::Point2i coords = cell.at<cv::Point2i>(idx);
+//                const uint8_t value = subBinarized.at<uint8_t>(coords);
+
+//                ++n;
+//                const double delta = (value / 255.) - mean;
+//                mean += (delta / n);
+//                m2 += delta * (value - mean);
+//            }
+
+//            const double var = m2 / (n - 1);
+//            error += var;
+        }
+
+//        std::cout << "error: " << error << std::endl;
+
+
+//        cv::cvtColor(errorMat, errorMat, CV_GRAY2BGR);
+//        cv::namedWindow("test");
+//        cv::imshow("test", errorMat);
+
+//        cv::cvtColor(subBinarized, subBinarized, CV_GRAY2BGR);
+//        cv::namedWindow("test2");
+//        cv::imshow("test2", subBinarized);
+
+//        cv::namedWindow("test3");
+//        cv::imshow("test3", roi);
+
+//        cv::namedWindow("test4");
+//        cv::imshow("test4", grid.getProjectedImage(roiSize));
+//        cv::waitKey();
 
 
 //        const cv::Mat firstCandidateImg  = grid.getProjectedImage(maskedROI.size());
@@ -128,37 +208,35 @@ std::vector<Grid> GridFitter::fitGrid(const Tag& tag, const TagCandidate &candid
 //        cv::Mat firstCandidateMaskGray;
 //        cv::cvtColor(firstCandidateMask, firstCandidateMaskGray, CV_BGR2GRAY);
 
-//        cv::Mat binarizedROImasked2;
-//        binarizedROImasked2.setTo(cv::Scalar(0));
-//        binarizedROI.copyTo(binarizedROImasked2, firstCandidateMaskGray);
-//        binarizedROI.copyTo(binarizedROImasked, ellipse.getMask());
+//        cv::Mat subBinarizedmasked2;
+//        subBinarizedmasked2.setTo(cv::Scalar(0));
+//        subBinarized.copyTo(subBinarizedmasked2, firstCandidateMaskGray);
+//        subBinarized.copyTo(subBinarizedmasked, ellipse.getMask());
 
 //        cv::cvtColor(firstCandidateMasked, firstCandidateMasked, CV_BGR2GRAY);
 
 //        cv::Mat firstDiff;
-//        cv::absdiff(binarizedROImasked2, firstCandidateMasked, firstDiff);
+//        cv::absdiff(subBinarizedmasked2, firstCandidateMasked, firstDiff);
 
 //        const double firstError  = cv::sum(firstDiff)[0] / static_cast<double>(firstDiff.rows * firstDiff.cols);
-        const double firstError = error;
 
-        if (firstError < min_error) {
-            min_error = firstError;
-            bestGrid = grid;
-
+        if (error < min_error) {
+            min_error = error;
 #ifdef DEBUG_GRIDFITTER2
-            cv::cvtColor(binarizedROImasked2, binarizedROImasked2, CV_GRAY2BGR);
-            cv::cvtColor(binarizedROImasked, binarizedROImasked, CV_GRAY2BGR);
+            cv::cvtColor(subBinarizedmasked2, subBinarizedmasked2, CV_GRAY2BGR);
+            cv::cvtColor(subBinarizedmasked, subBinarizedmasked, CV_GRAY2BGR);
             cv::cvtColor(firstDiff, firstDiff, CV_GRAY2BGR);
             cv::cvtColor(firstCandidateMasked, firstCandidateMasked, CV_GRAY2BGR);
 
             cv::Mat blended;
             cv::addWeighted(firstCandidateImg, 0.2, maskedROI, 0.8, 0.0, blended);
 
-            images = std::vector<cv::Mat>({maskedROI, binarizedROImasked, firstCandidateImg, firstCandidateMask, firstCandidateMasked, binarizedROImasked2, firstDiff, blended});
+            images = std::vector<cv::Mat>({maskedROI, subBinarizedmasked, firstCandidateImg, firstCandidateMask, firstCandidateMasked, subBinarizedmasked2, firstDiff, blended});
 #endif
-        }
 
-		std::cout << "first error: " << firstError << std::endl;
+            grid.setCenter(gridCenter);
+            bestGrid = std::move(grid);
+        }
 	};
 
 	auto evaluate = [&](const int offset_x, const int offset_y, const double rotation,
@@ -203,8 +281,8 @@ std::vector<Grid> GridFitter::fitGrid(const Tag& tag, const TagCandidate &candid
 //            cv::waitKey();
 //        }
 
-        evaluateCandidate(gridCandidates.first, ellipse);
-        evaluateCandidate(gridCandidates.second, ellipse);
+        evaluateCandidate(std::move(gridCandidates.first));
+        evaluateCandidate(std::move(gridCandidates.second));
     };
 
 	for (const double rotation : rotations) {
@@ -236,6 +314,26 @@ std::vector<Grid> GridFitter::fitGrid(const Tag& tag, const TagCandidate &candid
     cv::addWeighted(tag.getOrigSubImage(), 0.8, (*bestGrid).getProjectedImage(roiSize), 0.2, 0.0, blended);
 
     images.push_back(blended);
+
+    cv::Mat outerCircle(roi.size().width, roi.size().height, CV_8UC1, cv::Scalar::all(128));
+    auto const coords = (*bestGrid).getOuterRingCoordinates(roi.size());
+    for (size_t idx = 0; idx < coords.total(); ++idx) {
+        const cv::Point2i coord = coords.at<cv::Point2i>(idx);
+        outerCircle.at<uint8_t>(coord) = 255;
+    }
+    auto const coords2 = (*bestGrid).getInnerWhiteRingCoordinates(roi.size());
+    for (size_t idx = 0; idx < coords2.total(); ++idx) {
+        const cv::Point2i coord = coords2.at<cv::Point2i>(idx);
+        outerCircle.at<uint8_t>(coord) = 255;
+    }
+    auto const coords3 = (*bestGrid).getInnerBlackRingCoordinates(roi.size());
+    for (size_t idx = 0; idx < coords3.total(); ++idx) {
+        const cv::Point2i coord = coords3.at<cv::Point2i>(idx);
+        outerCircle.at<uint8_t>(coord) = 0;
+    }
+    cv::cvtColor(outerCircle, outerCircle, CV_GRAY2BGR);
+
+    images.push_back(outerCircle);
 
     const auto canvas = CvHelper::makeCanvas(images, images[0].rows + 10, 1);
 
