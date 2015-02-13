@@ -41,7 +41,8 @@ std::vector<Tag> GridFitter::process(std::vector<Tag> &&taglist)
 	return taglist;
 }
 
-#define DEBUG_GRIDFITTER
+//#define DEBUG_GRIDFITTER
+//#define DEBUG_GRIDFITTER_HIST
 
 std::vector<Grid> GridFitter::fitGrid(const Tag& tag, const TagCandidate &candidate)
 {
@@ -60,6 +61,31 @@ std::vector<Grid> GridFitter::fitGrid(const Tag& tag, const TagCandidate &candid
     cv::Mat binarizedROI(roiSize, CV_8UC1);
     cv::adaptiveThreshold(roi, binarizedROI, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C,
                           cv::THRESH_BINARY, adaptiveBlockSize, adaptiveC);
+
+#ifdef DEBUG_GRIDFITTER_HIST
+    // calculate histogram
+    cv::Mat hist;
+    const cv::Mat images[1] = { roi };
+    const int channels[1] = { 0 };
+    const int bins = 256;
+    const int histsize[1] = { bins };
+    const float range[] = { 0.f, 256.f };
+    const float* ranges[] = { range };
+    cv::calcHist(images, 1, channels, ellipse_orig.getMask(), hist, 1, histsize, ranges);
+
+    float max = 0;
+    for (size_t idx = 0; idx < bins; ++idx) {
+        float val = hist.at<float>(idx);
+        max = std::max(max, val);
+    }
+
+    int height = static_cast<int>(max);
+    cv::Mat histImg = cv::Mat(height, bins, CV_8UC3, cv::Scalar::all(255));
+    for (size_t idx = 0; idx < bins; ++idx) {
+        float val = hist.at<float>(idx);
+        cv::line(histImg, cv::Point2i(idx, height), cv::Point2i(idx, height - static_cast<int>(val)), cv::Scalar::all(0));
+    }
+#endif
 
 	// error function weights
 	static const double alpha_inner    = 275.0;
@@ -302,6 +328,9 @@ std::vector<Grid> GridFitter::fitGrid(const Tag& tag, const TagCandidate &candid
 //    }
 //    }
 
+    cv::namedWindow("hist");
+    cv::imshow("hist", histImg);
+
     const size_t to = std::min(num_best_results, bestGrids.size());
     size_t idx = 0;
     for (candidate_t const& candidate : bestGrids) {
@@ -330,23 +359,32 @@ std::vector<Grid> GridFitter::fitGrid(const Tag& tag, const TagCandidate &candid
         ++idx;
         if (idx == to) break;
     }
+
+	bool cont = true;
+	while (cont) {
+		const char c = cv::waitKey();
+		if (c == 'd') {
+			cv::destroyAllWindows();
+			cont = false;
+		} else if (c == 'c') {
+			cont = false;
+		}
+	}
 #endif
 
-    cv::waitKey(1000);
-//	bool cont = true;
-//	while (cont) {
-//		const char c = cv::waitKey();
-//		if (c == 'd') {
-//			cv::destroyAllWindows();
-//			cont = false;
-//		} else if (c == 'c') {
-//			cont = false;
-//		}
-//	}
+    std::vector<Grid> results;
+    {
+        const size_t to = std::min(num_best_results, bestGrids.size());
+        size_t idx = 0;
+        for (candidate_t const& candidate : bestGrids) {
+            PipelineGrid::gridconfig_t const& config = candidate.config;
+            results.emplace_back(config.center, config.radius, config.angle_z, config.angle_y, config.angle_x);
 
+            ++idx;
+            if (idx == to) break;
+        }
+    }
 
-	// TODO
-	return std::vector<Grid>();
+    return results;
 }
-
 }
