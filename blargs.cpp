@@ -247,18 +247,15 @@ static const int FilterTable[] = {
 
 void LineAA(cv::Mat& img, cv::Point pt1, cv::Point pt2, const void* color)
 {
-    int dx, dy;
     int ecount, scount = 0;
     int slope;
-    int ax, ay;
     int x_step, y_step;
-    int i, j;
     int ep_table[9];
-    int cb = static_cast<const uchar*>(color)[0], cg = static_cast<const uchar*>(color)[1], cr = static_cast<const uchar*>(color)[2];
+    const int cb = static_cast<const uchar*>(color)[0], cg = static_cast<const uchar*>(color)[1], cr = static_cast<const uchar*>(color)[2];
     int _cb, _cg, _cr;
-    int nch = img.channels();
+    const int nch = img.channels();
     uchar* ptr = img.data;
-    size_t step = img.step;
+    size_t const step = img.step;
     cv::Size size = img.size();
 
     if( !((nch == 1 || nch == 3) && img.depth() == CV_8U) )
@@ -279,13 +276,13 @@ void LineAA(cv::Mat& img, cv::Point pt1, cv::Point pt2, const void* color)
     if( !clipLine( size, pt1, pt2 ))
         return;
 
-    dx = pt2.x - pt1.x;
-    dy = pt2.y - pt1.y;
+    int dx = pt2.x - pt1.x;
+    int dy = pt2.y - pt1.y;
 
-    j = dx < 0 ? -1 : 0;
-    ax = (dx ^ j) - j;
-    i = dy < 0 ? -1 : 0;
-    ay = (dy ^ i) - i;
+    int j = dx < 0 ? -1 : 0;
+    const int ax = (dx ^ j) - j;
+    int i = dy < 0 ? -1 : 0;
+    const int ay = (dy ^ i) - i;
 
     if( ax > ay )
     {
