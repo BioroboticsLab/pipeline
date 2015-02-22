@@ -21,11 +21,11 @@ void Line(cv::Mat& img, cv::Point pt1, cv::Point pt2, const void* _color, int co
         connectivity = 4;
 
     cv::LineIterator iterator(img, pt1, pt2, connectivity, true);
-    int i, count = iterator.count;
-    int pix_size = static_cast<int>(img.elemSize());
-    const uchar* color = static_cast<const uchar*>(_color);
+    const int count = iterator.count;
+    const int pix_size = static_cast<int>(img.elemSize());
+    const uchar* const color = static_cast<const uchar*>(_color);
 
-    for( i = 0; i < count; i++, ++iterator )
+    for(int i = 0; i < count; i++, ++iterator )
     {
         uchar* ptr = *iterator;
         if( pix_size == 1 )
@@ -43,31 +43,31 @@ void Line(cv::Mat& img, cv::Point pt1, cv::Point pt2, const void* _color, int co
 
 void Line2(cv::Mat& img, cv::Point pt1, cv::Point pt2, const void* color)
 {
-    int dx, dy;
     int ecount;
-    int ax, ay;
-    int i, j, x, y;
+    int x, y;
     int x_step, y_step;
     int cb = static_cast<const uchar*>(color)[0];
     int cg = static_cast<const uchar*>(color)[1];
     int cr = static_cast<const uchar*>(color)[2];
-    int pix_size = static_cast<int>(img.elemSize());
-    uchar *ptr = img.data, *tptr;
-    size_t step = img.step;
-    cv::Size size = img.size(), sizeScaled(size.width*XY_ONE, size.height*XY_ONE);
+    const int pix_size = static_cast<int>(img.elemSize());
+    uchar *const ptr = img.data;
+    uchar *tptr;
+    const size_t step = img.step;
+    const cv::Size size = img.size();
+    const cv::Size sizeScaled(size.width*XY_ONE, size.height*XY_ONE);
 
     //assert( img && (nch == 1 || nch == 3) && img.depth() == CV_8U );
 
-    if( !clipLine( sizeScaled, pt1, pt2 ))
+    if( !cv::clipLine( sizeScaled, pt1, pt2 ))
         return;
 
-    dx = pt2.x - pt1.x;
-    dy = pt2.y - pt1.y;
+    int dx = pt2.x - pt1.x;
+    int dy = pt2.y - pt1.y;
 
-    j = dx < 0 ? -1 : 0;
-    ax = (dx ^ j) - j;
-    i = dy < 0 ? -1 : 0;
-    ay = (dy ^ i) - i;
+    const int j = dx < 0 ? -1 : 0;
+    const int ax = (dx ^ j) - j;
+    const int i = dy < 0 ? -1 : 0;
+    const int ay = (dy ^ i) - i;
 
     if( ax > ay )
     {
@@ -195,7 +195,7 @@ void Line2(cv::Mat& img, cv::Point pt1, cv::Point pt2, const void* color)
             0 <= y && y < size.height ) \
         {                               \
             tptr = ptr + y*step + x*pix_size;\
-            for( j = 0; j < pix_size; j++ ) \
+            for(int j = 0; j < pix_size; j++ ) \
                 tptr[j] = static_cast<const uchar*>(color)[j]; \
         }
 
