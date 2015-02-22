@@ -22,8 +22,8 @@ void Line(cv::Mat& img, cv::Point pt1, cv::Point pt2, const void* _color, int co
 
     cv::LineIterator iterator(img, pt1, pt2, connectivity, true);
     int i, count = iterator.count;
-    int pix_size = (int)img.elemSize();
-    const uchar* color = (const uchar*)_color;
+    int pix_size = static_cast<int>(img.elemSize());
+    const uchar* color = static_cast<const uchar*>(_color);
 
     for( i = 0; i < count; i++, ++iterator )
     {
@@ -48,10 +48,10 @@ void Line2(cv::Mat& img, cv::Point pt1, cv::Point pt2, const void* color)
     int ax, ay;
     int i, j, x, y;
     int x_step, y_step;
-    int cb = ((uchar*)color)[0];
-    int cg = ((uchar*)color)[1];
-    int cr = ((uchar*)color)[2];
-    int pix_size = (int)img.elemSize();
+    int cb = static_cast<const uchar*>(color)[0];
+    int cg = static_cast<const uchar*>(color)[1];
+    int cr = static_cast<const uchar*>(color)[2];
+    int pix_size = static_cast<int>(img.elemSize());
     uchar *ptr = img.data, *tptr;
     size_t step = img.step;
     cv::Size size = img.size(), sizeScaled(size.width*XY_ONE, size.height*XY_ONE);
@@ -81,7 +81,7 @@ void Line2(cv::Mat& img, cv::Point pt1, cv::Point pt2, const void* color)
         pt1.y ^= pt2.y & j;
 
         x_step = XY_ONE;
-        y_step = (int) (((int64) dy << XY_SHIFT) / (ax | 1));
+        y_step = static_cast<int>((static_cast<int64>(dy) << XY_SHIFT) / (ax | 1));
         ecount = (pt2.x - pt1.x) >> XY_SHIFT;
     }
     else
@@ -95,7 +95,7 @@ void Line2(cv::Mat& img, cv::Point pt1, cv::Point pt2, const void* color)
         pt2.y ^= pt1.y & i;
         pt1.y ^= pt2.y & i;
 
-        x_step = (int) (((int64) dx << XY_SHIFT) / (ay | 1));
+        x_step = static_cast<int>((static_cast<int64>(dx) << XY_SHIFT) / (ay | 1));
         y_step = XY_ONE;
         ecount = (pt2.y - pt1.y) >> XY_SHIFT;
     }
@@ -111,9 +111,9 @@ void Line2(cv::Mat& img, cv::Point pt1, cv::Point pt2, const void* color)
             0 <= y && y < size.height ) \
         {                               \
             tptr = ptr + y*step + x*3;  \
-            tptr[0] = (uchar)cb;        \
-            tptr[1] = (uchar)cg;        \
-            tptr[2] = (uchar)cr;        \
+            tptr[0] = static_cast<uchar>(cb);        \
+            tptr[1] = static_cast<uchar>(cg);        \
+            tptr[2] = static_cast<uchar>(cr);        \
         }
 
         ICV_PUT_POINT((pt2.x + (XY_ONE >> 1)) >> XY_SHIFT,
@@ -154,7 +154,7 @@ void Line2(cv::Mat& img, cv::Point pt1, cv::Point pt2, const void* color)
             0 <= y && y < size.height ) \
         {                           \
             tptr = ptr + y*step + x;\
-            tptr[0] = (uchar)cb;    \
+            tptr[0] = static_cast<uchar>(cb);    \
         }
 
         ICV_PUT_POINT((pt2.x + (XY_ONE >> 1)) >> XY_SHIFT,
@@ -196,7 +196,7 @@ void Line2(cv::Mat& img, cv::Point pt1, cv::Point pt2, const void* color)
         {                               \
             tptr = ptr + y*step + x*pix_size;\
             for( j = 0; j < pix_size; j++ ) \
-                tptr[j] = ((uchar*)color)[j]; \
+                tptr[j] = static_cast<const uchar*>(color)[j]; \
         }
 
         ICV_PUT_POINT((pt2.x + (XY_ONE >> 1)) >> XY_SHIFT,
@@ -254,7 +254,7 @@ void LineAA(cv::Mat& img, cv::Point pt1, cv::Point pt2, const void* color)
     int x_step, y_step;
     int i, j;
     int ep_table[9];
-    int cb = ((uchar*)color)[0], cg = ((uchar*)color)[1], cr = ((uchar*)color)[2];
+    int cb = static_cast<const uchar*>(color)[0], cg = static_cast<const uchar*>(color)[1], cr = static_cast<const uchar*>(color)[2];
     int _cb, _cg, _cr;
     int nch = img.channels();
     uchar* ptr = img.data;
@@ -299,11 +299,11 @@ void LineAA(cv::Mat& img, cv::Point pt1, cv::Point pt2, const void* color)
         pt1.y ^= pt2.y & j;
 
         x_step = XY_ONE;
-        y_step = (int) (((int64) dy << XY_SHIFT) / (ax | 1));
+        y_step = static_cast<int>((static_cast<int64>(dy) << XY_SHIFT) / (ax | 1));
         pt2.x += XY_ONE;
         ecount = (pt2.x >> XY_SHIFT) - (pt1.x >> XY_SHIFT);
         j = -(pt1.x & (XY_ONE - 1));
-        pt1.y += (int) ((((int64) y_step) * j) >> XY_SHIFT) + (XY_ONE >> 1);
+        pt1.y += static_cast<int>((static_cast<int64>(y_step) * j) >> XY_SHIFT) + (XY_ONE >> 1);
         slope = (y_step >> (XY_SHIFT - 5)) & 0x3f;
         slope ^= (y_step < 0 ? 0x3f : 0);
 
@@ -322,12 +322,12 @@ void LineAA(cv::Mat& img, cv::Point pt1, cv::Point pt2, const void* color)
         pt2.y ^= pt1.y & i;
         pt1.y ^= pt2.y & i;
 
-        x_step = (int) (((int64) dx << XY_SHIFT) / (ay | 1));
+        x_step = static_cast<int>((static_cast<int64>(dx) << XY_SHIFT) / (ay | 1));
         y_step = XY_ONE;
         pt2.y += XY_ONE;
         ecount = (pt2.y >> XY_SHIFT) - (pt1.y >> XY_SHIFT);
         j = -(pt1.y & (XY_ONE - 1));
-        pt1.x += (int) ((((int64) x_step) * j) >> XY_SHIFT) + (XY_ONE >> 1);
+        pt1.x += static_cast<int>((static_cast<int64>(x_step) * j) >> XY_SHIFT) + (XY_ONE >> 1);
         slope = (x_step >> (XY_SHIFT - 5)) & 0x3f;
         slope ^= (x_step < 0 ? 0x3f : 0);
 
@@ -364,9 +364,9 @@ void LineAA(cv::Mat& img, cv::Point pt1, cv::Point pt2, const void* color)
             _cg += ((cg - _cg)*a + 127)>> 8;\
             _cr = tptr[2];                  \
             _cr += ((cr - _cr)*a + 127)>> 8;\
-            tptr[0] = (uchar)_cb;           \
-            tptr[1] = (uchar)_cg;           \
-            tptr[2] = (uchar)_cr;           \
+            tptr[0] = static_cast<uchar>(_cb);           \
+            tptr[1] = static_cast<uchar>(_cg);           \
+            tptr[2] = static_cast<uchar>(_cr);           \
         }
         if( ax > ay )
         {
@@ -440,7 +440,7 @@ void LineAA(cv::Mat& img, cv::Point pt1, cv::Point pt2, const void* color)
         {                                   \
             _cb = tptr[0];                  \
             _cb += ((cb - _cb)*a + 127)>> 8;\
-            tptr[0] = (uchar)_cb;           \
+            tptr[0] = static_cast<uchar>(_cb);           \
         }
 
         if( ax > ay )
@@ -514,7 +514,7 @@ void LineAA(cv::Mat& img, cv::Point pt1, cv::Point pt2, const void* color)
 void fillConvexPoly(cv::InputOutputArray _img, cv::InputArray _points, const cv::Scalar& color, int line_type, int shift) {
 	cv::Mat img = _img.getMat(), points = _points.getMat();
 	CV_Assert(points.checkVector(2, CV_32S) >= 0);
-	heyho::fillConvexPoly(img, (const cv::Point*)points.data, points.rows*points.cols*points.channels()/2, color, line_type, shift);
+	heyho::fillConvexPoly(img, reinterpret_cast<const cv::Point*>(points.data), points.rows*points.cols*points.channels()/2, color, line_type, shift);
 }
 
 void fillConvexPoly(cv::Mat& img, const cv::Point* pts, int npts, const cv::Scalar& color, int line_type, int shift)
@@ -542,15 +542,15 @@ void fillConvexPoly(cv::Mat& img, const cv::Point* pts, int npts, const cv::Scal
 /* helper macros: filling horizontal row */
 #define ICV_HLINE( ptr, xl, xr, color, pix_size )            \
 {                                                            \
-    uchar* hline_ptr = (uchar*)(ptr) + (xl)*(pix_size);      \
-    uchar* hline_max_ptr = (uchar*)(ptr) + (xr)*(pix_size);  \
+    uchar* hline_ptr = static_cast<uchar*>(ptr) + (xl)*(pix_size);      \
+    uchar* hline_max_ptr = static_cast<uchar*>(ptr) + (xr)*(pix_size);  \
                                                              \
     for( ; hline_ptr <= hline_max_ptr; hline_ptr += (pix_size))\
     {                                                        \
         int hline_j;                                         \
         for( hline_j = 0; hline_j < (pix_size); hline_j++ )  \
         {                                                    \
-            hline_ptr[hline_j] = ((uchar*)color)[hline_j];   \
+            hline_ptr[hline_j] = static_cast<const uchar*>(color)[hline_j];   \
         }                                                    \
     }                                                        \
 }
@@ -572,7 +572,7 @@ void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* colo
     int xmin, xmax, ymin, ymax;
     uchar* ptr = img.data;
     cv::Size size = img.size();
-    int pix_size = (int)img.elemSize();
+    int pix_size = static_cast<int>(img.elemSize());
     cv::Point p0;
     int delta1, delta2;
 
