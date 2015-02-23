@@ -111,9 +111,6 @@ cv::Point2i PipelineGrid::getOuterRingCentroid() const
 		sumy += point.y;
 	}
 	const int64_t num = _coordinates2D[INDEX_OUTER_WHITE_RING].size();
-	std::cout << sumx << std::endl;
-	std::cout << sumy << std::endl;
-	std::cout << num << std::endl;
 	const cv::Point2i centroid(static_cast<int>(sumx / num), static_cast<int>(sumy / num));
 
 	return centroid;
@@ -129,11 +126,17 @@ const cv::Mat& PipelineGrid::getInnerWhiteRingCoordinates(const cv::Size2i& size
     int maxx = std::numeric_limits<int>::min();
     int maxy = std::numeric_limits<int>::min();
     for (cv::Point2i const& point : _coordinates2D[INDEX_INNER_WHITE_SEMICIRCLE]) {
-            minx = std::min(minx, point.x);
-            miny = std::min(miny, point.y);
-            maxx = std::max(maxx, point.x);
-            maxy = std::max(maxy, point.y);
+		minx = std::min(minx, point.x);
+		miny = std::min(miny, point.y);
+		maxx = std::max(maxx, point.x);
+		maxy = std::max(maxy, point.y);
     }
+	if ((minx == std::numeric_limits<int>::max()) || (miny == std::numeric_limits<int>::max()) ||
+		(maxx == std::numeric_limits<int>::min()) || (maxy == std::numeric_limits<int>::min()) ||
+	    _coordinates2D[INDEX_INNER_WHITE_SEMICIRCLE].size() == 0) {
+		_innerWhiteRingCached = true;
+		return _innerWhiteRingCoordinates;
+	}
     const cv::Rect boundingBox(minx + _center.x, miny + _center.y, maxx - minx, maxy - miny);
 
     const cv::Mat img = getRingPoly(INDEX_INNER_WHITE_SEMICIRCLE, size);
@@ -173,6 +176,11 @@ const cv::Mat& PipelineGrid::getInnerBlackRingCoordinates(const cv::Size2i& size
             maxy = std::max(maxy, point.y);
         }
     }
+	if (minx == std::numeric_limits<int>::max() || miny == std::numeric_limits<int>::max() ||
+		maxx == std::numeric_limits<int>::min() || maxy == std::numeric_limits<int>::min()) {
+		_innerBlackRingCached = true;
+		return _innerBlackRingCoordinates;
+	}
     const cv::Rect boundingBox(minx + _center.x, miny + _center.y, maxx - minx, maxy - miny);
 
     const cv::Mat img = getRingPoly(INDEX_INNER_BLACK_SEMICIRCLE, size);
@@ -214,6 +222,10 @@ const std::vector<cv::Mat>& PipelineGrid::getGridCellCoordinates(const cv::Size2
 				maxx = std::max(maxx, point.x);
 				maxy = std::max(maxy, point.y);
 			}
+		}
+		if (minx == std::numeric_limits<int>::max() || miny == std::numeric_limits<int>::max() ||
+		    maxx == std::numeric_limits<int>::min() || maxy == std::numeric_limits<int>::min()) {
+			continue;
 		}
 		const cv::Rect boundingBox(minx + _center.x, miny + _center.y, maxx - minx, maxy - miny);
 
