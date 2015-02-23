@@ -51,8 +51,9 @@ struct compare {
 	const cv::Size axes;
 	const int angle;
 
-	template<int img_type, int line_type>
+	template<typename pixel_t, int line_type>
 	bool operator()() const {
+		constexpr int img_type = cv::DataType<pixel_t>::type;
 		constexpr int shift = 0;
 		const int dim = 2 * std::max(axes.width, axes.height) + 10;
 		const cv::Point center(dim / 2, dim / 2);
@@ -63,7 +64,7 @@ struct compare {
 		cv::fillConvexPoly(img1, points, default_color<img_type>(), line_type, shift);
 
 		cv::Mat img2(dim, dim, img_type, white<img_type>());
-		heyho::fillConvexPoly(img2, points, default_color<img_type>(), line_type);
+		heyho::fillConvexPoly<pixel_t>(img2, points, default_color<img_type>(), line_type);
 
 		return 0 == std::memcmp(img1.datastart, img2.datastart, img1.dataend - img1.datastart);
 	}
@@ -81,17 +82,22 @@ struct foreach {
 		// img_types:  {CV_8UC1, CV_8UC3, CV_32FC1, CV_32FC3}
 		// line_types: {8, 4, CV_AA}
 
-		if (! f.operator()<CV_8UC1,  8    >() ) {throw std::runtime_error("");}
-		if (! f.operator()<CV_8UC1,  4    >() ) {throw std::runtime_error("");}
+		using t_8UC1 = uint8_t;
+		using t_8UC3 = cv::Vec<uint8_t, 3>;
+		using t_32FC1 = float;
+		using t_32FC3 = cv::Vec<float, 3>;
 
-		if (! f.operator()<CV_8UC3,  8    >() ) {throw std::runtime_error("");}
-		if (! f.operator()<CV_8UC3,  4    >() ) {throw std::runtime_error("");}
+		if (! f.operator()<t_8UC1,  8    >() ) {throw std::runtime_error("");}
+		if (! f.operator()<t_8UC1,  4    >() ) {throw std::runtime_error("");}
 
-		if (! f.operator()<CV_32FC1, 8    >() ) {throw std::runtime_error("");}
-		if (! f.operator()<CV_32FC1, 4    >() ) {throw std::runtime_error("");}
+		if (! f.operator()<t_8UC3,  8    >() ) {throw std::runtime_error("");}
+		if (! f.operator()<t_8UC3,  4    >() ) {throw std::runtime_error("");}
 
-		if (! f.operator()<CV_32FC3, 8    >() ) {throw std::runtime_error("");}
-		if (! f.operator()<CV_32FC3, 4    >() ) {throw std::runtime_error("");}
+		if (! f.operator()<t_32FC1, 8    >() ) {throw std::runtime_error("");}
+		if (! f.operator()<t_32FC1, 4    >() ) {throw std::runtime_error("");}
+
+		if (! f.operator()<t_32FC3, 8    >() ) {throw std::runtime_error("");}
+		if (! f.operator()<t_32FC3, 4    >() ) {throw std::runtime_error("");}
 	}
 
 };
