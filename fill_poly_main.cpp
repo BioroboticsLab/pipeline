@@ -13,6 +13,94 @@
 #include <vector>
 #include <cmath>
 #include <chrono>
+#include <exception>
+#include <cstring>
+#include "blargs.h"
+
+
+
+template<int>
+cv::Scalar white();
+template<>
+inline cv::Scalar white<CV_8UC1>() { return {255}; }
+template<>
+inline cv::Scalar white<CV_8UC3>() { return {255, 255, 255}; }
+template<>
+inline cv::Scalar white<CV_32FC1>() { return {1.0f}; }
+template<>
+inline cv::Scalar white<CV_32FC3>() { return {1.0f, 1.0f, 1.0f}; }
+
+
+template<int>
+cv::Scalar default_color();
+template<>
+inline cv::Scalar default_color<CV_8UC1>() { return {127}; }
+template<>
+inline cv::Scalar default_color<CV_8UC3>() { return {127, 255, 5}; }
+template<>
+inline cv::Scalar default_color<CV_32FC1>() { return {0.4f}; }
+template<>
+inline cv::Scalar default_color<CV_32FC3>() { return {1.0f, 0.0f, 0.2f}; }
+
+
+/**
+ * compares cv::fillConvexPoly & heyho::fillConvexPoly
+ */
+struct compare {
+
+	const cv::Size axes;
+	const int angle;
+
+	template<int img_type, int line_type>
+	bool operator()() const {
+		constexpr int shift = 0;
+		const int dim = 2 * std::max(axes.width, axes.height) + 10;
+		const cv::Point center(dim / 2, dim / 2);
+		std::vector<cv::Point> points;
+		cv::ellipse2Poly(center, axes, angle, 0, 360, 1, points);
+
+		cv::Mat img1(dim, dim, img_type, white<img_type>());
+		cv::fillConvexPoly(img1, points, default_color<img_type>(), line_type, shift);
+
+		cv::Mat img2(dim, dim, img_type, white<img_type>());
+		heyho::fillConvexPoly(img2, points, default_color<img_type>(), line_type, shift);
+
+		return 0 == std::memcmp(img1.datastart, img2.datastart, img1.dataend - img1.datastart);
+	}
+};
+
+
+/**
+ * calls f with each combination of CV image type & CV line type
+ */
+struct foreach {
+
+	template<typename F>
+	void operator()(F f) const {
+
+		// img_types:  {CV_8UC1, CV_8UC3, CV_32FC1, CV_32FC3}
+		// line_types: {8, 4, CV_AA}
+
+		if (! f.operator()<CV_8UC1,  8    >() ) {throw std::runtime_error("");}
+		if (! f.operator()<CV_8UC1,  4    >() ) {throw std::runtime_error("");}
+		if (! f.operator()<CV_8UC1,  CV_AA>() ) {throw std::runtime_error("");}
+
+		if (! f.operator()<CV_8UC3,  8    >() ) {throw std::runtime_error("");}
+		if (! f.operator()<CV_8UC3,  4    >() ) {throw std::runtime_error("");}
+		if (! f.operator()<CV_8UC3,  CV_AA>() ) {throw std::runtime_error("");}
+
+		if (! f.operator()<CV_32FC1, 8    >() ) {throw std::runtime_error("");}
+		if (! f.operator()<CV_32FC1, 4    >() ) {throw std::runtime_error("");}
+		if (! f.operator()<CV_32FC1, CV_AA>() ) {throw std::runtime_error("");}
+
+		if (! f.operator()<CV_32FC3, 8    >() ) {throw std::runtime_error("");}
+		if (! f.operator()<CV_32FC3, 4    >() ) {throw std::runtime_error("");}
+		if (! f.operator()<CV_32FC3, CV_AA>() ) {throw std::runtime_error("");}
+	}
+
+};
+
+
 
 class timer {
 private:
@@ -28,9 +116,12 @@ public:
 	}
 };
 
+
+
 using ell_f = void (*) (cv::Mat &img, cv::Point center, cv::Size axes, double angle);
 const cv::Scalar BLUE(255,    0,   0);
 const cv::Scalar WHITE(255, 255, 255);
+
 
 /**
  * draw outer filled ellipse; draw filled inner ellipse
@@ -92,13 +183,29 @@ void bench(const std::vector<ell_f> &e, int major, size_t times) {
 
 int main() {
 
+	for (int a = 0; a < 45; a += 5) {
+		for (int a1 = 25; a1 < 50; ++a1) {
+			for (int a2 = a1; a2 < 50; ++a2) {
+				foreach()(compare{{a1, a2}, a});
+			}
+		}
+	}
+	std::cout << "FOREACH: passed :)\n";
+
+
+
+
+
 	std::vector<ell_f> e{
 		&opencv_ellipse,
-		&opencv_fill_poly
-		, &opencv_fill_poly2
+		&opencv_fill_poly,
+		&opencv_fill_poly2
 	};
 
-	bench(e, 400, 5000);
+	if (false) {
+
+		bench(e, 400, 5000);
+	}
 
 	if (false) {
 
