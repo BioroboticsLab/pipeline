@@ -563,14 +563,13 @@ void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* colo
     }
     edge[2];
 
-    int delta = shift ? 1 << (shift - 1) : 0;
-    int i, y, imin = 0, left = 0, right = 1, x1, x2;
+    const int delta = shift ? 1 << (shift - 1) : 0;
+    int y, imin = 0, left = 0, right = 1, x1, x2;
     int edges = npts;
     int xmin, xmax, ymin, ymax;
     uchar* ptr = img.data;
-    cv::Size size = img.size();
-    int pix_size = static_cast<int>(img.elemSize());
-    cv::Point p0;
+    const cv::Size size = img.size();
+    const int pix_size = static_cast<int>(img.elemSize());
     int delta1, delta2;
 
     if( line_type < CV_AA )
@@ -578,7 +577,7 @@ void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* colo
     else
         delta1 = XY_ONE - 1, delta2 = 0;
 
-    p0 = v[npts - 1];
+    cv::Point p0 = v[npts - 1];
     p0.x <<= XY_SHIFT - shift;
     p0.y <<= XY_SHIFT - shift;
 
@@ -586,7 +585,7 @@ void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* colo
     xmin = xmax = v[0].x;
     ymin = ymax = v[0].y;
 
-    for( i = 0; i < npts; i++ )
+    for(int i = 0; i < npts; i++ )
     {
         cv::Point p = v[i];
         if( p.y < ymin )
@@ -642,7 +641,7 @@ void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* colo
     {
         if( line_type < CV_AA || y < ymax || y == ymin )
         {
-            for( i = 0; i < 2; i++ )
+            for(int i = 0; i < 2; i++ )
             {
                 if( y >= edge[i].ye )
                 {
