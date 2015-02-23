@@ -83,19 +83,15 @@ struct foreach {
 
 		if (! f.operator()<CV_8UC1,  8    >() ) {throw std::runtime_error("");}
 		if (! f.operator()<CV_8UC1,  4    >() ) {throw std::runtime_error("");}
-		if (! f.operator()<CV_8UC1,  CV_AA>() ) {throw std::runtime_error("");}
 
 		if (! f.operator()<CV_8UC3,  8    >() ) {throw std::runtime_error("");}
 		if (! f.operator()<CV_8UC3,  4    >() ) {throw std::runtime_error("");}
-		if (! f.operator()<CV_8UC3,  CV_AA>() ) {throw std::runtime_error("");}
 
 		if (! f.operator()<CV_32FC1, 8    >() ) {throw std::runtime_error("");}
 		if (! f.operator()<CV_32FC1, 4    >() ) {throw std::runtime_error("");}
-		if (! f.operator()<CV_32FC1, CV_AA>() ) {throw std::runtime_error("");}
 
 		if (! f.operator()<CV_32FC3, 8    >() ) {throw std::runtime_error("");}
 		if (! f.operator()<CV_32FC3, 4    >() ) {throw std::runtime_error("");}
-		if (! f.operator()<CV_32FC3, CV_AA>() ) {throw std::runtime_error("");}
 	}
 
 };
