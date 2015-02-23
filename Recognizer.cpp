@@ -270,9 +270,8 @@ cv::Mat Recognizer::computeCannyEdgeMap(cv::Mat const& grayImage) const {
 }
 
 std::vector<Tag> Recognizer::process(std::vector<Tag>&& taglist) {
-   /* static const size_t numThreads = std::thread::hardware_concurrency() ?
-                std::thread::hardware_concurrency() * 2 : 1;*/
-	static const size_t numThreads = 1;
+    static const size_t numThreads = std::thread::hardware_concurrency() ?
+                std::thread::hardware_concurrency() * 2 : 1;
     ThreadPool pool(numThreads);
     std::vector < std::future < void >> results;
     for (Tag& tag : taglist) {

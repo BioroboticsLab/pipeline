@@ -12,6 +12,7 @@
 #include "datastructure/TagCandidate.h"
 #include "datastructure/PipelineGrid.h"
 #include "util/Util.h"
+#include "util/ThreadPool.h"
 #include "source/tracking/algorithm/BeesBook/Common/Grid.h"
 #include "source/utility/CvHelper.h"
 #include "source/utility/util.h"
@@ -29,19 +30,33 @@ void GridFitter::loadSettings(gridfitter_settings_t &&settings)
 
 std::vector<Tag> GridFitter::process(std::vector<Tag> &&taglist)
 {
+#ifdef DEBUG_GRIDFITTER
+    static const size_t numThreads = 1;
+#else
+    static const size_t numThreads = std::thread::hardware_concurrency() ?
+                std::thread::hardware_concurrency() * 2 : 1;
+#endif
+    ThreadPool pool(numThreads);
+
+    std::vector<std::future<void>> results;
 	for (Tag& tag : taglist) {
 		tag.setValid(false);
-		for (TagCandidate& candidate : tag.getCandidates()) {
-			std::vector<Grid> grids = fitGrid(tag, candidate);
-			if (!grids.empty()) { tag.setValid(true); };
-			candidate.setGrids(std::move(grids));
-		}
+		results.emplace_back(
+		    pool.enqueue([&] {
+				for (TagCandidate& candidate : tag.getCandidates()) {
+					std::vector<Grid> grids = fitGrid(tag, candidate);
+					if (!grids.empty()) { tag.setValid(true); };
+					candidate.setGrids(std::move(grids));
+				}
+		}));
 	}
+
+    for (auto && result : results) result.get();
 
 	// remove tags without any fitted grids
 	taglist.erase(std::remove_if(taglist.begin(), taglist.end(), [](Tag& tag) { return !tag.isValid(); }), taglist.end());
 
-	return taglist;
+    return std::move(taglist);
 }
 
 // TODO: remove or move into util namespace
@@ -159,32 +174,24 @@ std::vector<Grid> GridFitter::fitGrid(const Tag& tag, const TagCandidate &candid
                           cv::THRESH_BINARY, _settings.adaptiveBlockSize,
                           _settings.adaptiveC);
 
-#ifdef DEBUG_GRIDFITTER_HIST
-    calculateHistogram(roi, ellipse_orig);
-#endif
-
 	// initial search parameter space
 	candidate_set gridCandidates = getInitialCandidates(binarizedROI, ellipse_orig, roi);
-
-    std::cout << "min initial candidate error: " << gridCandidates.begin()->error << std::endl;
-
-    static const size_t numResults = 1;
 
 	GradientDescent optimizer(gridCandidates, roi, binarizedROI, _settings);
 	optimizer.optimize();
 
 	const candidate_set& bestGrids = optimizer.getBestGrids();
 
-
+#ifdef DEBUG_GRIDFITTER
+    std::cout << "min initial candidate error: " << gridCandidates.begin()->error << std::endl;
     std::cout << "min final candidate error: " << bestGrids.begin()->error << std::endl;
 
-#ifdef DEBUG_GRIDFITTER
     visualizeDebug(bestGrids, numResults, roiSize, tag, binarizedROI);
 #endif
 
     std::vector<Grid> results;
     {
-        const size_t to = std::min(numResults, bestGrids.size());
+        const size_t to = std::min(_settings.numResults, bestGrids.size());
         size_t idx = 0;
         for (candidate_t const& candidate : bestGrids) {
             PipelineGrid::gridconfig_t const& config = candidate.config;
