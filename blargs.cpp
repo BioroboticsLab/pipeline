@@ -66,7 +66,7 @@ void fillConvexPoly(cv::Mat& img, const cv::Point* pts, int npts, const cv::Scal
 }
 
 /* helper function: filling horizontal row */
-static void ICV_HLINE(uchar* ptr, int xl, int xr, const void *color, int pix_size)
+static void inline ICV_HLINE(uchar* ptr, int xl, int xr, const void *color, int pix_size)
 {
 	const uchar* hline_max_ptr = ptr +  xr * pix_size;
 
@@ -91,57 +91,48 @@ void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* colo
     }
     edge[2];
 
-    int y, imin = 0, left = 0, right = 1, x1, x2;
+    int imin = 0, left = 0, right = 1;
     int edges = npts;
     int xmin, xmax, ymin, ymax;
     uchar* ptr = img.data;
     const cv::Size size = img.size();
     const int pix_size = static_cast<int>(img.elemSize());
 
-    const int delta1 = XY_ONE >> 1;
-    const int delta2 = delta1;
-
-
-    cv::Point p0 = v[npts - 1];
-    p0.x <<= XY_SHIFT;
-    p0.y <<= XY_SHIFT;
+    constexpr int delta1 = XY_ONE >> 1;
+    constexpr int delta2 = delta1;
 
     xmin = xmax = v[0].x;
     ymin = ymax = v[0].y;
 
-    for(int i = 0; i < npts; i++ )
     {
-        cv::Point p = v[i];
-        if( p.y < ymin )
-        {
-            ymin = p.y;
-            imin = i;
-        }
+		cv::Point p0 = v[npts - 1];
+		for(int i = 0; i < npts; i++ )
+		{
+			cv::Point p = v[i];
+			if( p.y < ymin )
+			{
+				ymin = p.y;
+				imin = i;
+			}
 
-        ymax = std::max( ymax, p.y );
-        xmax = std::max( xmax, p.x );
-        xmin = MIN( xmin, p.x );
+			ymax = std::max( ymax, p.y );
+			xmax = std::max( xmax, p.x );
+			xmin = std::min( xmin, p.x );
 
-        p.x <<= XY_SHIFT;
-        p.y <<= XY_SHIFT;
+			heyho::Line( img, p0, p, color, line_type );
 
-		cv::Point pt0, pt1;
-		pt0.x = p0.x >> XY_SHIFT;
-		pt0.y = p0.y >> XY_SHIFT;
-		pt1.x = p.x >> XY_SHIFT;
-		pt1.y = p.y >> XY_SHIFT;
-		heyho::Line( img, pt0, pt1, color, line_type );
-
-        p0 = p;
+			p0 = p;
+		}
     }
 
     if( npts < 3 || xmax < 0 || ymax < 0 || xmin >= size.width || ymin >= size.height )
         return;
 
-    ymax = MIN( ymax, size.height - 1 );
+    ymax = std::min( ymax, size.height - 1 );
     edge[0].idx = edge[1].idx = imin;
 
-    edge[0].ye = edge[1].ye = y = ymin;
+    int y = ymin;
+    edge[0].ye = edge[1].ye = y;
     edge[0].di = 1;
     edge[1].di = npts - 1;
 
@@ -191,8 +182,8 @@ void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* colo
             right ^= 1;
         }
 
-        x1 = edge[left].x;
-        x2 = edge[right].x;
+        int x1 = edge[left].x;
+        int x2 = edge[right].x;
 
         if( y >= 0 )
         {
