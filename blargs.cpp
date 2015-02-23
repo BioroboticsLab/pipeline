@@ -27,7 +27,7 @@ void Line(cv::Mat& img, cv::Point pt1, cv::Point pt2, const void* _color, int co
 
     for(int i = 0; i < count; i++, ++iterator )
     {
-        uchar* ptr = *iterator;
+        uchar* const ptr = *iterator;
         if( pix_size == 1 )
             ptr[0] = color[0];
         else if( pix_size == 3 )
@@ -46,9 +46,9 @@ void Line2(cv::Mat& img, cv::Point pt1, cv::Point pt2, const void* color)
     int ecount;
     int x, y;
     int x_step, y_step;
-    int cb = static_cast<const uchar*>(color)[0];
-    int cg = static_cast<const uchar*>(color)[1];
-    int cr = static_cast<const uchar*>(color)[2];
+    const uchar cb = static_cast<const uchar*>(color)[0];
+    const uchar cg = static_cast<const uchar*>(color)[1];
+    const uchar cr = static_cast<const uchar*>(color)[2];
     const int pix_size = static_cast<int>(img.elemSize());
     uchar *const ptr = img.data;
     uchar *tptr;
@@ -111,9 +111,9 @@ void Line2(cv::Mat& img, cv::Point pt1, cv::Point pt2, const void* color)
             0 <= y && y < size.height ) \
         {                               \
             tptr = ptr + y*step + x*3;  \
-            tptr[0] = static_cast<uchar>(cb);        \
-            tptr[1] = static_cast<uchar>(cg);        \
-            tptr[2] = static_cast<uchar>(cr);        \
+            tptr[0] = cb;        \
+            tptr[1] = cg;        \
+            tptr[2] = cr;        \
         }
 
         ICV_PUT_POINT((pt2.x + (XY_ONE >> 1)) >> XY_SHIFT,
@@ -154,7 +154,7 @@ void Line2(cv::Mat& img, cv::Point pt1, cv::Point pt2, const void* color)
             0 <= y && y < size.height ) \
         {                           \
             tptr = ptr + y*step + x;\
-            tptr[0] = static_cast<uchar>(cb);    \
+            tptr[0] = cb;    \
         }
 
         ICV_PUT_POINT((pt2.x + (XY_ONE >> 1)) >> XY_SHIFT,
@@ -532,20 +532,18 @@ void fillConvexPoly(cv::Mat& img, const cv::Point* pts, int npts, const cv::Scal
     heyho::FillConvexPoly(img, pts, npts, buf, line_type);
 }
 
-/* helper macros: filling horizontal row */
-#define ICV_HLINE( ptr, xl, xr, color, pix_size )            \
-{                                                            \
-    uchar* hline_ptr = static_cast<uchar*>(ptr) + (xl)*(pix_size);      \
-    uchar* hline_max_ptr = static_cast<uchar*>(ptr) + (xr)*(pix_size);  \
-                                                             \
-    for( ; hline_ptr <= hline_max_ptr; hline_ptr += (pix_size))\
-    {                                                        \
-        int hline_j;                                         \
-        for( hline_j = 0; hline_j < (pix_size); hline_j++ )  \
-        {                                                    \
-            hline_ptr[hline_j] = static_cast<const uchar*>(color)[hline_j];   \
-        }                                                    \
-    }                                                        \
+/* helper function: filling horizontal row */
+static void ICV_HLINE(uchar* ptr, int xl, int xr, const void *color, int pix_size)
+{
+	const uchar* hline_max_ptr = ptr +  xr * pix_size;
+
+	for(uchar *hline_ptr = ptr + xl * pix_size; hline_ptr <= hline_max_ptr; hline_ptr += pix_size)
+	{
+		for(int hline_j = 0; hline_j < (pix_size); hline_j++ )
+		{
+			hline_ptr[hline_j] = static_cast<const uchar*>(color)[hline_j];
+		}
+	}
 }
 
 void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* color, int line_type)
