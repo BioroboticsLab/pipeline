@@ -23,20 +23,15 @@ void fillConvexPoly(cv::InputOutputArray _img, cv::InputArray _points, const cv:
 template<typename pixel_t>
 void fillConvexPoly(cv::Mat& img, const cv::Point* pts, int npts, const cv::Scalar& color, int line_type)
 {
-    if( !pts || npts <= 0 )
-        return;
+	if( !pts || npts <= 0 )
+		return;
 
-//    constexpr int line_type = 8;  // lineType – Type of the polygon boundaries. See the line() description.
-//                                  //    8 (or omitted) - 8-connected line.
-//                                  //    4 - 4-connected line.
-//                                  //    CV_AA - antialiased line.
-//
-    if( line_type == CV_AA && img.depth() != CV_8U )
-        line_type = 8;
+	if( line_type == CV_AA && img.depth() != CV_8U )
+		line_type = 8;
 
-    double buf[4];
-    cv::scalarToRawData(color, buf, img.type(), 0);
-    heyho::FillConvexPoly<pixel_t>(img, pts, npts, buf, line_type);
+	double buf[4];
+	cv::scalarToRawData(color, buf, img.type(), 0);
+	heyho::FillConvexPoly<pixel_t>(img, pts, npts, buf, line_type);
 }
 
 /* helper function: filling horizontal row */
@@ -91,26 +86,25 @@ void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* colo
 	 *
 	 */
 
-    struct {
-        int idx, di;
-        int x, dx, ye;
-    }
-    edge[2];
+	struct {
+		int idx, di;
+		int x, dx, ye;
+	}
+	edge[2];
 
-    int imin = 0, left = 0, right = 1;
-    int edges = npts;
-    int xmin, xmax, ymin, ymax;
-    uchar* ptr = img.data;
-    const cv::Size size = img.size();
-    //const int pix_size = static_cast<int>(img.elemSize());
+	int imin = 0, left = 0, right = 1;
+	int edges = npts;
+	int xmin, xmax, ymin, ymax;
+	uchar* ptr = img.data;
+	const cv::Size size = img.size();
 
-    constexpr int delta1 = XY_ONE >> 1;
-    constexpr int delta2 = delta1;
+	constexpr int delta1 = XY_ONE >> 1;
+	constexpr int delta2 = delta1;
 
-    xmin = xmax = v[0].x;
-    ymin = ymax = v[0].y;
+	xmin = xmax = v[0].x;
+	ymin = ymax = v[0].y;
 
-    {
+	{
 		cv::Point p0 = v[npts - 1];
 		for(int i = 0; i < npts; i++ )
 		{
@@ -129,91 +123,91 @@ void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* colo
 
 			p0 = p;
 		}
-    }
+	}
 
-    if( npts < 3 || xmax < 0 || ymax < 0 || xmin >= size.width || ymin >= size.height )
-        return;
+	if( npts < 3 || xmax < 0 || ymax < 0 || xmin >= size.width || ymin >= size.height )
+		return;
 
-    ymax = std::min( ymax, size.height - 1 );
-    edge[0].idx = edge[1].idx = imin;
+	ymax = std::min( ymax, size.height - 1 );
+	edge[0].idx = edge[1].idx = imin;
 
-    int y = ymin;
-    edge[0].ye = edge[1].ye = y;
-    edge[0].di = 1;
-    edge[1].di = npts - 1;
+	int y = ymin;
+	edge[0].ye = edge[1].ye = y;
+	edge[0].di = 1;
+	edge[1].di = npts - 1;
 
-    ptr += img.step*y;
+	ptr += img.step*y;
 
-    do
-    {
-        if( line_type < CV_AA || y < ymax || y == ymin )
-        {
-            for(int i = 0; i < 2; i++ )
-            {
-                if( y >= edge[i].ye )
-                {
-                    int idx = edge[i].idx, di = edge[i].di;
-                    int xs = 0, xe, ye, ty = 0;
+	do
+	{
+		if( line_type < CV_AA || y < ymax || y == ymin )
+		{
+			for(int i = 0; i < 2; i++ )
+			{
+				if( y >= edge[i].ye )
+				{
+					int idx = edge[i].idx, di = edge[i].di;
+					int xs = 0, xe, ye, ty = 0;
 
-                    for(;;)
-                    {
-                        ty = v[idx].y;
-                        if( ty > y || edges == 0 )
-                            break;
-                        xs = v[idx].x;
-                        idx += di;
-                        idx -= ((idx < npts) - 1) & npts;   /* idx -= idx >= npts ? npts : 0 */
-                        edges--;
-                    }
+					for(;;)
+					{
+						ty = v[idx].y;
+						if( ty > y || edges == 0 )
+							break;
+						xs = v[idx].x;
+						idx += di;
+						idx -= ((idx < npts) - 1) & npts;   /* idx -= idx >= npts ? npts : 0 */
+						edges--;
+					}
 
-                    ye = ty;
-                    xs <<= XY_SHIFT;
-                    xe = v[idx].x << (XY_SHIFT);
+					ye = ty;
+					xs <<= XY_SHIFT;
+					xe = v[idx].x << (XY_SHIFT);
 
-                    /* no more edges */
-                    if( y >= ye )
-                        return;
+					/* no more edges */
+					if( y >= ye )
+						return;
 
-                    edge[i].ye = ye;
-                    edge[i].dx = ((xe - xs)*2 + (ye - y)) / (2 * (ye - y));
-                    edge[i].x = xs;
-                    edge[i].idx = idx;
-                }
-            }
-        }
+					edge[i].ye = ye;
+					edge[i].dx = ((xe - xs)*2 + (ye - y)) / (2 * (ye - y));
+					edge[i].x = xs;
+					edge[i].idx = idx;
+				}
+			}
+		}
 
-        if( edge[left].x > edge[right].x )
-        {
-            left ^= 1;
-            right ^= 1;
-        }
+		if( edge[left].x > edge[right].x )
+		{
+			left ^= 1;
+			right ^= 1;
+		}
 
-        int x1 = edge[left].x;
-        int x2 = edge[right].x;
+		int x1 = edge[left].x;
+		int x2 = edge[right].x;
 
-        if( y >= 0 )
-        {
-            int xx1 = (x1 + delta1) >> XY_SHIFT;
-            int xx2 = (x2 + delta2) >> XY_SHIFT;
+		if( y >= 0 )
+		{
+			int xx1 = (x1 + delta1) >> XY_SHIFT;
+			int xx2 = (x2 + delta2) >> XY_SHIFT;
 
-            if( xx2 >= 0 && xx1 < size.width )
-            {
-                if( xx1 < 0 )
-                    xx1 = 0;
-                if( xx2 >= size.width )
-                    xx2 = size.width - 1;
-                ICV_HLINE( ptr, xx1, xx2, color, pix_size );
-            }
-        }
+			if( xx2 >= 0 && xx1 < size.width )
+			{
+				if( xx1 < 0 )
+					xx1 = 0;
+				if( xx2 >= size.width )
+					xx2 = size.width - 1;
+				ICV_HLINE( ptr, xx1, xx2, color, pix_size );
+			}
+		}
 
-        x1 += edge[left].dx;
-        x2 += edge[right].dx;
+		x1 += edge[left].dx;
+		x2 += edge[right].dx;
 
-        edge[left].x = x1;
-        edge[right].x = x2;
-        ptr += img.step;
-    }
-    while( ++y <= ymax );
+		edge[left].x = x1;
+		edge[right].x = x2;
+		ptr += img.step;
+	}
+	while( ++y <= ymax );
 }
 
 
