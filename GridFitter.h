@@ -45,6 +45,7 @@ public:
 	void loadSettings(gridfitter_settings_t&& settings);
 
 	std::vector<Tag> process(std::vector<Tag>&& taglist);
+
 private:
 	struct candidate_t {
 		double error;
@@ -96,16 +97,11 @@ private:
 
     gridfitter_settings_t _settings;
 
-    std::vector<Grid> fitGrid(const Tag &tag, TagCandidate const& candidate) const;
-
-	candidate_set getInitialCandidates(const TagCandidate &candidate, cv::Mat roi, cv::Mat binarizedROI, const Ellipse& ellipse_orig) const;
-
+    std::vector<PipelineGrid> fitGrid(const Tag &tag, TagCandidate const& candidate) const;
+	candidate_set getInitialCandidates(cv::Mat const& binarizedROI, const Ellipse& ellipse_orig, cv::Mat const& roi) const;
     static double evaluateCandidate (PipelineGrid& grid, const cv::Mat& roi, const cv::Mat& binarizedROI, const gridfitter_settings_t& settings);
 
     cv::Mat calculateHistogram(const cv::Mat& roi, const Ellipse& ellipse_orig) const;
-
     void visualizeDebug(const std::multiset<candidate_t>& bestGrids, const size_t numResults, const cv::Size2i roiSize, const Tag& tag, const cv::Mat& binarizedROI) const;
-
-	candidate_set getInitialCandidates(cv::Mat const& binarizedROI, const Ellipse& ellipse_orig, cv::Mat const& roi) const;
 };
 }

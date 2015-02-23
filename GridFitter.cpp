@@ -44,7 +44,7 @@ std::vector<Tag> GridFitter::process(std::vector<Tag> &&taglist)
 		results.emplace_back(
 		    pool.enqueue([&] {
 				for (TagCandidate& candidate : tag.getCandidates()) {
-					std::vector<Grid> grids = fitGrid(tag, candidate);
+					std::vector<PipelineGrid> grids = fitGrid(tag, candidate);
 					if (!grids.empty()) { tag.setValid(true); };
 					candidate.setGrids(std::move(grids));
 				}
@@ -159,7 +159,7 @@ GridFitter::candidate_set GridFitter::getInitialCandidates(const cv::Mat &binari
 	return gridCandidates;
 }
 
-std::vector<Grid> GridFitter::fitGrid(const Tag& tag, const TagCandidate &candidate) const
+std::vector<PipelineGrid> GridFitter::fitGrid(const Tag& tag, const TagCandidate &candidate) const
 {
 	const Ellipse& ellipse_orig = candidate.getEllipse();
 
@@ -189,13 +189,13 @@ std::vector<Grid> GridFitter::fitGrid(const Tag& tag, const TagCandidate &candid
     visualizeDebug(bestGrids, numResults, roiSize, tag, binarizedROI);
 #endif
 
-    std::vector<Grid> results;
+    std::vector<PipelineGrid> results;
     {
         const size_t to = std::min(_settings.numResults, bestGrids.size());
         size_t idx = 0;
-        for (candidate_t const& candidate : bestGrids) {
-            PipelineGrid::gridconfig_t const& config = candidate.config;
-            results.emplace_back(config.center, config.radius, config.angle_z, config.angle_y, config.angle_x);
+        for (candidate_t const& gridCandidate : bestGrids) {
+            PipelineGrid::gridconfig_t const& config = gridCandidate.config;
+            results.emplace_back(config.center + tag.getBox().tl(), config.radius, config.angle_z, config.angle_y, config.angle_x);
 
             ++idx;
             if (idx == to) break;
@@ -377,6 +377,8 @@ std::pair<double, PipelineGrid::gridconfig_t> GridFitter::GradientDescent::step(
 			break;
 		}
 
+		// TODO: don't construct new Grid in each step
+		// TODO: don't recalculate coordinates for position change
 		PipelineGrid newGrid(newConfig);
 		double newError = evaluateCandidate(newGrid, _roi, _binarizedRoi, _settings);
 

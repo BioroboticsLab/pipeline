@@ -48,6 +48,8 @@ public:
 	const cv::Mat& getOuterRingCoordinates(const cv::Size2i& size);
 	const std::vector<cv::Point2i> getOuterRingEdgeCoordinates();
 
+	void draw(cv::Mat& img, const double transparency) const;
+
 private:
 	// TODO: invalidate cache on param change + efficient update when only
 	// position changes
@@ -64,4 +66,6 @@ private:
 	cv::Mat getRingPoly(const size_t ringIndex, const cv::Size2i& size);
 
 	virtual coordinates2D_t generate_3D_coordinates_from_parameters_and_project_to_2D() override;
+
+	void draw(cv::Mat& img, cv::Point const& center) const;
 };

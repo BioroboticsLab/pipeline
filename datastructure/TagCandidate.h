@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "Ellipse.h"
-#include "source/tracking/algorithm/BeesBook/Common/Grid.h"
+#include "PipelineGrid.h"
 
 namespace pipeline {
 class TagCandidate {
@@ -14,12 +14,12 @@ public:
 
 	Ellipse const& getEllipse() const { return _ellipse; }
 
-	std::vector<Grid> const& getGrids() { return _grids; }
-	void setGrids(std::vector<Grid>&& grids) { _grids = std::move(grids); }
-	void addGrid(Grid&& grid) { _grids.push_back(std::move(grid)); }
+	std::vector<PipelineGrid> const& getGrids() const { return _grids; }
+	void setGrids(std::vector<PipelineGrid>&& grids) { _grids = std::move(grids); }
+	void addGrid(PipelineGrid&& PipelineGrid) { _grids.push_back(std::move(PipelineGrid)); }
 
 private:
 	Ellipse _ellipse;
-	std::vector<Grid> _grids;
+	std::vector<PipelineGrid> _grids;
 };
 }

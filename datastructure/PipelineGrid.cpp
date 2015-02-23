@@ -295,6 +295,25 @@ const std::vector<cv::Point2i> PipelineGrid::getOuterRingEdgeCoordinates()
 	return coords;
 }
 
+void PipelineGrid::draw(cv::Mat &img, const double transparency) const
+{
+	const int radius = static_cast<int>(std::ceil(_radius));
+	const cv::Point subimage_origin( std::max(       0, _center.x - radius), std::max(       0, _center.y - radius) );
+	const cv::Point subimage_end   ( std::min(img.cols, _center.x + radius), std::min(img.rows, _center.y + radius) );
+
+	// draw only if subimage has a valid size (i.e. width & height > 0)
+	if (subimage_origin.x < subimage_end.x && subimage_origin.y < subimage_end.y)
+	{
+		const cv::Point subimage_center( std::min(radius, _center.x), std::min(radius, _center.y) );
+
+		cv::Mat subimage      = img( cv::Rect(subimage_origin, subimage_end) );
+		cv::Mat subimage_copy = subimage.clone();
+
+		draw(subimage_copy, subimage_center);
+		cv::addWeighted(subimage_copy, transparency, subimage, 1.0 - transparency, 0.0, subimage);
+	}
+}
+
 cv::Mat PipelineGrid::getRingPoly(const size_t ringIndex, const cv::Size2i& size)
 {
 	cv::Mat img(size, CV_8UC1, cv::Scalar::all(0));
@@ -319,4 +338,18 @@ Grid::coordinates2D_t PipelineGrid::generate_3D_coordinates_from_parameters_and_
 	_gridCellCoordinates = std::vector<cv::Mat>(NUM_MIDDLE_CELLS);
 
 	return Grid::generate_3D_coordinates_from_parameters_and_project_to_2D();
+}
+
+void PipelineGrid::draw(cv::Mat &img, const cv::Point &center) const
+{
+	static const cv::Scalar white(255, 255, 255);
+	static const cv::Scalar black(0, 0, 0);
+
+	for (size_t i = INDEX_MIDDLE_CELLS_BEGIN; i < INDEX_MIDDLE_CELLS_BEGIN + NUM_MIDDLE_CELLS; ++i)
+	{
+		CvHelper::drawPolyline(img, _coordinates2D, i, white, false, center);
+	}
+	CvHelper::drawPolyline(img, _coordinates2D, INDEX_OUTER_WHITE_RING,       white, false, center);
+	CvHelper::drawPolyline(img, _coordinates2D, INDEX_INNER_WHITE_SEMICIRCLE, white,      false, center);
+	CvHelper::drawPolyline(img, _coordinates2D, INDEX_INNER_BLACK_SEMICIRCLE, black,      false, center);
 }
