@@ -63,7 +63,7 @@ struct compare {
 		cv::fillConvexPoly(img1, points, default_color<img_type>(), line_type, shift);
 
 		cv::Mat img2(dim, dim, img_type, white<img_type>());
-		heyho::fillConvexPoly(img2, points, default_color<img_type>(), line_type, shift);
+		heyho::fillConvexPoly(img2, points, default_color<img_type>(), line_type);
 
 		return 0 == std::memcmp(img1.datastart, img2.datastart, img1.dataend - img1.datastart);
 	}

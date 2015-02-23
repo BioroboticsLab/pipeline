@@ -17,9 +17,9 @@ void Line  (cv::Mat& img, cv::Point pt1, cv::Point pt2, const void* _color, int 
 void Line2 (cv::Mat& img, cv::Point pt1, cv::Point pt2, const void* color);
 void LineAA(cv::Mat& img, cv::Point pt1, cv::Point pt2, const void* color);
 
-void fillConvexPoly(cv::InputOutputArray _img, cv::InputArray _points,         const cv::Scalar& color, int line_type = 8, int shift = 0);
-void fillConvexPoly(cv::Mat& img,              const cv::Point* pts, int npts, const cv::Scalar& color, int line_type = 8, int shift = 0);
-void FillConvexPoly(cv::Mat& img,              const cv::Point* v,   int npts, const void* color,       int line_type,     int shift);
+void fillConvexPoly(cv::InputOutputArray _img, cv::InputArray _points,         const cv::Scalar& color, int line_type = 8);
+void fillConvexPoly(cv::Mat& img,              const cv::Point* pts, int npts, const cv::Scalar& color, int line_type = 8);
+void FillConvexPoly(cv::Mat& img,              const cv::Point* v,   int npts, const void* color,       int line_type    );
 
 }
 

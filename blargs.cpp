@@ -508,13 +508,13 @@ void LineAA(cv::Mat& img, cv::Point pt1, cv::Point pt2, const void* color)
     }
 }
 
-void fillConvexPoly(cv::InputOutputArray _img, cv::InputArray _points, const cv::Scalar& color, int line_type, int shift) {
+void fillConvexPoly(cv::InputOutputArray _img, cv::InputArray _points, const cv::Scalar& color, int line_type) {
 	cv::Mat img = _img.getMat(), points = _points.getMat();
 	CV_Assert(points.checkVector(2, CV_32S) >= 0);
-	heyho::fillConvexPoly(img, reinterpret_cast<const cv::Point*>(points.data), points.rows*points.cols*points.channels()/2, color, line_type, shift);
+	heyho::fillConvexPoly(img, reinterpret_cast<const cv::Point*>(points.data), points.rows*points.cols*points.channels()/2, color, line_type);
 }
 
-void fillConvexPoly(cv::Mat& img, const cv::Point* pts, int npts, const cv::Scalar& color, int line_type, int shift)
+void fillConvexPoly(cv::Mat& img, const cv::Point* pts, int npts, const cv::Scalar& color, int line_type)
 {
     if( !pts || npts <= 0 )
         return;
@@ -524,16 +524,12 @@ void fillConvexPoly(cv::Mat& img, const cv::Point* pts, int npts, const cv::Scal
 //                                  //    4 - 4-connected line.
 //                                  //    CV_AA - antialiased line.
 //
-//    constexpr int shift = 0;      // shift – Number of fractional bits in the vertex coordinates.
-//                                  // shift – Number of fractional bits in the point  coordinates.
-
     if( line_type == CV_AA && img.depth() != CV_8U )
         line_type = 8;
 
     double buf[4];
-    CV_Assert( 0 <= shift && shift <=  XY_SHIFT );
     cv::scalarToRawData(color, buf, img.type(), 0);
-    heyho::FillConvexPoly(img, pts, npts, buf, line_type, shift);
+    heyho::FillConvexPoly(img, pts, npts, buf, line_type);
 }
 
 /* helper macros: filling horizontal row */
@@ -552,18 +548,14 @@ void fillConvexPoly(cv::Mat& img, const cv::Point* pts, int npts, const cv::Scal
     }                                                        \
 }
 
-void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* color, int line_type, int shift)
+void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* color, int line_type)
 {
-//    constexpr int line_type = 8;
-//    constexpr int shift = 0;
-
     struct {
         int idx, di;
         int x, dx, ye;
     }
     edge[2];
 
-    const int delta = shift ? 1 << (shift - 1) : 0;
     int y, imin = 0, left = 0, right = 1, x1, x2;
     int edges = npts;
     int xmin, xmax, ymin, ymax;
@@ -578,10 +570,9 @@ void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* colo
         delta1 = XY_ONE - 1, delta2 = 0;
 
     cv::Point p0 = v[npts - 1];
-    p0.x <<= XY_SHIFT - shift;
-    p0.y <<= XY_SHIFT - shift;
+    p0.x <<= XY_SHIFT;
+    p0.y <<= XY_SHIFT;
 
-    assert( 0 <= shift && shift <= XY_SHIFT );
     xmin = xmax = v[0].x;
     ymin = ymax = v[0].y;
 
@@ -598,32 +589,24 @@ void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* colo
         xmax = std::max( xmax, p.x );
         xmin = MIN( xmin, p.x );
 
-        p.x <<= XY_SHIFT - shift;
-        p.y <<= XY_SHIFT - shift;
+        p.x <<= XY_SHIFT;
+        p.y <<= XY_SHIFT;
 
         if( line_type <= 8 )
         {
-            if( shift == 0 )
-            {
-            	cv::Point pt0, pt1;
-                pt0.x = p0.x >> XY_SHIFT;
-                pt0.y = p0.y >> XY_SHIFT;
-                pt1.x = p.x >> XY_SHIFT;
-                pt1.y = p.y >> XY_SHIFT;
-                heyho::Line( img, pt0, pt1, color, line_type );
-            }
-            else
-            	heyho::Line2( img, p0, p, color );
+
+            cv::Point pt0, pt1;
+            pt0.x = p0.x >> XY_SHIFT;
+            pt0.y = p0.y >> XY_SHIFT;
+            pt1.x = p.x >> XY_SHIFT;
+            pt1.y = p.y >> XY_SHIFT;
+            heyho::Line( img, pt0, pt1, color, line_type );
+
         }
         else
         	heyho::LineAA( img, p0, p, color );
         p0 = p;
     }
-
-    xmin = (xmin + delta) >> shift;
-    xmax = (xmax + delta) >> shift;
-    ymin = (ymin + delta) >> shift;
-    ymax = (ymax + delta) >> shift;
 
     if( npts < 3 || xmax < 0 || ymax < 0 || xmin >= size.width || ymin >= size.height )
         return;
@@ -650,7 +633,7 @@ void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* colo
 
                     for(;;)
                     {
-                        ty = (v[idx].y + delta) >> shift;
+                        ty = v[idx].y;
                         if( ty > y || edges == 0 )
                             break;
                         xs = v[idx].x;
@@ -660,8 +643,8 @@ void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* colo
                     }
 
                     ye = ty;
-                    xs <<= XY_SHIFT - shift;
-                    xe = v[idx].x << (XY_SHIFT - shift);
+                    xs <<= XY_SHIFT;
+                    xe = v[idx].x << (XY_SHIFT);
 
                     /* no more edges */
                     if( y >= ye )
