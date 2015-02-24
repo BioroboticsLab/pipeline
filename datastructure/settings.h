@@ -112,30 +112,6 @@ public:
 
 	}
 
-	void setValue(boost::property_tree::ptree ptree, std::string base) {
-		/*switch (type) {
-		 case setting_entry_type::INT: {
-		 int i = ptree.get<int>(base + configName);
-		 int& valref = boost::get<int&>(field);
-		 valref = i;
-		 break;
-		 }
-
-		 case setting_entry_type::DOUBLE: {
-		 double d = ptree.get<double>(base + configName);
-		 double& valref = boost::get<double&>(field);
-		 valref = d;
-		 break;
-		 }
-		 case setting_entry_type::BOOL: {
-		 bool d = ptree.get<bool>(base + configName);
-		 bool& valref = boost::get<bool&>(field);
-		 valref = d;
-		 break;
-		 }
-		 }*/
-
-	}
 };
 
 class settings_abs {
@@ -157,11 +133,12 @@ protected:
 				return boost::get<T>(entry.field);
 			} catch (std::exception & e) {
 				std::cerr << "wrong value-type " << entry.field << std::endl;
-				throw  std::runtime_error("could not get setting " + setting_name);
+				throw std::runtime_error(
+						"could not get setting " + setting_name);
 
 			}
 		} else {
-			throw  std::runtime_error(
+			throw std::runtime_error(
 					"setting_entry  doesn't exist " + setting_name);
 		}
 	}
@@ -177,34 +154,86 @@ protected:
 		return _settings[setting_name];
 	}
 
-	void _setEntry(setting_entry setting) {
-
-	}
-
 public:
 
 	settings_abs() {
 
 	}
-
+	settings_abs(std::string section) :
+			_base(section) {
+	}
+	/**
+	 * load all setting values form the json-file (concerning to the section)
+	 * @param filename absolute path to the file
+	 */
+	void loadFromJson(std::string filename) {
+		boost::property_tree::ptree pt;
+		boost::property_tree::read_json(filename, pt);
+		loadValues(pt);
+	}
+	/**
+	 *  writes all values found in the ptree in the depending entries
+	 * @param ptree with nodes for the settings
+	 */
 	void loadValues(boost::property_tree::ptree ptree) {
 
-		/*for (setting_entry& entry : _settings) {
-		 entry.setValue(ptree, _base);
-		 }*/
+		typedef std::map<std::string, setting_entry>::iterator it_type;
+		for (it_type it = _settings.begin(); it != _settings.end(); it++) {
+			setting_entry& entry = it->second;
+
+			switch (entry.type) {
+			case (setting_entry_type::INT): {
+				boost::optional<int> param = ptree.get_optional<int>(
+						_base + entry.setting_name);
+
+				if (param)
+					entry.field = boost::get<int>(param);
+
+				break;
+			}
+			case (setting_entry_type::DOUBLE): {
+				boost::optional<double> param = ptree.get_optional<double>(
+						_base + entry.setting_name);
+				if (param)
+					entry.field = boost::get<double>(param);
+				break;
+			}
+			case (setting_entry_type::BOOL): {
+				boost::optional<bool> param = ptree.get_optional<bool>(
+						_base + entry.setting_name);
+				if (param)
+					entry.field = boost::get<bool>(param);
+
+				break;
+			}
+			case (setting_entry_type::U_INT): {
+				const boost::optional<unsigned int> param = ptree.get_optional<
+						unsigned int>(_base + entry.setting_name);
+				if (param)
+					entry.field = boost::get<unsigned int>(param);
+
+				break;
+			}
+			}
+		}
+
 	}
 
-	void loadDefaults(boost::property_tree::ptree ptree) {
-		/*for (setting_entry& entry : _settings) {
-		 entry.setValue(ptree, _base + DEFAULT_PREFIX);
-		 }*/
-	}
 #ifndef piplineStandalone
 	void loadValues(Settings &settings, std::string base);
 #endif
 
+#ifdef piplineStandalone
+
+#endif
+
 };
 
+/**************************************
+ *
+ *         Preprocessor Settings
+ *
+ **************************************/
 class preprocessor_settings_t: public settings_abs {
 
 public:
@@ -286,9 +315,9 @@ public:
 	}
 
 	double get_honey_average_value() {
-		return this->_getValue<double>(Preprocessor::Params::HONEY_AVERAGE_VALUE);
+		return this->_getValue<double>(
+				Preprocessor::Params::HONEY_AVERAGE_VALUE);
 	}
-
 
 	preprocessor_settings_t() {
 
@@ -355,16 +384,15 @@ public:
 				setting_entry(Preprocessor::Params::HONEY_AVERAGE_VALUE,
 						Preprocessor::Defaults::HONEY_AVERAGE_VALUE));
 
-
 	}
-
-	void loadFromIni(std::string filename, std::string section) {
-
-		boost::property_tree::ptree pt;
-
-	}
-
 };
+
+/**************************************
+ *
+ *           Localizer settings
+ *
+ **************************************/
+
 }
 }
 
