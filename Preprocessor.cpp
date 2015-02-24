@@ -104,13 +104,13 @@ cv::Mat Preprocessor::process(const cv::Mat &image) {
 	if (this->_options.get_opt_use_contrast_streching()) {
 		this->_contrastStretching(grayImage);
 	}
-	setOptsImage(grayImage);
+	setOptsImage(grayImage.clone());
 
 	if (this->_options.get_honey_enabled()) {
 		this->_filterHoney(grayImage);
 	}
 
-	setHoneyImage(grayImage);
+	setHoneyImage(grayImage.clone());
 
 	if (this->_options.get_opt_use_equalize_histogram()) {
 		this->_equalizeHistogramm(grayImage);
