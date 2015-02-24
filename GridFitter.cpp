@@ -323,7 +323,7 @@ std::vector<Grid> GridFitter::fitGrid(const Tag& tag, const TagCandidate &candid
         ++idx;
         if (idx == to) break;
     }
-#endif
+
 
 	bool cont = true;
 	while (cont) {
@@ -335,6 +335,7 @@ std::vector<Grid> GridFitter::fitGrid(const Tag& tag, const TagCandidate &candid
 			cont = false;
 		}
 	}
+#endif
 
 
 	// TODO
