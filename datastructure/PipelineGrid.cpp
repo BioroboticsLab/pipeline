@@ -12,277 +12,187 @@ static const cv::Scalar blackC1(0);
 
 PipelineGrid::PipelineGrid(cv::Point2i center, double radius, double angle_z, double angle_y, double angle_x)
 	: Grid(center, radius, angle_z, angle_y, angle_x)
-	, _innerWhiteRingCached(false)
-	, _innerBlackRingCached(false)
-	, _gridCellsCached(false)
-	, _outerRingCached(false)
-	, _gridCellCoordinates(NUM_MIDDLE_CELLS)
-{}
+{
+	resetCache();
+}
 
 PipelineGrid::PipelineGrid(const PipelineGrid::gridconfig_t& config)
 	: PipelineGrid(config.center, config.radius, config.angle_z,
 				   config.angle_y, config.angle_x)
 {}
 
-PipelineGrid::gridconfig_t PipelineGrid::getConfig() const
+const PipelineGrid::coordinates_t& PipelineGrid::getInnerWhiteRingCoordinates()
 {
-	return {_center, _radius, _angle_z, _angle_y, _angle_x};
+	if (_innerWhiteRingCoordinates) return _innerWhiteRingCoordinates.get();
+
+	_innerWhiteRingCoordinates = calculatePolygonCoordinates(INDEX_INNER_WHITE_SEMICIRCLE);
+	return _innerWhiteRingCoordinates.get();
+}
+
+const PipelineGrid::coordinates_t& PipelineGrid::getInnerBlackRingCoordinates()
+{
+	if (_innerBlackRingCoordinates) return _innerBlackRingCoordinates.get();
+
+	_innerBlackRingCoordinates = calculatePolygonCoordinates(INDEX_INNER_BLACK_SEMICIRCLE);
+	return _innerBlackRingCoordinates.get();
+}
+
+const PipelineGrid::coordinates_t& PipelineGrid::getGridCellCoordinates(const size_t idx)
+{
+	if (_gridCellCoordinates[idx]) return _gridCellCoordinates[idx].get();
+
+	_gridCellCoordinates[idx] = calculatePolygonCoordinates(idx + Grid::INDEX_MIDDLE_CELLS_BEGIN);
+	return _gridCellCoordinates[idx].get();
 }
 
 cv::Mat PipelineGrid::getProjectedImage(const cv::Size2i size) const
 {
-	static const cv::Scalar white(255, 255, 255);
-	static const cv::Scalar black(0, 0, 0);
-	static const cv::Scalar gray(128, 128, 128);
+    static const cv::Scalar white(255, 255, 255);
+    static const cv::Scalar black(0, 0, 0);
+    static const cv::Scalar gray(128, 128, 128);
 
-	static std::default_random_engine generator;
-	static std::uniform_int_distribution<int> distribution(0, 1);
+    // use B&W matrix
+    cv::Mat img(size, CV_8UC3);
+    img = black;
 
-	// use B&W matrix
-	cv::Mat img(size, CV_8UC3);
-	img = black;
+    typedef std::vector<std::vector<cv::Point>> pointvecvec_t;
+    cv::fillPoly(img, pointvecvec_t{_coordinates2D[INDEX_OUTER_WHITE_RING]}, white, 8, 0, _center);
+    cv::fillPoly(img, pointvecvec_t{_coordinates2D[INDEX_INNER_WHITE_SEMICIRCLE]}, white, 8, 0, _center);
+    cv::fillPoly(img, pointvecvec_t{_coordinates2D[INDEX_INNER_BLACK_SEMICIRCLE]}, gray, 8, 0, _center);
 
-	typedef std::vector<std::vector<cv::Point>> pointvecvec_t;
+    for (size_t i = INDEX_MIDDLE_CELLS_BEGIN; i < INDEX_MIDDLE_CELLS_BEGIN + NUM_MIDDLE_CELLS; ++i)
+    {
+        cv::Scalar col = white; // distribution(generator) ? black : white;
+        std::vector<std::vector<cv::Point>> points { _coordinates2D[i] };
+        cv::fillPoly(img, points, col, 8, 0, _center);
+    }
 
-	cv::fillPoly(img, pointvecvec_t{_coordinates2D[INDEX_OUTER_WHITE_RING]}, white, 8, 0, _center);
-	cv::fillPoly(img, pointvecvec_t{_coordinates2D[INDEX_INNER_WHITE_SEMICIRCLE]}, white, 8, 0, _center);
-	cv::fillPoly(img, pointvecvec_t{_coordinates2D[INDEX_INNER_BLACK_SEMICIRCLE]}, gray, 8, 0, _center);
-	for (size_t i = INDEX_MIDDLE_CELLS_BEGIN; i < INDEX_MIDDLE_CELLS_BEGIN + NUM_MIDDLE_CELLS; ++i)
-	{
-		cv::Scalar col = white; // distribution(generator) ? black : white;
-		std::vector<std::vector<cv::Point>> points { _coordinates2D[i] };
-		cv::fillPoly(img, points, col, 8, 0, _center);
-	}
+    for (size_t i = INDEX_MIDDLE_CELLS_BEGIN; i < INDEX_MIDDLE_CELLS_BEGIN + NUM_MIDDLE_CELLS; ++i)
+    {
+        CvHelper::drawPolyline(img, _coordinates2D, i, gray, false, _center);
+    }
 
-	for (size_t i = INDEX_MIDDLE_CELLS_BEGIN; i < INDEX_MIDDLE_CELLS_BEGIN + NUM_MIDDLE_CELLS; ++i)
-	{
-		CvHelper::drawPolyline(img, _coordinates2D, i, gray, false, _center);
-	}
-	CvHelper::drawPolyline(img, _coordinates2D, INDEX_OUTER_WHITE_RING, gray, false, _center);
+    CvHelper::drawPolyline(img, _coordinates2D, INDEX_OUTER_WHITE_RING, gray, false, _center);
 
-	return img;
+    return img;
 }
 
-cv::Mat PipelineGrid::getInnerCircleMask(const cv::Size2i size) const
+void PipelineGrid::draw(cv::Mat& img, const double transparency)
 {
-	static const cv::Scalar white(255, 255, 255);
-	static const cv::Scalar black(0, 0, 0);
-
-	// use B&W matrix
-	cv::Mat img(size, CV_8UC3);
-	img = black;
-
-	typedef std::vector<std::vector<cv::Point>> pointvecvec_t;
-
-	cv::fillPoly(img, pointvecvec_t{_coordinates2D[INDEX_OUTER_WHITE_RING]}, white, 8, 0, _center);
-	cv::fillPoly(img, pointvecvec_t{_coordinates2D[INDEX_INNER_WHITE_SEMICIRCLE]}, white, 8, 0, _center);
-	cv::fillPoly(img, pointvecvec_t{_coordinates2D[INDEX_INNER_BLACK_SEMICIRCLE]}, white, 8, 0, _center);
-	for (size_t i = INDEX_MIDDLE_CELLS_BEGIN; i < INDEX_MIDDLE_CELLS_BEGIN + NUM_MIDDLE_CELLS; ++i)
-	{
-		std::vector<std::vector<cv::Point>> points { _coordinates2D[i] };
-		cv::fillPoly(img, points, black, 8, 0, _center);
+	for (const cv::Point& point : getOuterRingCoordinates()) {
+		uint8_t* ptr = (img.ptr<uint8_t>(point.x));
+		ptr[point.y] = 200;
 	}
-
-	return img;
-}
-
-cv::Mat PipelineGrid::getOuterRingMask(const cv::Size2i size) const
-{
-	static const cv::Scalar white(255, 255, 255);
-	static const cv::Scalar black(0, 0, 0);
-
-	// use B&W matrix
-	cv::Mat img(size, CV_8UC1, black);
-
-	typedef std::vector<std::vector<cv::Point>> pointvecvec_t;
-
-	cv::fillPoly(img, pointvecvec_t{_coordinates2D[INDEX_OUTER_WHITE_RING]}, white, 8, 0, _center);
-
-	return img;
-}
-
-#include <iostream>
-cv::Point2i PipelineGrid::getOuterRingCentroid() const
-{
-	int64_t sumx = 0;
-	int64_t sumy = 0;
-	for (const cv::Point2i& point : _coordinates2D[INDEX_OUTER_WHITE_RING]) {
-		sumx += point.x;
-		sumy += point.y;
+	for (const cv::Point& point : getInnerWhiteRingCoordinates()) {
+		uint8_t* ptr = (img.ptr<uint8_t>(point.x));
+		ptr[point.y] = 255;
 	}
-	const int64_t num = _coordinates2D[INDEX_OUTER_WHITE_RING].size();
-	const cv::Point2i centroid(static_cast<int>(sumx / num), static_cast<int>(sumy / num));
-
-	return centroid;
+	for (const cv::Point& point : getInnerBlackRingCoordinates()) {
+		uint8_t* ptr = (img.ptr<uint8_t>(point.x));
+		ptr[point.y] = 0;
+	}
+	for (size_t idx = 0; idx < Grid::NUM_MIDDLE_CELLS; ++idx) {
+		for (const cv::Point& point : getGridCellCoordinates(idx)) {
+				uint8_t* ptr = (img.ptr<uint8_t>(point.x));
+				ptr[point.y] = idx % 2 ? 220 : 60;
+		}
+	}
 }
 
-const cv::Mat& PipelineGrid::getInnerWhiteRingCoordinates(const cv::Size2i& size)
+void PipelineGrid::draw(cv::Mat& img, const double transparency) const
 {
-	if (_innerWhiteRingCached) return _innerWhiteRingCoordinates;
+	//TODO
+}
 
-    // determine bounding box of polygon
+void PipelineGrid::setCenter(cv::Point center)
+{
+    auto shiftCoordinates = [&](cached_coordinates_t& coordinates) {
+        if (coordinates) {
+            for (cv::Point& point : coordinates.get()) {
+                point = point - _center + center;
+            }
+        }
+    };
+
+    shiftCoordinates(_outerRingCoordinates);
+    shiftCoordinates(_innerBlackRingCoordinates);
+    shiftCoordinates(_innerWhiteRingCoordinates);
+    for (size_t idx = 0; idx < Grid::NUM_MIDDLE_CELLS; ++idx) {
+        shiftCoordinates(_gridCellCoordinates[idx]);
+    }
+
+    Grid::setCenter(center);
+}
+
+const PipelineGrid::coordinates_t& PipelineGrid::getOuterRingCoordinates()
+{
+	if (_outerRingCoordinates) return _outerRingCoordinates.get();
+
+	_outerRingCoordinates = calculatePolygonCoordinates(INDEX_OUTER_WHITE_RING);
+	return _outerRingCoordinates.get();
+}
+
+cv::Rect PipelineGrid::getPolygonBoundingBox(size_t idx)
+{
     int minx = std::numeric_limits<int>::max();
     int miny = std::numeric_limits<int>::max();
     int maxx = std::numeric_limits<int>::min();
     int maxy = std::numeric_limits<int>::min();
-    for (cv::Point2i const& point : _coordinates2D[INDEX_INNER_WHITE_SEMICIRCLE]) {
-		minx = std::min(minx, point.x);
-		miny = std::min(miny, point.y);
-		maxx = std::max(maxx, point.x);
-		maxy = std::max(maxy, point.y);
-    }
-	if ((minx == std::numeric_limits<int>::max()) || (miny == std::numeric_limits<int>::max()) ||
-		(maxx == std::numeric_limits<int>::min()) || (maxy == std::numeric_limits<int>::min()) ||
-	    _coordinates2D[INDEX_INNER_WHITE_SEMICIRCLE].size() == 0) {
-		_innerWhiteRingCached = true;
-		return _innerWhiteRingCoordinates;
-	}
-    const cv::Rect boundingBox(minx + _center.x, miny + _center.y, maxx - minx, maxy - miny);
 
-    const cv::Mat img = getRingPoly(INDEX_INNER_WHITE_SEMICIRCLE, size);
-
-    cv::Mat& outputArray = _innerWhiteRingCoordinates;
-
-    // find non zero elements only inside of bounding box
-    cv::Mat roi;
-    roi = img(boundingBox);
-    cv::findNonZero(roi, outputArray);
-
-    // shift roi coordinates -> img coordinates
-    for (size_t idx = 0; idx < outputArray.total(); ++idx) {
-        outputArray.at<cv::Point2i>(idx) += boundingBox.tl();
+    for (cv::Point2i const& point : _coordinates2D[idx]) {
+        minx = std::min(minx, point.x);
+        miny = std::min(miny, point.y);
+        maxx = std::max(maxx, point.x);
+        maxy = std::max(maxy, point.y);
     }
 
-	_innerWhiteRingCached = true;
-	return _innerWhiteRingCoordinates;
+    return {minx - _boundingBox.tl().x, miny - _boundingBox.tl().y, maxx - minx, maxy - miny};
 }
 
-const cv::Mat& PipelineGrid::getInnerBlackRingCoordinates(const cv::Size2i& size)
+PipelineGrid::coordinates_t PipelineGrid::calculatePolygonCoordinates(const size_t idx)
 {
-	if (_innerBlackRingCached) return _innerBlackRingCoordinates;
+	coordinates_t coordinates;
 
-    // determine bounding box of polygon
-    int minx = std::numeric_limits<int>::max();
-    int miny = std::numeric_limits<int>::max();
-    int maxx = std::numeric_limits<int>::min();
-    int maxy = std::numeric_limits<int>::min();
-    for (cv::Point2i const& point : _coordinates2D[INDEX_INNER_BLACK_SEMICIRCLE]) {
-        // TODO: debug points with invalid coordinates!
-        if (point.x + _center.x >= 0 && point.y + _center.y >= 0 &&
-                point.x + _center.x < size.width && point.y + _center.y < size.height) {
-            minx = std::min(minx, point.x);
-            miny = std::min(miny, point.y);
-            maxx = std::max(maxx, point.x);
-            maxy = std::max(maxy, point.y);
-        }
-    }
-	if (minx == std::numeric_limits<int>::max() || miny == std::numeric_limits<int>::max() ||
-		maxx == std::numeric_limits<int>::min() || maxy == std::numeric_limits<int>::min()) {
-		_innerBlackRingCached = true;
-		return _innerBlackRingCoordinates;
-	}
-    const cv::Rect boundingBox(minx + _center.x, miny + _center.y, maxx - minx, maxy - miny);
+	cv::Rect box = getPolygonBoundingBox(idx);
 
-    const cv::Mat img = getRingPoly(INDEX_INNER_BLACK_SEMICIRCLE, size);
-
-    cv::Mat& outputArray = _innerBlackRingCoordinates;
-
-    // find non zero elements only inside of bounding box
-    cv::Mat roi;
-    roi = img(boundingBox);
-    cv::findNonZero(roi, outputArray);
-
-    // shift roi coordinates -> img coordinates
-    for (size_t idx = 0; idx < outputArray.total(); ++idx) {
-        outputArray.at<cv::Point2i>(idx) += boundingBox.tl();
+    std::vector<cv::Point> shiftedPoints;
+    shiftedPoints.reserve(_coordinates2D[idx].size());
+    for (const cv::Point2i& origPoint : _coordinates2D[idx]) {
+        shiftedPoints.push_back(origPoint - _boundingBox.tl() - box.tl());
     }
 
-	_innerBlackRingCached = true;
-	return _innerBlackRingCoordinates;
-}
+    cv::Mat roi = _idImage(box);
+    cv::fillConvexPoly(roi, shiftedPoints, idx, 8);
 
-const std::vector<cv::Mat>& PipelineGrid::getGridCellCoordinates(const cv::Size2i& size)
-{
-	if (_gridCellsCached) return _gridCellCoordinates;
-
-	cv::Mat img(size, CV_8UC1, cv::Scalar::all(0));
-	for (size_t i = INDEX_MIDDLE_CELLS_BEGIN; i < INDEX_MIDDLE_CELLS_BEGIN + NUM_MIDDLE_CELLS; ++i)
-	{
-		// determine bounding box of polygon
-		int minx = std::numeric_limits<int>::max();
-		int miny = std::numeric_limits<int>::max();
-		int maxx = std::numeric_limits<int>::min();
-		int maxy = std::numeric_limits<int>::min();
-		for (cv::Point2i const& point : _coordinates2D[i]) {
-			// TODO: debug points with invalid coordinates!
-			if (point.x + _center.x >= 0 && point.y + _center.y >= 0 &&
-					point.x + _center.x < size.width && point.y + _center.y < size.height) {
-				minx = std::min(minx, point.x);
-				miny = std::min(miny, point.y);
-				maxx = std::max(maxx, point.x);
-				maxy = std::max(maxy, point.y);
-			}
+	const cv::Point offset = box.tl() + _boundingBox.tl() + _center;
+	const int nRows = roi.rows;
+	const int nCols = roi.cols;
+	uint8_t* point;
+	for (int i = 0; i < nRows; ++i) {
+		point = roi.ptr<uint8_t>(i);
+		for (int j = 0; j < nCols; ++j) {
+			if (point[j] == idx) coordinates.push_back(cv::Point2i(j, i) + offset);
 		}
-		if (minx == std::numeric_limits<int>::max() || miny == std::numeric_limits<int>::max() ||
-		    maxx == std::numeric_limits<int>::min() || maxy == std::numeric_limits<int>::min()) {
-			continue;
-		}
-		const cv::Rect boundingBox(minx + _center.x, miny + _center.y, maxx - minx, maxy - miny);
-
-		// avoid copy
-		const cv::Point* points[1] = { &_coordinates2D[i].front() };
-		const int numpoints[1] = { static_cast<int>(_coordinates2D[i].size()) };
-		cv::fillPoly(img, points, numpoints, 1, whiteC1, 8, 0, _center);
-
-		cv::Mat& outputArray = _gridCellCoordinates[i - INDEX_MIDDLE_CELLS_BEGIN];
-
-		// find non zero elements only inside of bounding box
-		cv::Mat roi;
-		roi = img(boundingBox);
-		cv::findNonZero(roi, outputArray);
-
-        // shift roi coordinates -> img coordinates
-        for (size_t idx = 0; idx < outputArray.total(); ++idx) {
-            outputArray.at<cv::Point2i>(idx) += boundingBox.tl();
-        }
-
-		img.setTo(0);
 	}
 
-	_gridCellsCached = true;
-	return _gridCellCoordinates;
+	return coordinates;
 }
 
-const cv::Mat& PipelineGrid::getOuterRingCoordinates(const cv::Size2i& size)
+void PipelineGrid::resetCache()
 {
-	if (_outerRingCached) return _outerRingCoordinates;
-
-	cv::Mat outerRing = getRingPoly(INDEX_OUTER_WHITE_RING, size);
-	const std::vector<cv::Mat>& gridCellCoordinates = getGridCellCoordinates(size);
-	const cv::Mat& blackSemicircle = getInnerBlackRingCoordinates(size);
-	const cv::Mat& whiteSemicircle = getInnerWhiteRingCoordinates(size);
-
-	auto removeCoords = [&](const cv::Mat& indices) {
-		for (size_t idx = 0; idx < indices.total(); ++idx) {
-			const cv::Point2i& pt = indices.at<cv::Point2i>(idx);
-			outerRing.at<uint8_t>(pt.y, pt.x) = 0;
-		}
-	};
-
-	// remove grid cells from polygon
-	// TODO: could be implemented more efficently
-	for (const cv::Mat& cell : gridCellCoordinates) {
-		removeCoords(cell);
+	_innerWhiteRingCoordinates.reset();
+	_innerBlackRingCoordinates.reset();
+	_outerRingCoordinates.reset();
+	for (cached_coordinates_t& coordinates : _gridCellCoordinates) {
+		coordinates.reset();
 	}
 
-    // remove inner semicircles from polygon
-    removeCoords(blackSemicircle);
-    removeCoords(whiteSemicircle);
+	_idImage = cv::Mat(_boundingBox.size(), CV_8UC1, cv::Scalar(255));
+}
 
-    cv::findNonZero(outerRing, _outerRingCoordinates);
-
-	_outerRingCached = true;
-	return _outerRingCoordinates;
+PipelineGrid::gridconfig_t PipelineGrid::getConfig() const
+{
+	return {_center, _radius, _angle_z, _angle_y, _angle_x};
 }
 
 const std::vector<cv::Point2i> PipelineGrid::getOuterRingEdgeCoordinates()
@@ -293,63 +203,4 @@ const std::vector<cv::Point2i> PipelineGrid::getOuterRingEdgeCoordinates()
 	}
 
 	return coords;
-}
-
-void PipelineGrid::draw(cv::Mat &img, const double transparency) const
-{
-	const int radius = static_cast<int>(std::ceil(_radius));
-	const cv::Point subimage_origin( std::max(       0, _center.x - radius), std::max(       0, _center.y - radius) );
-	const cv::Point subimage_end   ( std::min(img.cols, _center.x + radius), std::min(img.rows, _center.y + radius) );
-
-	// draw only if subimage has a valid size (i.e. width & height > 0)
-	if (subimage_origin.x < subimage_end.x && subimage_origin.y < subimage_end.y)
-	{
-		const cv::Point subimage_center( std::min(radius, _center.x), std::min(radius, _center.y) );
-
-		cv::Mat subimage      = img( cv::Rect(subimage_origin, subimage_end) );
-		cv::Mat subimage_copy = subimage.clone();
-
-		draw(subimage_copy, subimage_center);
-		cv::addWeighted(subimage_copy, transparency, subimage, 1.0 - transparency, 0.0, subimage);
-	}
-}
-
-cv::Mat PipelineGrid::getRingPoly(const size_t ringIndex, const cv::Size2i& size)
-{
-	cv::Mat img(size, CV_8UC1, cv::Scalar::all(0));
-
-    const cv::Point* points[1] = { &_coordinates2D[ringIndex].front() };
-    const int numpoints[1] = { static_cast<int>(_coordinates2D[ringIndex].size()) };
-    cv::fillPoly(img, points, numpoints, 1, whiteC1, 8, 0, _center);
-
-    return img;
-}
-
-Grid::coordinates2D_t PipelineGrid::generate_3D_coordinates_from_parameters_and_project_to_2D()
-{
-	_innerWhiteRingCached = false;
-	_innerBlackRingCached = false;
-	_gridCellsCached      = false;
-	_outerRingCached      = false;
-
-	_innerWhiteRingCoordinates = cv::Mat();
-	_innerBlackRingCoordinates = cv::Mat();
-	_outerRingCoordinates = cv::Mat();
-	_gridCellCoordinates = std::vector<cv::Mat>(NUM_MIDDLE_CELLS);
-
-	return Grid::generate_3D_coordinates_from_parameters_and_project_to_2D();
-}
-
-void PipelineGrid::draw(cv::Mat &img, const cv::Point &center) const
-{
-	static const cv::Scalar white(255, 255, 255);
-	static const cv::Scalar black(0, 0, 0);
-
-	for (size_t i = INDEX_MIDDLE_CELLS_BEGIN; i < INDEX_MIDDLE_CELLS_BEGIN + NUM_MIDDLE_CELLS; ++i)
-	{
-		CvHelper::drawPolyline(img, _coordinates2D, i, white, false, center);
-	}
-	CvHelper::drawPolyline(img, _coordinates2D, INDEX_OUTER_WHITE_RING,       white, false, center);
-	CvHelper::drawPolyline(img, _coordinates2D, INDEX_INNER_WHITE_SEMICIRCLE, white,      false, center);
-	CvHelper::drawPolyline(img, _coordinates2D, INDEX_INNER_BLACK_SEMICIRCLE, black,      false, center);
 }

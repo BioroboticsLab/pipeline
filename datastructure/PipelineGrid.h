@@ -1,9 +1,15 @@
 #pragma once
 
+#include <array>
+
+#include <boost/optional.hpp>
+
 #include "source/tracking/algorithm/BeesBook/Common/Grid.h"
 
 class PipelineGrid : private Grid {
 public:
+	typedef std::vector<cv::Point2i> coordinates_t;
+
 	typedef struct {
 		cv::Point2i center;
 		double radius;
@@ -18,54 +24,45 @@ public:
 
 	gridconfig_t getConfig() const;
 
-	void setXRotation(double angle) { Grid::setXRotation(angle); }
+	coordinates_t const& getOuterRingCoordinates();
+	coordinates_t const& getInnerWhiteRingCoordinates();
+	coordinates_t const& getInnerBlackRingCoordinates();
+	coordinates_t const& getGridCellCoordinates(const size_t idx);
+
+	const std::vector<cv::Point2i> getOuterRingEdgeCoordinates();
+
+	cv::Mat getProjectedImage(const cv::Size2i size) const;
+	void draw(cv::Mat& img, const double transparency);
+	void draw(cv::Mat& img, const double transparency) const;
+
+	void setXRotation(double angle) { Grid::setXRotation(angle); resetCache(); }
 	double getXRotation() const { return Grid::getXRotation(); }
 
-	void setYRotation(double angle) { Grid::setYRotation(angle); }
+	void setYRotation(double angle) { Grid::setYRotation(angle); resetCache(); }
 	double getYRotation() const { return Grid::getYRotation(); }
 
-	void setZRotation(double angle) { Grid::setZRotation(angle); }
+	void setZRotation(double angle) { Grid::setZRotation(angle); resetCache(); }
 	double getZRotation() const { return Grid::getZRotation(); }
 
-	// TODO: shift coordinates instead of recalculating projection + coordinates
-	void setCenter(cv::Point c) { Grid::setCenter(c); prepare_visualization_data(); }
+	void setCenter(cv::Point center);
 	cv::Point getCenter() const { return Grid::getCenter(); }
 
-	void setRadius(double radius) { Grid::setRadius(radius); }
+	void setRadius(double radius) { Grid::setRadius(radius); resetCache(); }
 	double getRadius() const { return Grid::getRadius(); }
 
 	cv::Rect getBoundingBox() const { return Grid::getBoundingBox(); }
 
-	cv::Mat getProjectedImage(const cv::Size2i size) const;
-	cv::Mat getInnerCircleMask(const cv::Size2i size) const;
-	cv::Mat getOuterRingMask(const cv::Size2i size) const;
-
-	cv::Point2i getOuterRingCentroid() const;
-
-	const cv::Mat& getInnerWhiteRingCoordinates(const cv::Size2i& size);
-	const cv::Mat& getInnerBlackRingCoordinates(const cv::Size2i& size);
-	const std::vector<cv::Mat>& getGridCellCoordinates(const cv::Size2i& size);
-	const cv::Mat& getOuterRingCoordinates(const cv::Size2i& size);
-	const std::vector<cv::Point2i> getOuterRingEdgeCoordinates();
-
-	void draw(cv::Mat& img, const double transparency) const;
-
 private:
-	// TODO: invalidate cache on param change + efficient update when only
-	// position changes
-	bool _innerWhiteRingCached;
-	bool _innerBlackRingCached;
-	bool _gridCellsCached;
-	bool _outerRingCached;
+    typedef boost::optional<coordinates_t> cached_coordinates_t;
+    cv::Mat _idImage;
+    cached_coordinates_t _outerRingCoordinates;
+    cached_coordinates_t _innerWhiteRingCoordinates;
+    cached_coordinates_t _innerBlackRingCoordinates;
+    std::array<cached_coordinates_t, NUM_MIDDLE_CELLS> _gridCellCoordinates;
 
-	cv::Mat _innerWhiteRingCoordinates;
-	cv::Mat _innerBlackRingCoordinates;
-	std::vector<cv::Mat> _gridCellCoordinates;
-	cv::Mat _outerRingCoordinates;
+    cv::Rect getPolygonBoundingBox(size_t idx);
 
-	cv::Mat getRingPoly(const size_t ringIndex, const cv::Size2i& size);
+    coordinates_t calculatePolygonCoordinates(const size_t idx);
 
-	virtual coordinates2D_t generate_3D_coordinates_from_parameters_and_project_to_2D() override;
-
-	void draw(cv::Mat& img, cv::Point const& center) const;
+    void resetCache();
 };

@@ -53,34 +53,35 @@ std::vector<decoding_t> Decoder::getDecodings(const Tag &tag, TagCandidate &cand
 	cv::cvtColor(tag.getOrigSubImage(), roi, CV_BGR2GRAY);
 
 	std::vector<decoding_t> decodings;
-	for (PipelineGrid& grid : candidate.getGrids()) {
-		decoding_t decoding;
-		// TODO: fix PipelineGrid bugs
-		try {
-		// TODO: remove workaround
-		cv::Point gridCenter = grid.getCenter();
-		grid.setCenter(gridCenter - tag.getBox().tl());
-		const std::vector<cv::Mat>& gridCellCoordinates = grid.getGridCellCoordinates(roiSize);
+	//TODO
+//	for (PipelineGrid& grid : candidate.getGrids()) {
+//		decoding_t decoding;
+//		// TODO: fix PipelineGrid bugs
+//		try {
+//		// TODO: remove workaround
+//		cv::Point gridCenter = grid.getCenter();
+//		grid.setCenter(gridCenter - tag.getBox().tl());
+//		const std::vector<cv::Mat>& gridCellCoordinates = grid.getGridCellCoordinates(roiSize);
 
-		const double meanBlack = getMeanIntensity(roi, grid.getInnerBlackRingCoordinates(roiSize));
-		const double meanWhite = getMeanIntensity(roi, grid.getInnerWhiteRingCoordinates(roiSize));
+//		const double meanBlack = getMeanIntensity(roi, grid.getInnerBlackRingCoordinates(roiSize));
+//		const double meanWhite = getMeanIntensity(roi, grid.getInnerWhiteRingCoordinates(roiSize));
 
-		for (size_t idx = 0; idx < Grid::NUM_MIDDLE_CELLS; ++ idx) {
-			const double distanceBlack = getMeanDistance(roi, gridCellCoordinates[idx], meanBlack);
-			const double distanceWhite = getMeanDistance(roi, gridCellCoordinates[idx], meanWhite);
+//		for (size_t idx = 0; idx < Grid::NUM_MIDDLE_CELLS; ++ idx) {
+//			const double distanceBlack = getMeanDistance(roi, gridCellCoordinates[idx], meanBlack);
+//			const double distanceWhite = getMeanDistance(roi, gridCellCoordinates[idx], meanWhite);
 
-			if (distanceBlack < distanceWhite) {
-				decoding.set(idx, true);
-			}
-		}
-		// TODO: remove workaround
-		grid.setCenter(gridCenter);
-		} catch (std::exception& ex) {
-			std::cout << ex.what() << std::endl;
-			continue;
-		}
-		decodings.push_back(decoding);
-	}
+//			if (distanceBlack < distanceWhite) {
+//				decoding.set(idx, true);
+//			}
+//		}
+//		// TODO: remove workaround
+//		grid.setCenter(gridCenter);
+//		} catch (std::exception& ex) {
+//			std::cout << ex.what() << std::endl;
+//			continue;
+//		}
+//		decodings.push_back(decoding);
+//	}
 	return decodings;
 }
 

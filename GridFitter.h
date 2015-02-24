@@ -102,6 +102,6 @@ private:
     static double evaluateCandidate (PipelineGrid& grid, const cv::Mat& roi, const cv::Mat& binarizedROI, const gridfitter_settings_t& settings);
 
     cv::Mat calculateHistogram(const cv::Mat& roi, const Ellipse& ellipse_orig) const;
-    void visualizeDebug(const std::multiset<candidate_t>& bestGrids, const size_t numResults, const cv::Size2i roiSize, const Tag& tag, const cv::Mat& binarizedROI) const;
+    void visualizeDebug(const std::multiset<candidate_t>& bestGrids, const cv::Size2i roiSize, const Tag& tag, const cv::Mat& binarizedROI) const;
 };
 }
