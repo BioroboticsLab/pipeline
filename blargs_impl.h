@@ -10,14 +10,21 @@
 
 namespace heyho {
 
-template<typename pixel_t>
-void Line(cv::Mat& img, cv::Point pt1, cv::Point pt2, const pixel_t &color, int connectivity) {
+template<typename F>
+F Line(cv::Mat& img, cv::Point pt1, cv::Point pt2, F f, int connectivity) {
 
 	cv::LineIterator iterator(img, pt1, pt2, connectivity, true);
 	const int count = iterator.count;
-	for (int i = 0; i < count; i++, ++iterator ) {
-		img.at<pixel_t>(iterator.pos()) = color;
+	for (int i = 0; i < count; ++i, ++iterator ) {
+		f(iterator.pos());
 	}
+	return std::move(f);
+}
+
+template<typename pixel_t>
+void DrawLine(cv::Mat& img, cv::Point pt1, cv::Point pt2, const pixel_t &color, int connectivity)
+{
+	heyho::Line(img, pt1, pt2, pixel_setter<pixel_t>{img, color}, connectivity);
 }
 
 template<typename pixel_t>
@@ -156,7 +163,7 @@ void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* colo
 			xmin = std::min( xmin, p.x );
 
 			//heyho::Line( img, p0, p, color, line_type );
-			heyho::Line(img, p0, p, color_pixel, line_type);
+			heyho::DrawLine(img, p0, p, color_pixel, line_type);
 
 			p0 = p;
 		}
