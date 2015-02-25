@@ -23,6 +23,7 @@ PipelineGrid::PipelineGrid(const PipelineGrid::gridconfig_t& config)
 
 const PipelineGrid::coordinates_t& PipelineGrid::getInnerWhiteRingCoordinates()
 {
+	if (!_outerRingCoordinates) getOuterRingCoordinates();
 	if (_innerWhiteRingCoordinates) return _innerWhiteRingCoordinates.get();
 
 	_innerWhiteRingCoordinates = calculatePolygonCoordinates(INDEX_INNER_WHITE_SEMICIRCLE);
@@ -31,6 +32,7 @@ const PipelineGrid::coordinates_t& PipelineGrid::getInnerWhiteRingCoordinates()
 
 const PipelineGrid::coordinates_t& PipelineGrid::getInnerBlackRingCoordinates()
 {
+	if (!_outerRingCoordinates) getOuterRingCoordinates();
 	if (_innerBlackRingCoordinates) return _innerBlackRingCoordinates.get();
 
 	_innerBlackRingCoordinates = calculatePolygonCoordinates(INDEX_INNER_BLACK_SEMICIRCLE);
@@ -39,6 +41,7 @@ const PipelineGrid::coordinates_t& PipelineGrid::getInnerBlackRingCoordinates()
 
 const PipelineGrid::coordinates_t& PipelineGrid::getGridCellCoordinates(const size_t idx)
 {
+	if (!_outerRingCoordinates) getOuterRingCoordinates();
 	if (_gridCellCoordinates[idx]) return _gridCellCoordinates[idx].get();
 
 	_gridCellCoordinates[idx] = calculatePolygonCoordinates(idx + Grid::INDEX_MIDDLE_CELLS_BEGIN);
@@ -99,9 +102,33 @@ void PipelineGrid::draw(cv::Mat& img, const double transparency)
 	}
 }
 
-void PipelineGrid::draw(cv::Mat& img, const double transparency) const
+void PipelineGrid::drawContours(cv::Mat& img, const double transparency) const
 {
-	//TODO
+    static const cv::Scalar white(255, 255, 255);
+    static const cv::Scalar black(0, 0, 0);
+
+    const int radius = static_cast<int>(std::ceil(_radius));
+    const cv::Point subimage_origin( std::max(       0, _center.x - radius), std::max(       0, _center.y - radius) );
+    const cv::Point subimage_end   ( std::min(img.cols, _center.x + radius), std::min(img.rows, _center.y + radius) );
+
+    // draw only if subimage has a valid size (i.e. width & height > 0)
+    if (subimage_origin.x < subimage_end.x && subimage_origin.y < subimage_end.y)
+    {
+        const cv::Point subimage_center( std::min(radius, _center.x), std::min(radius, _center.y) );
+        cv::Mat subimage      = img( cv::Rect(subimage_origin, subimage_end) );
+        cv::Mat subimage_copy = subimage.clone();
+
+        for (size_t i = INDEX_MIDDLE_CELLS_BEGIN; i < INDEX_MIDDLE_CELLS_BEGIN + NUM_MIDDLE_CELLS; ++i)
+        {
+                CvHelper::drawPolyline(subimage_copy, _coordinates2D, i, white, false, subimage_center);
+        }
+
+        CvHelper::drawPolyline(subimage_copy, _coordinates2D, INDEX_OUTER_WHITE_RING,       white, false, subimage_center);
+        CvHelper::drawPolyline(subimage_copy, _coordinates2D, INDEX_INNER_WHITE_SEMICIRCLE, white,      false, subimage_center);
+        CvHelper::drawPolyline(subimage_copy, _coordinates2D, INDEX_INNER_BLACK_SEMICIRCLE, black,      false, subimage_center);
+
+        cv::addWeighted(subimage_copy, transparency, subimage, 1.0 - transparency, 0.0, subimage);
+    }
 }
 
 void PipelineGrid::setCenter(cv::Point center)
@@ -163,6 +190,14 @@ PipelineGrid::coordinates_t PipelineGrid::calculatePolygonCoordinates(const size
 
     cv::Mat roi = _idImage(box);
     cv::fillConvexPoly(roi, shiftedPoints, idx, 8);
+
+    if (idx == INDEX_OUTER_WHITE_RING) {
+        _innerWhiteRingCoordinates = calculatePolygonCoordinates(INDEX_INNER_WHITE_SEMICIRCLE);
+        _innerBlackRingCoordinates = calculatePolygonCoordinates(INDEX_INNER_BLACK_SEMICIRCLE);
+        for (size_t cellIdx = Grid::INDEX_MIDDLE_CELLS_BEGIN; cellIdx < Grid::INDEX_MIDDLE_CELLS_END; ++cellIdx) {
+            _gridCellCoordinates[cellIdx - Grid::INDEX_MIDDLE_CELLS_BEGIN] = calculatePolygonCoordinates(cellIdx);
+        }
+    }
 
 	const cv::Point offset = box.tl() + _boundingBox.tl() + _center;
 	const int nRows = roi.rows;

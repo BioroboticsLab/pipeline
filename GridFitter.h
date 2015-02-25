@@ -29,7 +29,7 @@ typedef struct {
 	size_t numInitial = 2;
 	size_t numResults = 1;
 
-	double errorThreshold = 100.;
+	double errorThreshold = 50.;
 	size_t maxIterations  = 100;
 
 	double eps_angle = 0.01;

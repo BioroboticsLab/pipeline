@@ -17,7 +17,7 @@
 #include "source/utility/CvHelper.h"
 #include "source/utility/util.h"
 
-#define DEBUG_GRIDFITTER
+//#define DEBUG_GRIDFITTER
 
 namespace pipeline {
 GridFitter::GridFitter()
@@ -31,11 +31,17 @@ void GridFitter::loadSettings(gridfitter_settings_t &&settings)
 std::vector<Tag> GridFitter::process(std::vector<Tag> &&taglist)
 {
 #ifdef DEBUG_GRIDFITTER
-    static const size_t numThreads = 1;
+	for (Tag& tag : taglist) {
+		tag.setValid(false);
+		for (TagCandidate& candidate : tag.getCandidates()) {
+				std::vector<PipelineGrid> grids = fitGrid(tag, candidate);
+				if (!grids.empty()) { tag.setValid(true); };
+				candidate.setGrids(std::move(grids));
+		}
+	}
 #else
     static const size_t numThreads = std::thread::hardware_concurrency() ?
                 std::thread::hardware_concurrency() * 2 : 1;
-#endif
     ThreadPool pool(numThreads);
 
     std::vector<std::future<void>> results;
@@ -52,6 +58,7 @@ std::vector<Tag> GridFitter::process(std::vector<Tag> &&taglist)
 	}
 
     for (auto && result : results) result.get();
+#endif
 
 	// remove tags without any fitted grids
 	taglist.erase(std::remove_if(taglist.begin(), taglist.end(), [](Tag& tag) { return !tag.isValid(); }), taglist.end());
@@ -121,16 +128,18 @@ void GridFitter::visualizeDebug(std::multiset<candidate_t> const& bestGrids, con
         if (idx == to) break;
     }
 
-	bool cont = true;
-	while (cont) {
-		const char c = cv::waitKey();
-		if (c == 'd') {
-			cv::destroyAllWindows();
-			cont = false;
-		} else if (c == 'c') {
-			cont = false;
-		}
-	}
+    if (!bestGrids.empty()) {
+        bool cont = true;
+        while (cont) {
+            const char c = cv::waitKey();
+            if (c == 'd') {
+                    cv::destroyAllWindows();
+                    cont = false;
+            } else if (c == 'c') {
+                    cont = false;
+            }
+        }
+    }
 }
 
 GridFitter::candidate_set GridFitter::getInitialCandidates(const cv::Mat &binarizedROI, const Ellipse& ellipse_orig, const cv::Mat &roi) const
@@ -180,7 +189,7 @@ std::vector<PipelineGrid> GridFitter::fitGrid(const Tag& tag, const TagCandidate
 	GradientDescent optimizer(gridCandidates, roi, binarizedROI, _settings);
 	optimizer.optimize();
 
-	const candidate_set& bestGrids = optimizer.getBestGrids();
+	const candidate_set& bestGrids = gridCandidates; //optimizer.getBestGrids();
 
 #ifdef DEBUG_GRIDFITTER
     std::cout << "min initial candidate error: " << gridCandidates.begin()->error << std::endl;
@@ -212,7 +221,7 @@ double GridFitter::evaluateCandidate(PipelineGrid& grid, cv::Mat const& roi, cv:
     double error = 0;
 
     // bounding box of grid candidate
-    const cv::Rect boundingBox   = grid.getBoundingBox();
+    const cv::Rect boundingBox = grid.getBoundingBox();
 
     // define region of interest based on bounding box of grid candidate
     // from now on, we do all calculations on this roi to speed up all
@@ -236,7 +245,8 @@ double GridFitter::evaluateCandidate(PipelineGrid& grid, cv::Mat const& roi, cv:
         // no branching => better performance
         outerCircleError += 255 - value;
     }
-    error += (settings.alpha_outer * outerCircleError) / outerRingCoordinates.size();
+    if (outerRingCoordinates.size())
+        error += (settings.alpha_outer * outerCircleError) / outerRingCoordinates.size();
 
     // compare inner white semicircle
     size_t innerWhiteError = 0;
@@ -244,7 +254,8 @@ double GridFitter::evaluateCandidate(PipelineGrid& grid, cv::Mat const& roi, cv:
         const uint8_t value      = subBinarized.at<uint8_t>(coords - boundingBox.tl());
         innerWhiteError += 255 - value;
     }
-    error += (settings.alpha_inner * innerWhiteError) / innerWhiteCoordinates.size();
+    if (innerWhiteCoordinates.size())
+        error += (settings.alpha_inner * innerWhiteError) / innerWhiteCoordinates.size();
 
     // compare inner black semicircle
     size_t innerBlackError = 0;
@@ -252,36 +263,38 @@ double GridFitter::evaluateCandidate(PipelineGrid& grid, cv::Mat const& roi, cv:
         const uint8_t value      = subBinarized.at<uint8_t>(coords - boundingBox.tl());
         innerBlackError += value;
     }
-    error += (settings.alpha_inner * innerBlackError) / innerBlackCoordinates.size();
+    if (innerBlackCoordinates.size())
+        error += (settings.alpha_inner * innerBlackError) / innerBlackCoordinates.size();
 
     error /= 255.;
 
-//    // add variance of each grid cells to error
-//    for (cv::Mat const& cell : cellCoordinates) {
-//        // two-pass variance calculation. first pass calculates mean of
-//        // points in cell, second pass calculates variance based on mean.
-//        // TODO: evaluate whether a one-pass method significantly improves
-//        // performance and whether a more numerically stable algorithm is
-//        // required.
-//        // see: http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
-//        size_t sum = 0;
-//        for (size_t idx = 0; idx < cell.total(); ++idx) {
-//            const cv::Point2i coords = cell.at<cv::Point2i>(idx);
-//            const uint8_t value      = subBinarized.at<uint8_t>(coords);
-//            sum += value;
-//        }
-//        const double mean = static_cast<double>(sum) / static_cast<double>(cell.total());
+    // add variance of each grid cells to error
+    for (size_t cellIdx = 0; cellIdx < Grid::NUM_MIDDLE_CELLS; ++cellIdx) {
+        PipelineGrid::coordinates_t const& cellCoordinates = grid.getGridCellCoordinates(cellIdx);
+        if (cellCoordinates.size() > 1) {
+            // two-pass variance calculation. first pass calculates mean of
+            // points in cell, second pass calculates variance based on mean.
+            // TODO: evaluate whether a one-pass method significantly improves
+            // performance and whether a more numerically stable algorithm is
+            // required.
+            // see: http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
+            size_t sum = 0;
+            for (const cv::Point2i coords : cellCoordinates) {
+                const uint8_t value      = subBinarized.at<uint8_t>(coords);
+                sum += value;
+            }
+            const double mean = static_cast<double>(sum) / static_cast<double>(cellCoordinates.size());
 
-//        double sum2 = 0;
-//        for (size_t idx = 0; idx < cell.total(); ++idx) {
-//            const cv::Point2i coords = cell.at<cv::Point2i>(idx);
-//            const double value       = static_cast<double>(subBinarized.at<uint8_t>(coords));
-//            sum2 += (value - mean) * (value - mean);
-//        }
-//        const double variance = (sum2 / (cell.total() - 1));
+            double sum2 = 0;
+            for (const cv::Point2i coords : cellCoordinates) {
+                const double value       = static_cast<double>(subBinarized.at<uint8_t>(coords));
+                sum2 += (value - mean) * (value - mean);
+            }
+            const double variance = (sum2 / (cellCoordinates.size() - 1));
 
-//        error += settings.alpha_variance * (variance / 255.);
-//    }
+            error += settings.alpha_variance * (variance / 255.);
+        }
+    }
 
 	return error;
 }

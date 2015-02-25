@@ -8,6 +8,7 @@
 
 class PipelineGrid : private Grid {
 public:
+	//TODO: add comments
 	typedef std::vector<cv::Point2i> coordinates_t;
 
 	typedef struct {
@@ -33,7 +34,7 @@ public:
 
 	cv::Mat getProjectedImage(const cv::Size2i size) const;
 	void draw(cv::Mat& img, const double transparency);
-	void draw(cv::Mat& img, const double transparency) const;
+	void drawContours(cv::Mat& img, const double transparency) const;
 
 	void setXRotation(double angle) { Grid::setXRotation(angle); resetCache(); }
 	double getXRotation() const { return Grid::getXRotation(); }
