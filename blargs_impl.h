@@ -46,7 +46,7 @@ void inline ICV_HLINE(uchar* ptr, int xl, int xr, const void *color, int pix_siz
 }
 
 template<typename pixel_t>
-void inline hline(cv::Mat &img, int x1, int x2, int y, const pixel_t &color) {
+inline void hline(cv::Mat &img, int x1, int x2, int y, const pixel_t &color) {
 	for(; x1 <= x2; ++x1) {
 		img.at<pixel_t>(y, x1) = color;
 	}
@@ -69,7 +69,8 @@ void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* colo
 			sizeof(typename cv::DataType<pixel_t>::value_type)
 			==
 			sizeof(typename cv::DataType<pixel_t>::channel_type) * cv::DataType<pixel_t>::channels
-			, "unexpected pixel size");
+			, "unexpected pixel size"
+	);
 
 	constexpr int pix_size = sizeof(typename cv::DataType<pixel_t>::value_type);
 	if (pix_size != static_cast<int>(img.elemSize())) {
@@ -97,21 +98,15 @@ void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* colo
 	}
 	edge[2];
 
-	int imin = 0;
-	int left = 0;
-	int right = 1;
-	int edges = npts;
-	int xmin;
-	int xmax;
-	int ymin;
-	int ymax;
-	uchar* ptr = img.data;
 	const cv::Size size = img.size();
 
-	xmin = xmax = v[0].x;
-	ymin = ymax = v[0].y;
-
+	// draw outline, calc min/max x/y coordinates
+	int imin = 0;
+	int ymin = v[0].y;
+	int ymax = ymin;
 	{
+		int xmin = v[0].x;
+		int xmax = ymin;
 		cv::Point p0 = v[npts - 1];
 		for(int i = 0; i < npts; i++ )
 		{
@@ -130,95 +125,101 @@ void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* colo
 
 			p0 = p;
 		}
-	}
 
-	if( npts < 3 || xmax < 0 || ymax < 0 || xmin >= size.width || ymin >= size.height ) {
-		return;
+		if( npts < 3 || xmax < 0 || ymax < 0 || xmin >= size.width || ymin >= size.height ) {
+			return;
+		}
 	}
 
 	ymax = std::min( ymax, size.height - 1 );
-	edge[0].idx = edge[1].idx = imin;
 
 	int y = ymin;
-	edge[0].ye = edge[1].ye = y;
+
+	edge[0].idx = imin;
+	edge[1].idx = imin;
+	edge[0].ye = y;
+	edge[1].ye = y;
 	edge[0].di = 1;
 	edge[1].di = npts - 1;
 
-	ptr += img.step * y;
-
-	do
 	{
-		if( line_type < CV_AA || y < ymax || y == ymin )
+		uchar* ptr = img.data + img.step * y;
+		int edges = npts;
+		int left  = 0;
+		int right = 1;
+		do
 		{
-			for(int i = 0; i < 2; ++i )
+			if( line_type < CV_AA || y < ymax || y == ymin )
 			{
-				if( y >= edge[i].ye )
+				for(int i = 0; i < 2; ++i )
 				{
-					int idx = edge[i].idx;
-					int di  = edge[i].di;
-					int xs = 0;
-					int ty = 0;
-
-					for(;;)
+					if( y >= edge[i].ye )
 					{
-						ty = v[idx].y;
-						if( ty > y || edges == 0 ) {
-							break;
+						int idx = edge[i].idx;
+						int di  = edge[i].di;
+						int xs = 0;
+						int ty = 0;
+
+						for(;;)
+						{
+							ty = v[idx].y;
+							if( ty > y || edges == 0 ) {
+								break;
+							}
+							xs = v[idx].x;
+							idx += di;
+							idx -= ((idx < npts) - 1) & npts;   /* idx -= idx >= npts ? npts : 0 */
+							--edges;
 						}
-						xs = v[idx].x;
-						idx += di;
-						idx -= ((idx < npts) - 1) & npts;   /* idx -= idx >= npts ? npts : 0 */
-						--edges;
+
+						const int ye = ty;
+						const int xe = v[idx].x;
+
+						/* no more edges */
+						if( y >= ye )
+							return;
+
+						edge[i].ye = ye;
+						edge[i].dx = ((xe - xs) * 2 + (ye - y)) / (2 * (ye - y));
+						edge[i].x = xs;
+						edge[i].idx = idx;
 					}
-
-					const int ye = ty;
-					//xs <<= XY_SHIFT;
-					const int xe = v[idx].x;
-
-					/* no more edges */
-					if( y >= ye )
-						return;
-
-					edge[i].ye = ye;
-					edge[i].dx = ((xe - xs) * 2 + (ye - y)) / (2 * (ye - y));
-					edge[i].x = xs;
-					edge[i].idx = idx;
 				}
 			}
-		}
 
-		if( edge[left].x > edge[right].x )
-		{
-			left ^= 1;
-			right ^= 1;
-		}
-
-		int x1 = edge[left].x;
-		int x2 = edge[right].x;
-
-		if( y >= 0 )
-		{
-			int xx1 = x1;
-			int xx2 = x2;
-
-			if( xx2 >= 0 && xx1 < size.width )
+			if( edge[left].x > edge[right].x )
 			{
-				if( xx1 < 0 )
-					xx1 = 0;
-				if( xx2 >= size.width )
-					xx2 = size.width - 1;
-				ICV_HLINE( ptr, xx1, xx2, color, pix_size );
+				left ^= 1;
+				right ^= 1;
 			}
+
+			int x1 = edge[left].x;
+			int x2 = edge[right].x;
+
+			if( y >= 0 )
+			{
+				int xx1 = x1;
+				int xx2 = x2;
+
+				if( xx2 >= 0 && xx1 < size.width )
+				{
+					if( xx1 < 0 )
+						xx1 = 0;
+					if( xx2 >= size.width )
+						xx2 = size.width - 1;
+					ICV_HLINE( ptr, xx1, xx2, color, pix_size );
+				}
+			}
+
+			x1 += edge[left].dx;
+			x2 += edge[right].dx;
+
+			edge[left].x = x1;
+			edge[right].x = x2;
+			ptr += img.step;
 		}
-
-		x1 += edge[left].dx;
-		x2 += edge[right].dx;
-
-		edge[left].x = x1;
-		edge[right].x = x2;
-		ptr += img.step;
+		while( ++y <= ymax );
 	}
-	while( ++y <= ymax );
 }
 
 
