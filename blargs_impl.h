@@ -10,9 +10,6 @@
 
 namespace heyho {
 
-constexpr int XY_SHIFT = 8;
-constexpr int XY_ONE   = 1 << XY_SHIFT;
-
 template<typename pixel_t>
 void fillConvexPoly(cv::InputOutputArray _img, cv::InputArray _points, const cv::Scalar& color, int line_type) {
 	cv::Mat img = _img.getMat(), points = _points.getMat();
@@ -58,6 +55,9 @@ void inline hline(cv::Mat &img, int x1, int x2, int y, const pixel_t &color) {
 template<typename pixel_t>
 void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* color, int line_type)
 {
+	constexpr int XY_SHIFT = 8;
+	constexpr int XY_ONE   = 1 << XY_SHIFT;
+
 	if (line_type != 4 && line_type != 8) {
 		throw std::invalid_argument("invalid line type");
 	}
@@ -110,8 +110,7 @@ void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* colo
 	uchar* ptr = img.data;
 	const cv::Size size = img.size();
 
-	constexpr int delta1 = XY_ONE >> 1;
-	constexpr int delta2 = delta1;
+	constexpr int delta = XY_ONE >> 1;
 
 	xmin = xmax = v[0].x;
 	ymin = ymax = v[0].y;
@@ -170,14 +169,14 @@ void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* colo
 						if( ty > y || edges == 0 ) {
 							break;
 						}
-						xs = v[idx].x;
+						xs = v[idx].x << XY_SHIFT;
 						idx += di;
 						idx -= ((idx < npts) - 1) & npts;   /* idx -= idx >= npts ? npts : 0 */
 						--edges;
 					}
 
 					const int ye = ty;
-					xs <<= XY_SHIFT;
+					//xs <<= XY_SHIFT;
 					const int xe = v[idx].x << XY_SHIFT;
 
 					/* no more edges */
@@ -185,7 +184,7 @@ void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* colo
 						return;
 
 					edge[i].ye = ye;
-					edge[i].dx = ((xe - xs)*2 + (ye - y)) / (2 * (ye - y));
+					edge[i].dx = ((xe - xs) * 2 + (ye - y)) / (2 * (ye - y));
 					edge[i].x = xs;
 					edge[i].idx = idx;
 				}
@@ -203,8 +202,8 @@ void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* colo
 
 		if( y >= 0 )
 		{
-			int xx1 = (x1 + delta1) >> XY_SHIFT;
-			int xx2 = (x2 + delta2) >> XY_SHIFT;
+			int xx1 = (x1 + delta) >> XY_SHIFT;
+			int xx2 = (x2 + delta) >> XY_SHIFT;
 
 			if( xx2 >= 0 && xx1 < size.width )
 			{
