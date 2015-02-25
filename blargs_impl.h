@@ -11,8 +11,8 @@
 namespace heyho {
 
 template<typename F>
-F Line(cv::Mat& img, cv::Point pt1, cv::Point pt2, F f, int connectivity) {
-
+inline F Line(cv::Mat& img, cv::Point pt1, cv::Point pt2, F f, int connectivity)
+{
 	cv::LineIterator iterator(img, pt1, pt2, connectivity, true);
 	const int count = iterator.count;
 	for (int i = 0; i < count; ++i, ++iterator ) {
@@ -22,9 +22,24 @@ F Line(cv::Mat& img, cv::Point pt1, cv::Point pt2, F f, int connectivity) {
 }
 
 template<typename pixel_t>
-void DrawLine(cv::Mat& img, cv::Point pt1, cv::Point pt2, const pixel_t &color, int connectivity)
+inline void DrawLine(cv::Mat& img, cv::Point pt1, cv::Point pt2, const pixel_t &color, int connectivity)
 {
 	heyho::Line(img, pt1, pt2, pixel_setter<pixel_t>{img, color}, connectivity);
+}
+
+template<typename F>
+inline F hline(cv::Mat&, int x1, int x2, int y, F f)
+{
+	for(; x1 <= x2; ++x1) {
+		f(y, x1);
+	}
+	return std::move(f);
+}
+
+template<typename pixel_t>
+inline void drawhline(cv::Mat &img, int x1, int x2, int y, const pixel_t &color)
+{
+	heyho::hline(img, x1, x2, y, pixel_setter<pixel_t>{img, color});
 }
 
 template<typename pixel_t>
@@ -85,12 +100,7 @@ inline pixel_t color2pixel(const void *color) {
 	return result;
 }
 
-template<typename pixel_t>
-inline void hline(cv::Mat &img, int x1, int x2, int y, const pixel_t &color) {
-	for(; x1 <= x2; ++x1) {
-		img.at<pixel_t>(y, x1) = color;
-	}
-}
+
 
 template<typename pixel_t>
 void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* color, int line_type)
@@ -249,8 +259,7 @@ void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* colo
 						xx1 = 0;
 					if( xx2 >= size.width )
 						xx2 = size.width - 1;
-					//ICV_HLINE( ptr, xx1, xx2, color, pix_size );
-					hline(img, xx1, xx2, y, color_pixel);
+					heyho::drawhline(img, xx1, xx2, y, color_pixel);
 				}
 			}
 
