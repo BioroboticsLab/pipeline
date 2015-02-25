@@ -17,7 +17,7 @@ typedef struct {
 	// error function weights
 	double alpha_inner    = 275.0;
 	double alpha_outer    = 100.0;
-	double alpha_variance = 0.3;
+	double alpha_variance = 0.5;
 	double alpha_edge     = 10.0;
 
     // size of neighbourhood area
@@ -26,7 +26,7 @@ typedef struct {
     double adaptiveC      = 3;
 
 	// gradient descent parameters
-	size_t numInitial = 2;
+	size_t numInitial = 3;
 	size_t numResults = 1;
 
 	double errorThreshold = 50.;
@@ -102,6 +102,6 @@ private:
     static double evaluateCandidate (PipelineGrid& grid, const cv::Mat& roi, const cv::Mat& binarizedROI, const gridfitter_settings_t& settings);
 
     cv::Mat calculateHistogram(const cv::Mat& roi, const Ellipse& ellipse_orig) const;
-    void visualizeDebug(const std::multiset<candidate_t>& bestGrids, const cv::Size2i roiSize, const Tag& tag, const cv::Mat& binarizedROI) const;
+    void visualizeDebug(const std::multiset<candidate_t>& bestGrids, const cv::Size2i roiSize, const Tag& tag, const cv::Mat& binarizedROI, std::string winName) const;
 };
 }

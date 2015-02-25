@@ -17,7 +17,7 @@
 #include "source/utility/CvHelper.h"
 #include "source/utility/util.h"
 
-//#define DEBUG_GRIDFITTER
+#define DEBUG_GRIDFITTER
 
 namespace pipeline {
 GridFitter::GridFitter()
@@ -94,7 +94,7 @@ cv::Mat GridFitter::calculateHistogram(const cv::Mat& roi, const Ellipse& ellips
     return histImg;
 }
 
-void GridFitter::visualizeDebug(std::multiset<candidate_t> const& bestGrids, const cv::Size2i roiSize, const Tag& tag, cv::Mat const& binarizedROI) const
+void GridFitter::visualizeDebug(std::multiset<candidate_t> const& bestGrids, const cv::Size2i roiSize, const Tag& tag, cv::Mat const& binarizedROI, std::string winName) const
 {
     cv::Mat binarizedROICpy;
     cv::cvtColor(binarizedROI, binarizedROICpy, CV_GRAY2BGR);
@@ -110,6 +110,13 @@ void GridFitter::visualizeDebug(std::multiset<candidate_t> const& bestGrids, con
         PipelineGrid grid(candidate.config);
 
         images.push_back(tag.getOrigSubImage());
+
+        cv::Mat origCopy;
+        tag.getOrigSubImage().copyTo(origCopy);
+        pipeline::Ellipse const& ell = tag.getCandidates().front().getEllipse();
+        cv::ellipse(origCopy, ell.getCen(), ell.getAxis(), ell.getAngle(), 0, 360, cv::Scalar(0, 255, 0), 2);
+        images.push_back(origCopy);
+
         images.push_back(cannyImg);
         images.push_back(binarizedROICpy);
         images.push_back(grid.getProjectedImage(roiSize));
@@ -122,9 +129,18 @@ void GridFitter::visualizeDebug(std::multiset<candidate_t> const& bestGrids, con
         cv::addWeighted(tag.getOrigSubImage(), 0.8, grid.getProjectedImage(roiSize), 0.2, 0.0, blended);
         images.push_back(blended);
 
+        cv::Mat cannyBlended;
+        cv::addWeighted(cannyImg, 0.8, grid.getProjectedImage(roiSize), 0.2, 0.0, cannyBlended);
+        images.push_back(cannyBlended);
+
+        cv::Mat origCopyOverlay;
+        tag.getOrigSubImage().copyTo(origCopyOverlay);
+        grid.drawContours(origCopyOverlay, 0.5);
+        images.push_back(origCopyOverlay);
+
         const auto canvas = CvHelper::makeCanvas(images, images[0].rows + 10, 1);
 
-        std::string title("best fit (error: " + std::to_string(candidate.error) + ")");
+        std::string title(winName + " (error: " + std::to_string(candidate.error) + ")");
         cv::namedWindow(title);
         cv::imshow(title, canvas);
 
@@ -153,20 +169,21 @@ GridFitter::candidate_set GridFitter::getInitialCandidates(const cv::Mat &binari
 
     // initial search for gradiant descent candidates in ellipse parameter space
     candidate_set gridCandidates;
-    for (const int pos_x_offset : initial_position_offsets) {
-        for (const int pos_y_offset : initial_position_offsets) {
-            for (const double rotation : initial_rotations) {
-                Ellipse ell(ellipse_orig);
-                ell.setCen(ellipse_orig.getCen() + cv::Point2i(pos_x_offset, pos_y_offset));
-                const std::array<PipelineGrid::gridconfig_t, 2> configCandidates =
-                        Util::gridCandidatesFromEllipse(ell, rotation);
-                for (PipelineGrid::gridconfig_t const& config : configCandidates) {
-                    PipelineGrid candidate(config);
-                    const double error = evaluateCandidate(candidate, roi, binarizedROI, _settings);
-                    gridCandidates.insert({error, config});
+    for (const double rotation : initial_rotations) {
+        candidate_set candidatesForRotation;
+        const std::array<PipelineGrid::gridconfig_t, 2> configCandidates =
+                Util::gridCandidatesFromEllipse(ellipse_orig, rotation);
+        for (PipelineGrid::gridconfig_t const& config : configCandidates) {
+            PipelineGrid grid(config);
+            for (const int pos_x_offset : initial_position_offsets) {
+                for (const int pos_y_offset : initial_position_offsets) {
+                    grid.setCenter({config.center.x + pos_x_offset, config.center.y + pos_y_offset});
+                    const double error = evaluateCandidate(grid, roi, binarizedROI, _settings);
+                    candidatesForRotation.insert({error, grid.getConfig()});
                 }
             }
         }
+        gridCandidates.insert(*candidatesForRotation.begin());
     }
 
 	return gridCandidates;
@@ -193,13 +210,14 @@ std::vector<PipelineGrid> GridFitter::fitGrid(const Tag& tag, const TagCandidate
 	GradientDescent optimizer(gridCandidates, roi, binarizedROI, _settings);
 	optimizer.optimize();
 
-	const candidate_set& bestGrids = gridCandidates; //optimizer.getBestGrids();
+	const candidate_set& bestGrids = optimizer.getBestGrids();
 
 #ifdef DEBUG_GRIDFITTER
     std::cout << "min initial candidate error: " << gridCandidates.begin()->error << std::endl;
     std::cout << "min final candidate error: " << bestGrids.begin()->error << std::endl;
 
-    visualizeDebug(bestGrids, roiSize, tag, binarizedROI);
+    visualizeDebug(gridCandidates, roiSize, tag, binarizedROI, "initial fit");
+    visualizeDebug(bestGrids, roiSize, tag, binarizedROI, "best fit");
 #endif
 
     std::vector<PipelineGrid> results;
@@ -220,12 +238,15 @@ std::vector<PipelineGrid> GridFitter::fitGrid(const Tag& tag, const TagCandidate
 
 double GridFitter::evaluateCandidate(PipelineGrid& grid, cv::Mat const& roi, cv::Mat const& binarizedROI, const gridfitter_settings_t &settings)
 {
-    if (!grid.getBoundingBox().area()) return std::numeric_limits<double>::max();
-
     double error = 0;
 
     // bounding box of grid candidate
     const cv::Rect boundingBox = grid.getBoundingBox();
+
+    if (!boundingBox.area()) return std::numeric_limits<double>::max();
+    if (boundingBox.x < 0 || boundingBox.y < 0) return std::numeric_limits<double>::max();
+    if (boundingBox.x + boundingBox.width >= roi.rows ||
+        boundingBox.y + boundingBox.height >= roi.cols) return std::numeric_limits<double>::max();
 
     // define region of interest based on bounding box of grid candidate
     // from now on, we do all calculations on this roi to speed up all
@@ -323,19 +344,45 @@ void GridFitter::GradientDescent::optimize()
         PipelineGrid::gridconfig_t config = initial_config;
         grid  = PipelineGrid(initial_config);
         double error = evaluateCandidate(grid, _roi, _binarizedRoi, _settings);
+        storeConfig(error, config);
         while ((error > _settings.errorThreshold) && (iteration < _settings.maxIterations)) {
             double const initerror = error;
 
 			std::tie(error, config) = step(config, error, SCALE);
+			if (!_bestGrids.empty()) {
+				error  = _bestGrids.begin()->error;
+				config = _bestGrids.begin()->config;
+			}
 			std::tie(error, config) = step(config, error, POSX);
+			if (!_bestGrids.empty()) {
+				error  = _bestGrids.begin()->error;
+				config = _bestGrids.begin()->config;
+			}
 			std::tie(error, config) = step(config, error, POSY);
+			if (!_bestGrids.empty()) {
+				error  = _bestGrids.begin()->error;
+				config = _bestGrids.begin()->config;
+			}
 			std::tie(error, config) = step(config, error, ANGLE_X);
+			if (!_bestGrids.empty()) {
+				error  = _bestGrids.begin()->error;
+				config = _bestGrids.begin()->config;
+			}
 			std::tie(error, config) = step(config, error, ANGLE_Y);
+			if (!_bestGrids.empty()) {
+				error  = _bestGrids.begin()->error;
+				config = _bestGrids.begin()->config;
+			}
 			std::tie(error, config) = step(config, error, ANGLE_Z);
 
             ++iteration;
 			if (std::abs(initerror - error) < 0.01) break;
-        }
+
+			if (!_bestGrids.empty()) {
+				error  = _bestGrids.begin()->error;
+				config = _bestGrids.begin()->config;
+			}
+		}
         ++candidate_it;
 	}
 }

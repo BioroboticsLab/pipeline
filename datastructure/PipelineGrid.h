@@ -63,6 +63,7 @@ private:
 
     cv::Rect getPolygonBoundingBox(size_t idx);
 
+    const coordinates_t& getCoordinates(cached_coordinates_t& coordinates, const size_t idx);
     coordinates_t calculatePolygonCoordinates(const size_t idx);
 
     void resetCache();
