@@ -105,11 +105,6 @@ inline pixel_t color2pixel(const void *color) {
 template<typename pixel_t>
 void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* color, int line_type)
 {
-
-	if (line_type != 4 && line_type != 8) {
-		throw std::invalid_argument("invalid line type");
-	}
-
 	constexpr int img_type = cv::DataType<pixel_t>::type;
 	if (img.type() != img_type) {
 		throw std::invalid_argument("invalid image pixel type");
@@ -127,6 +122,9 @@ void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* colo
 		throw std::invalid_argument("invalid image pixel size");
 	}
 
+	const pixel_t color_pixel = color2pixel<pixel_t>(color);
+	heyho::ConvexPoly(img, v, npts, pixel_setter<pixel_t>{img, color_pixel}, line_type);
+
 	/**
 	 * size_t Mat::elemSize()  const --> num_chans * sizeof(T)
 	 * size_t Mat::elemSize1() const -->             sizeof(T)
@@ -141,137 +139,6 @@ void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* colo
 	 * CV_MAT_CN(CV_16SC3) --> num_chans
 	 *
 	 */
-
-	struct {
-		int idx, di;
-		int x, dx, ye;
-	}
-	edge[2];
-
-	const cv::Size size = img.size();
-	const pixel_t color_pixel = color2pixel<pixel_t>(color);
-
-	// draw outline, calc min/max x/y coordinates
-	int imin = 0;
-	int ymin = v[0].y;
-	int ymax = ymin;
-	{
-		int xmin = v[0].x;
-		int xmax = ymin;
-		cv::Point p0 = v[npts - 1];
-		for(int i = 0; i < npts; i++ )
-		{
-			cv::Point p = v[i];
-			if( p.y < ymin )
-			{
-				ymin = p.y;
-				imin = i;
-			}
-
-			ymax = std::max( ymax, p.y );
-			xmax = std::max( xmax, p.x );
-			xmin = std::min( xmin, p.x );
-
-			//heyho::Line( img, p0, p, color, line_type );
-			heyho::DrawLine(img, p0, p, color_pixel, line_type);
-
-			p0 = p;
-		}
-
-		if( npts < 3 || xmax < 0 || ymax < 0 || xmin >= size.width || ymin >= size.height ) {
-			return;
-		}
-	}
-
-	ymax = std::min( ymax, size.height - 1 );
-
-	int y = ymin;
-
-	edge[0].idx = imin;
-	edge[1].idx = imin;
-	edge[0].ye = y;
-	edge[1].ye = y;
-	edge[0].di = 1;
-	edge[1].di = npts - 1;
-
-	{
-		uchar* ptr = img.data + img.step * y;
-		int edges = npts;
-		int left  = 0;
-		int right = 1;
-		do
-		{
-			if( line_type < CV_AA || y < ymax || y == ymin )
-			{
-				for(int i = 0; i < 2; ++i )
-				{
-					if( y >= edge[i].ye )
-					{
-						int idx = edge[i].idx;
-						int di  = edge[i].di;
-						int xs = 0;
-						int ty = 0;
-
-						for(;;)
-						{
-							ty = v[idx].y;
-							if( ty > y || edges == 0 ) {
-								break;
-							}
-							xs = v[idx].x;
-							idx += di;
-							idx -= ((idx < npts) - 1) & npts;   /* idx -= idx >= npts ? npts : 0 */
-							--edges;
-						}
-
-						const int ye = ty;
-						const int xe = v[idx].x;
-
-						/* no more edges */
-						if( y >= ye )
-							return;
-
-						edge[i].ye = ye;
-						edge[i].dx = ((xe - xs) * 2 + (ye - y)) / (2 * (ye - y));
-						edge[i].x = xs;
-						edge[i].idx = idx;
-					}
-				}
-			}
-
-			if( edge[left].x > edge[right].x )
-			{
-				left ^= 1;
-				right ^= 1;
-			}
-
-			int x1 = edge[left].x;
-			int x2 = edge[right].x;
-
-			if( y >= 0 )
-			{
-				int xx1 = x1;
-				int xx2 = x2;
-
-				if( xx2 >= 0 && xx1 < size.width )
-				{
-					if( xx1 < 0 )
-						xx1 = 0;
-					if( xx2 >= size.width )
-						xx2 = size.width - 1;
-					heyho::drawhline(img, xx1, xx2, y, color_pixel);
-				}
-			}
-
-			x1 += edge[left].dx;
-			x2 += edge[right].dx;
-
-			edge[left].x = x1;
-			edge[right].x = x2;
-			ptr += img.step;
-		}
-		while( ++y <= ymax );
-	}
 }
 
 template<typename F>
@@ -311,13 +178,13 @@ F ConvexPoly(cv::Mat& img, const cv::Point* v, int npts, F f, int line_type)
 			xmax = std::max( xmax, p.x );
 			xmin = std::min( xmin, p.x );
 
-			f = heyho::DrawLine(img, p0, p, std::move(f), line_type);
+			f = heyho::Line(img, p0, p, std::move(f), line_type);
 
 			p0 = p;
 		}
 
 		if( npts < 3 || xmax < 0 || ymax < 0 || xmin >= size.width || ymin >= size.height ) {
-			return;
+			return f;
 		}
 	}
 
@@ -367,7 +234,7 @@ F ConvexPoly(cv::Mat& img, const cv::Point* v, int npts, F f, int line_type)
 
 						/* no more edges */
 						if( y >= ye )
-							return;
+							return f;
 
 						edge[i].ye = ye;
 						edge[i].dx = ((xe - xs) * 2 + (ye - y)) / (2 * (ye - y));
@@ -397,7 +264,7 @@ F ConvexPoly(cv::Mat& img, const cv::Point* v, int npts, F f, int line_type)
 						xx1 = 0;
 					if( xx2 >= size.width )
 						xx2 = size.width - 1;
-					f = heyho::drawhline(img, xx1, xx2, y, std::move(f));
+					f = heyho::hline(img, xx1, xx2, y, std::move(f));
 				}
 			}
 

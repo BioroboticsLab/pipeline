@@ -10,21 +10,22 @@
 
 #include <opencv2/opencv.hpp>
 #include <utility>
+#include <functional>
 
 namespace heyho {
 
 template<typename pixel_t>
 struct pixel_setter
 {
-	cv::Mat &img;
-	const pixel_t color;
+	std::reference_wrapper<cv::Mat> img;
+	pixel_t color;
 
 	void operator()(cv::Point p) {
-		img.at<pixel_t>(p) = color;
+		img.get().at<pixel_t>(p) = color;
 	}
 
 	void operator()(int y, int x) {
-		img.at<pixel_t>(y, x) = color;
+		img.get().at<pixel_t>(y, x) = color;
 	}
 };
 
