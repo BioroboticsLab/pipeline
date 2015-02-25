@@ -99,6 +99,9 @@ void GridFitter::visualizeDebug(std::multiset<candidate_t> const& bestGrids, con
     cv::Mat binarizedROICpy;
     cv::cvtColor(binarizedROI, binarizedROICpy, CV_GRAY2BGR);
 
+    cv::Mat cannyImg;
+    cv::cvtColor(tag.getCannySubImage(), cannyImg, CV_GRAY2BGR);
+
     const size_t to = std::min(_settings.numResults, bestGrids.size());
     size_t idx = 0;
     for (candidate_t const& candidate : bestGrids) {
@@ -107,6 +110,7 @@ void GridFitter::visualizeDebug(std::multiset<candidate_t> const& bestGrids, con
         PipelineGrid grid(candidate.config);
 
         images.push_back(tag.getOrigSubImage());
+        images.push_back(cannyImg);
         images.push_back(binarizedROICpy);
         images.push_back(grid.getProjectedImage(roiSize));
 
