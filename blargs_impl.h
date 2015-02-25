@@ -31,7 +31,15 @@ void fillConvexPoly(cv::Mat& img, const cv::Point* pts, int npts, const cv::Scal
 	heyho::FillConvexPoly<pixel_t>(img, pts, npts, buf, line_type);
 }
 
-/* helper function: filling horizontal row */
+/**
+ * helper function: filling horizontal row
+ *
+ * @param ptr         pointer to first byte of row
+ * @param xl          index of first pixel
+ * @param xr          index of last pixel
+ * @param color       pointer to color buffer
+ * @param pix_size    pixel size
+ */
 void inline ICV_HLINE(uchar* ptr, int xl, int xr, const void *color, int pix_size)
 {
 	const uchar* hline_max_ptr = ptr +  xr * pix_size;
@@ -46,10 +54,25 @@ void inline ICV_HLINE(uchar* ptr, int xl, int xr, const void *color, int pix_siz
 }
 
 template<typename pixel_t>
+inline pixel_t color2pixel(const void *color) {
+	pixel_t result;
+	uchar *pixel_p = reinterpret_cast<uchar*>(&result);
+	for (size_t i = 0; i < sizeof result; ++i) {
+		pixel_p[i] = static_cast<const uchar*>(color)[i];
+	}
+	return result;
+}
+
+template<typename pixel_t>
 inline void hline(cv::Mat &img, int x1, int x2, int y, const pixel_t &color) {
 	for(; x1 <= x2; ++x1) {
 		img.at<pixel_t>(y, x1) = color;
 	}
+}
+
+template<typename pixel_t>
+inline void hline(cv::Mat &img, int x1, int x2, int y, const void *color) {
+	hline(img, x1, x2, y, color2pixel<pixel_t>(color));
 }
 
 template<typename pixel_t>
@@ -207,7 +230,8 @@ void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* colo
 						xx1 = 0;
 					if( xx2 >= size.width )
 						xx2 = size.width - 1;
-					ICV_HLINE( ptr, xx1, xx2, color, pix_size );
+					//ICV_HLINE( ptr, xx1, xx2, color, pix_size );
+					hline<pixel_t>(img, xx1, xx2, y, color);
 				}
 			}
 
