@@ -8,24 +8,32 @@
 #ifndef BLARGS_H_
 #define BLARGS_H_
 
-#include <opencv2/opencv.hpp>
-#include <utility>
-#include <functional>
+#include <opencv2/opencv.hpp> // cv::Point, cv::LineIterator, cv::Mat, cv::InputOutputArray, cv::OutputArray, cv::Scalar
+#include <utility>            // std::move
+#include <functional>         // std::reverence_wrapper
+#include <exception>          // std::invalid_argument
 
 namespace heyho {
 
 template<typename pixel_t>
-struct pixel_setter
+class pixel_setter
 {
-	std::reference_wrapper<cv::Mat> img;
-	pixel_t color;
+private:
+	std::reference_wrapper<cv::Mat> m_img;
+	pixel_t m_color;
 
-	void operator()(cv::Point p) {
-		img.get().at<pixel_t>(p) = color;
-	}
+public:
+	explicit pixel_setter(cv::Mat &img, const pixel_t &color)
+		: m_img(img)
+		, m_color(color)
+	{}
 
 	void operator()(int y, int x) {
-		img.get().at<pixel_t>(y, x) = color;
+		m_img.get().at<pixel_t>(y, x) = m_color;
+	}
+
+	void operator()(cv::Point p) {
+		(*this)(p.y, p.x);
 	}
 };
 
@@ -44,11 +52,12 @@ template<typename pixel_t>
 void fillConvexPoly(cv::InputOutputArray _img, cv::InputArray _points,         const cv::Scalar& color, int line_type = 8);
 template<typename pixel_t>
 void fillConvexPoly(cv::Mat& img,              const cv::Point* pts, int npts, const cv::Scalar& color, int line_type = 8);
-template<typename pixel_t>
-void FillConvexPoly(cv::Mat& img,              const cv::Point* v,   int npts, const void* color,       int line_type = 8);
+
 
 template<typename F>
 F ConvexPoly(cv::Mat& img, const cv::Point* v, int npts, F f, int line_type = 8);
+template<typename pixel_t>
+void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const pixel_t &color, int line_type = 8);
 
 }
 

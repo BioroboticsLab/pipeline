@@ -10,6 +10,21 @@
 
 namespace heyho {
 
+/**
+ * converts raw pixel data into pixel.
+ *
+ * @param color result of "cv::scalarToRawData"
+ */
+template<typename pixel_t>
+inline pixel_t color2pixel(const void *color) {
+	pixel_t result;
+	uchar *pixel_p = reinterpret_cast<uchar*>(&result);
+	for (size_t i = 0; i < sizeof result; ++i) {
+		pixel_p[i] = static_cast<const uchar*>(color)[i];
+	}
+	return result;
+}
+
 template<typename F>
 inline F Line(cv::Mat& img, cv::Point pt1, cv::Point pt2, F f, int connectivity)
 {
@@ -60,7 +75,8 @@ void fillConvexPoly(cv::Mat& img, const cv::Point* pts, int npts, const cv::Scal
 
 	double buf[4];
 	cv::scalarToRawData(color, buf, img.type(), 0);
-	heyho::FillConvexPoly<pixel_t>(img, pts, npts, buf, line_type);
+	const pixel_t color_pixel = color2pixel<pixel_t>(buf);
+	heyho::FillConvexPoly(img, pts, npts, color_pixel, line_type);
 }
 
 /**
@@ -85,25 +101,8 @@ void inline ICV_HLINE(uchar* ptr, int xl, int xr, const void *color, int pix_siz
 	}
 }
 
-/**
- * converts raw pixel data into pixel.
- *
- * @param color result of "cv::scalarToRawData"
- */
 template<typename pixel_t>
-inline pixel_t color2pixel(const void *color) {
-	pixel_t result;
-	uchar *pixel_p = reinterpret_cast<uchar*>(&result);
-	for (size_t i = 0; i < sizeof result; ++i) {
-		pixel_p[i] = static_cast<const uchar*>(color)[i];
-	}
-	return result;
-}
-
-
-
-template<typename pixel_t>
-void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* color, int line_type)
+void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const pixel_t &color, int line_type)
 {
 	constexpr int img_type = cv::DataType<pixel_t>::type;
 	if (img.type() != img_type) {
@@ -122,8 +121,7 @@ void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* colo
 		throw std::invalid_argument("invalid image pixel size");
 	}
 
-	const pixel_t color_pixel = color2pixel<pixel_t>(color);
-	heyho::ConvexPoly(img, v, npts, pixel_setter<pixel_t>{img, color_pixel}, line_type);
+	heyho::ConvexPoly(img, v, npts, pixel_setter<pixel_t>{img, color}, line_type);
 
 	/**
 	 * size_t Mat::elemSize()  const --> num_chans * sizeof(T)
