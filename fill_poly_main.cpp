@@ -60,13 +60,35 @@ struct compare {
 		std::vector<cv::Point> points;
 		cv::ellipse2Poly(center, axes, angle, 0, 360, 1, points);
 
+
 		cv::Mat img1(dim, dim, img_type, white<img_type>());
 		cv::fillConvexPoly(img1, points, default_color<img_type>(), line_type, shift);
 
 		cv::Mat img2(dim, dim, img_type, white<img_type>());
 		heyho::fillConvexPoly<pixel_t>(img2, points, default_color<img_type>(), line_type);
 
-		return 0 == std::memcmp(img1.datastart, img2.datastart, img1.dataend - img1.datastart);
+
+		const bool equal =  0 == std::memcmp(img1.datastart, img2.datastart, img1.dataend - img1.datastart);
+
+		if (! equal) {
+
+			cv::namedWindow( "opencv", cv::WINDOW_AUTOSIZE);
+			cv::imshow( "opencv", img1);
+
+			cv::namedWindow( "heyho", cv::WINDOW_AUTOSIZE);
+			cv::imshow( "heyho", img2);
+
+			const cv::Mat diff = img1 != img2;
+
+			cv::namedWindow( "diff", cv::WINDOW_AUTOSIZE);
+			cv::imshow( "diff", diff);
+
+			cv::waitKey(0);
+
+
+		}
+
+		return equal;
 	}
 };
 
