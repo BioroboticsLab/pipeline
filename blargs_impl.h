@@ -53,6 +53,11 @@ void inline ICV_HLINE(uchar* ptr, int xl, int xr, const void *color, int pix_siz
 	}
 }
 
+/**
+ * converts raw pixel data into pixel.
+ *
+ * @param color result of "cv::scalarToRawData"
+ */
 template<typename pixel_t>
 inline pixel_t color2pixel(const void *color) {
 	pixel_t result;
@@ -68,11 +73,6 @@ inline void hline(cv::Mat &img, int x1, int x2, int y, const pixel_t &color) {
 	for(; x1 <= x2; ++x1) {
 		img.at<pixel_t>(y, x1) = color;
 	}
-}
-
-template<typename pixel_t>
-inline void hline(cv::Mat &img, int x1, int x2, int y, const void *color) {
-	hline(img, x1, x2, y, color2pixel<pixel_t>(color));
 }
 
 template<typename pixel_t>
@@ -122,6 +122,7 @@ void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* colo
 	edge[2];
 
 	const cv::Size size = img.size();
+	const pixel_t color_pixel = color2pixel<pixel_t>(color);
 
 	// draw outline, calc min/max x/y coordinates
 	int imin = 0;
@@ -231,7 +232,7 @@ void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* colo
 					if( xx2 >= size.width )
 						xx2 = size.width - 1;
 					//ICV_HLINE( ptr, xx1, xx2, color, pix_size );
-					hline<pixel_t>(img, xx1, xx2, y, color);
+					hline(img, xx1, xx2, y, color_pixel);
 				}
 			}
 
