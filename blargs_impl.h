@@ -35,16 +35,23 @@ void fillConvexPoly(cv::Mat& img, const cv::Point* pts, int npts, const cv::Scal
 }
 
 /* helper function: filling horizontal row */
-static void inline ICV_HLINE(uchar* ptr, int xl, int xr, const void *color, int pix_size)
+void inline ICV_HLINE(uchar* ptr, int xl, int xr, const void *color, int pix_size)
 {
 	const uchar* hline_max_ptr = ptr +  xr * pix_size;
 
 	for(uchar *hline_ptr = ptr + xl * pix_size; hline_ptr <= hline_max_ptr; hline_ptr += pix_size)
 	{
-		for(int hline_j = 0; hline_j < (pix_size); hline_j++ )
+		for(int hline_j = 0; hline_j < pix_size; hline_j++ )
 		{
 			hline_ptr[hline_j] = static_cast<const uchar*>(color)[hline_j];
 		}
+	}
+}
+
+template<typename pixel_t>
+void inline hline(cv::Mat &img, int x1, int x2, int y, const pixel_t &color) {
+	for(; x1 <= x2; ++x1) {
+		img.at<pixel_t>(y, x1) = color;
 	}
 }
 
@@ -92,9 +99,14 @@ void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* colo
 	}
 	edge[2];
 
-	int imin = 0, left = 0, right = 1;
+	int imin = 0;
+	int left = 0;
+	int right = 1;
 	int edges = npts;
-	int xmin, xmax, ymin, ymax;
+	int xmin;
+	int xmax;
+	int ymin;
+	int ymax;
 	uchar* ptr = img.data;
 	const cv::Size size = img.size();
 
@@ -125,8 +137,9 @@ void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* colo
 		}
 	}
 
-	if( npts < 3 || xmax < 0 || ymax < 0 || xmin >= size.width || ymin >= size.height )
+	if( npts < 3 || xmax < 0 || ymax < 0 || xmin >= size.width || ymin >= size.height ) {
 		return;
+	}
 
 	ymax = std::min( ymax, size.height - 1 );
 	edge[0].idx = edge[1].idx = imin;
@@ -136,33 +149,36 @@ void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* colo
 	edge[0].di = 1;
 	edge[1].di = npts - 1;
 
-	ptr += img.step*y;
+	ptr += img.step * y;
 
 	do
 	{
 		if( line_type < CV_AA || y < ymax || y == ymin )
 		{
-			for(int i = 0; i < 2; i++ )
+			for(int i = 0; i < 2; ++i )
 			{
 				if( y >= edge[i].ye )
 				{
-					int idx = edge[i].idx, di = edge[i].di;
-					int xs = 0, xe, ye, ty = 0;
+					int idx = edge[i].idx;
+					int di  = edge[i].di;
+					int xs = 0;
+					int ty = 0;
 
 					for(;;)
 					{
 						ty = v[idx].y;
-						if( ty > y || edges == 0 )
+						if( ty > y || edges == 0 ) {
 							break;
+						}
 						xs = v[idx].x;
 						idx += di;
 						idx -= ((idx < npts) - 1) & npts;   /* idx -= idx >= npts ? npts : 0 */
-						edges--;
+						--edges;
 					}
 
-					ye = ty;
+					const int ye = ty;
 					xs <<= XY_SHIFT;
-					xe = v[idx].x << (XY_SHIFT);
+					const int xe = v[idx].x << XY_SHIFT;
 
 					/* no more edges */
 					if( y >= ye )
