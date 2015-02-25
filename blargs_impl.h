@@ -55,8 +55,6 @@ void inline hline(cv::Mat &img, int x1, int x2, int y, const pixel_t &color) {
 template<typename pixel_t>
 void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* color, int line_type)
 {
-	constexpr int XY_SHIFT = 8;
-	constexpr int XY_ONE   = 1 << XY_SHIFT;
 
 	if (line_type != 4 && line_type != 8) {
 		throw std::invalid_argument("invalid line type");
@@ -109,8 +107,6 @@ void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* colo
 	int ymax;
 	uchar* ptr = img.data;
 	const cv::Size size = img.size();
-
-	constexpr int delta = XY_ONE >> 1;
 
 	xmin = xmax = v[0].x;
 	ymin = ymax = v[0].y;
@@ -169,7 +165,7 @@ void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* colo
 						if( ty > y || edges == 0 ) {
 							break;
 						}
-						xs = v[idx].x << XY_SHIFT;
+						xs = v[idx].x;
 						idx += di;
 						idx -= ((idx < npts) - 1) & npts;   /* idx -= idx >= npts ? npts : 0 */
 						--edges;
@@ -177,7 +173,7 @@ void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* colo
 
 					const int ye = ty;
 					//xs <<= XY_SHIFT;
-					const int xe = v[idx].x << XY_SHIFT;
+					const int xe = v[idx].x;
 
 					/* no more edges */
 					if( y >= ye )
@@ -202,8 +198,8 @@ void FillConvexPoly(cv::Mat& img, const cv::Point* v, int npts, const void* colo
 
 		if( y >= 0 )
 		{
-			int xx1 = (x1 + delta) >> XY_SHIFT;
-			int xx2 = (x2 + delta) >> XY_SHIFT;
+			int xx1 = x1;
+			int xx2 = x2;
 
 			if( xx2 >= 0 && xx1 < size.width )
 			{
