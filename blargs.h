@@ -44,7 +44,10 @@ void fillConvexPoly(cv::InputOutputArray _img, cv::InputArray _points,         c
 template<typename pixel_t>
 void fillConvexPoly(cv::Mat& img,              const cv::Point* pts, int npts, const cv::Scalar& color, int line_type = 8);
 template<typename pixel_t>
-void FillConvexPoly(cv::Mat& img,              const cv::Point* v,   int npts, const void* color,       int line_type    );
+void FillConvexPoly(cv::Mat& img,              const cv::Point* v,   int npts, const void* color,       int line_type = 8);
+
+template<typename F>
+F ConvexPoly(cv::Mat& img, const cv::Point* v, int npts, F f, int line_type = 8);
 
 }
 
