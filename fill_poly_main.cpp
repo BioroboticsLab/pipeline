@@ -102,7 +102,7 @@ struct foreach {
 	void operator()(F f) const {
 
 		// img_types:  {CV_8UC1, CV_8UC3, CV_32FC1, CV_32FC3}
-		// line_types: {8, 4, CV_AA}
+		// line_types: {8, 4}
 
 		using t_8UC1 = uint8_t;
 		using t_8UC3 = cv::Vec<uint8_t, 3>;
@@ -141,66 +141,31 @@ public:
 };
 
 
-
-using ell_f = void (*) (cv::Mat &img, cv::Point center, cv::Size axes, double angle);
 const cv::Scalar BLUE(255,    0,   0);
 const cv::Scalar WHITE(255, 255, 255);
 
 
-/**
- * draw outer filled ellipse; draw filled inner ellipse
- */
-void opencv_ellipse(cv::Mat &img, cv::Point center, cv::Size axes, double angle) {
-	cv::ellipse(img, center, axes, angle, 0, 360, BLUE, -1);
-	cv::ellipse(img, center, {axes.width / 2, axes.height / 2}, angle, 0, 360, WHITE, -1);
+
+using fill_convex_poly_f = void (*) (cv::InputOutputArray img, cv::InputArray points, const cv::Scalar& color, int line_type);
+
+inline void cv_fill_confex_poly(cv::InputOutputArray img, cv::InputArray points, const cv::Scalar& color, int line_type) {
+	cv::fillConvexPoly(img, points, color, line_type);
 }
 
-/**
- * connect outer & inner ellipse points into one polygon & draw
- *
- * (closing ellipses & reversing inner ellipse seems unnecessary ...)
- *
- */
-void opencv_fill_poly(cv::Mat &img, cv::Point center, cv::Size axes, double angle) {
-
-	std::vector<std::vector<cv::Point>> points(1);
-	cv::ellipse2Poly(center, axes, static_cast<int>(std::round(angle)), 0, 360, 1, points[0]);
-	//points[0].push_back(points[0].front());
-
-	std::vector<cv::Point> tmp;
-	cv::ellipse2Poly(center, {axes.width / 2, axes.height / 2}, static_cast<int>(std::round(angle)), 0, 360, 1, tmp);
-	//tmp.push_back(tmp.front());
-
-	points[0].insert(points[0].end(), tmp.begin(), tmp.end());
-	//points[0].insert(points[0].end(), tmp.rbegin(), tmp.rend());
-	cv::fillPoly(img, points, BLUE);
-}
-
-/**
- * pass inner and outer ellipse in separate vecs to cv::fillPoly
- */
-void opencv_fill_poly2(cv::Mat &img, cv::Point center, cv::Size axes, double angle) {
-
-	std::vector<std::vector<cv::Point>> points(2);
-	cv::ellipse2Poly(center, axes, static_cast<int>(std::round(angle)), 0, 360, 1, points[0]);
-	cv::ellipse2Poly(center, {axes.width / 2, axes.height / 2}, static_cast<int>(std::round(angle)), 0, 360, 1, points[1]);
-
-	cv::fillPoly(img, points, BLUE);
-}
-
-void bench(const std::vector<ell_f> &e, int major, size_t times) {
+void bench_fill_convex_poly(const std::vector<fill_convex_poly_f> &e, int major, size_t times) {
 	const int axis_major = major;
 	const int axis_minor = axis_major / 2;
 	const int dim_y = 2 * std::max(axis_major, axis_minor) + 10;
 	const int dim_x = dim_y;
 	const cv::Point center(dim_x/2, dim_y/2);
-
+	std::vector<cv::Point> poly;
+	cv::ellipse2Poly(center, cv::Size(axis_major, axis_minor), 45, 0, 360, 1, poly);
 	cv::Mat img(dim_y, dim_x, CV_8UC3, WHITE);
 
 	for (auto f : e) {
 		timer t;
 		for (size_t i = 0; i < times; ++i) {
-			f(img, center, cv::Size(axis_major, axis_minor), 45);
+			f(img, poly, BLUE, 4);
 		}
 	}
 }
@@ -220,34 +185,14 @@ int main() {
 
 
 
-	std::vector<ell_f> e{
-		&opencv_ellipse,
-		&opencv_fill_poly,
-		&opencv_fill_poly2
+	std::vector<fill_convex_poly_f> e{
+		&cv_fill_confex_poly,
+		static_cast<fill_convex_poly_f>(&heyho::fillConvexPoly<cv::Vec<uint8_t, 3>>)
 	};
 
-	if (false) {
+	if (false or true) {
 
-		bench(e, 400, 5000);
-	}
-
-	if (false) {
-
-		constexpr int axis_major = 100;
-		constexpr int axis_minor = 50;
-		const int dim_y = 2 * std::max(axis_major, axis_minor) + 10;
-		const int dim_x = dim_y * static_cast<int>(e.size());
-
-		cv::Mat img(dim_y, dim_x, CV_8UC3, WHITE);
-
-		for (size_t i = 0; i < e.size(); ++i) {
-			const cv::Point center(dim_y/2 + static_cast<int>(i) * dim_y, dim_y/2);
-			e[i](img, center, cv::Size(axis_major, axis_minor), 45);
-		}
-
-		cv::namedWindow( "Display window", cv::WINDOW_AUTOSIZE);
-		cv::imshow( "Display window", img);
-		cv::waitKey(0);
+		bench_fill_convex_poly(e, 400, 5000);
 	}
 
 	return 0;
