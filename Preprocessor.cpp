@@ -307,7 +307,6 @@ void Preprocessor::_filterCombs(cv::Mat& sobel) {
 	/// Draw  ellipses of the contours
 	cv::Mat drawing;
 
-	double maxLen = 2 * M_PI * this->_options.get_comb_max_size();
 
 	for (size_t i = 0; i < contours.size(); i++) {
 
