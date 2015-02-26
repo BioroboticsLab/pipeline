@@ -12,8 +12,6 @@ namespace heyho {
 
 /**
  * converts cv::Scalar into pixel.
- *
- * @param color result of "cv::scalarToRawData"
  */
 template<typename pixel_t>
 inline pixel_t scalar2pixel(const cv::Scalar &color) {
@@ -202,9 +200,16 @@ F convex_poly(cv::Size size, const cv::Point* pts, int npts, F f, int line_type)
 
 template<typename pixel_t>
 void fill_convex_poly(cv::InputOutputArray _img, cv::InputArray _points, const cv::Scalar& color, int line_type) {
-	cv::Mat img = _img.getMat(), points = _points.getMat();
+	cv::Mat img = _img.getMat();
+	const cv::Mat points = _points.getMat();
 	CV_Assert(points.checkVector(2, CV_32S) >= 0);
-	heyho::fill_convex_poly<pixel_t>(img, reinterpret_cast<const cv::Point*>(points.data), points.rows*points.cols*points.channels()/2, color, line_type);
+	heyho::fill_convex_poly<pixel_t>(
+			img,
+			reinterpret_cast<const cv::Point*>(points.data),
+			points.rows * points.cols * points.channels() / 2,
+			color,
+			line_type
+	);
 }
 
 
@@ -224,6 +229,24 @@ void fill_convex_poly(cv::Mat& img, const cv::Point* pts, int npts, const cv::Sc
 template<typename pixel_t>
 void fill_convex_poly(cv::Mat& img, const cv::Point* v, int npts, const pixel_t &color, int line_type)
 {
+	/*
+	 * INFO: cv::Mat image type
+	 * ========================
+	 *
+	 * size_t Mat::elemSize()  const --> num_chans * sizeof(T)
+	 * size_t Mat::elemSize1() const -->             sizeof(T)
+	 *
+	 * int Mat::channels() const --> num_chans
+	 *
+	 * int Mat::type() const --> CV_16SC3
+	 *
+	 * int Mat::depth() const --> MACRO / enum fuer {signed, unsigned}{char, short, int} ...
+	 *
+	 *
+	 * CV_MAT_CN(CV_16SC3) --> num_chans
+	 *
+	 */
+
 	constexpr int img_type = cv::DataType<pixel_t>::type;
 	if (img.type() != img_type) {
 		throw std::invalid_argument("invalid image pixel type");
@@ -242,21 +265,6 @@ void fill_convex_poly(cv::Mat& img, const cv::Point* v, int npts, const pixel_t 
 	}
 
 	heyho::convex_poly(img.size(), v, npts, pixel_setter<pixel_t>{img, color}, line_type);
-
-	/**
-	 * size_t Mat::elemSize()  const --> num_chans * sizeof(T)
-	 * size_t Mat::elemSize1() const -->             sizeof(T)
-	 *
-	 * int Mat::channels() const --> num_chans
-	 *
-	 * int Mat::type() const --> CV_16SC3
-	 *
-	 * int Mat::depth() const --> MACRO / enum fuer {signed, unsigned}{char, short, int} ...
-	 *
-	 *
-	 * CV_MAT_CN(CV_16SC3) --> num_chans
-	 *
-	 */
 }
 
 }
