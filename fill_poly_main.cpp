@@ -65,7 +65,7 @@ struct compare {
 		cv::fillConvexPoly(img1, points, default_color<img_type>(), line_type, shift);
 
 		cv::Mat img2(dim, dim, img_type, white<img_type>());
-		heyho::fillConvexPoly<pixel_t>(img2, points, default_color<img_type>(), line_type);
+		heyho::fill_convex_poly<pixel_t>(img2, points, default_color<img_type>(), line_type);
 
 
 		const bool equal =  0 == std::memcmp(img1.datastart, img2.datastart, img1.dataend - img1.datastart);
@@ -187,7 +187,7 @@ int main() {
 
 	std::vector<fill_convex_poly_f> e{
 		&cv_fill_confex_poly,
-		static_cast<fill_convex_poly_f>(&heyho::fillConvexPoly<cv::Vec<uint8_t, 3>>)
+		static_cast<fill_convex_poly_f>(&heyho::fill_convex_poly<cv::Vec<uint8_t, 3>>)
 	};
 
 	if (false or true) {
