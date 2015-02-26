@@ -50,6 +50,8 @@ public:
 
 	void draw(cv::Mat& img, const double transparency) const;
 
+    double compare(const PipelineGrid &to) const;
+
 private:
 	// TODO: invalidate cache on param change + efficient update when only
 	// position changes
