@@ -101,13 +101,16 @@ cv::Mat Preprocessor::process(const cv::Mat &image) {
 	// convert image to grayscale (not needed later because images will already be grayscale)
 	cv::cvtColor(image, grayImage, CV_BGR2GRAY);
 
+	cv::Mat opt_image;
 	if (this->_options.get_opt_use_contrast_streching()) {
-		this->_contrastStretching(grayImage);
+		opt_image = this->_contrastStretching(grayImage);
+	}else{
+		opt_image = grayImage.clone();
 	}
-	setOptsImage(grayImage.clone());
+	setOptsImage(opt_image);
 
 	if (this->_options.get_honey_enabled()) {
-		this->_filterHoney(grayImage);
+		grayImage = this->_filterHoney(opt_image,grayImage);
 	}
 
 	setHoneyImage(grayImage.clone());
@@ -129,29 +132,24 @@ void Preprocessor::_equalizeHistogramm(cv::Mat& image) {
 	cv::equalizeHist(image, image);
 }
 
-void Preprocessor::_contrastStretching(cv::Mat& image) {
+cv::Mat Preprocessor::_contrastStretching(const cv::Mat& image) {
 
+	cv::Mat opt = image.clone();
 	int frame_size = static_cast<int>(this->_options.get_opt_frame_size());
-	std::vector<cv::Mat> blocks = this->_rasterImage(image, frame_size);
-	bool stretch = true;
-	for (cv::Mat &block : blocks) {
-		stretch = true;
-		if (this->_options.get_honey_enabled()) {
+	std::vector<image_raster> rasters = this->_getRaster(opt, frame_size);
 
-			stretch = !this->_filterHoney(block);
-		} else {
-			stretch = true;
-		}
-		if (stretch) {
-			cv::Scalar mean_sobel = mean(block);
-			double average_value = mean_sobel.val[0];
-			if (average_value
-					< this->_options.get_opt_average_contrast_value()) {
-				cv::normalize(block, block, 0, 255, CV_MINMAX);
-			}
+	for (image_raster &raster : rasters) {
+
+		cv::Mat block = opt.rowRange(raster.row_range).colRange(
+				raster.col_range);
+		cv::Scalar mean_sobel = mean(block);
+		double average_value = mean_sobel.val[0];
+		if (average_value < this->_options.get_opt_average_contrast_value()) {
+			cv::normalize(block, block, 0, 255, CV_MINMAX);
 		}
 
 	}
+	return opt;
 
 }
 
@@ -210,27 +208,35 @@ cv::Mat Preprocessor::_computeSobel(const cv::Mat &grayImage) const {
 
 }
 
-bool Preprocessor::_filterHoney(cv::Mat& image) {
-	bool allHoney = true;
-	int frame_size = static_cast<int>(this->_options.get_honey_frame_size());
-	std::vector<cv::Mat> blocks = this->_rasterImage(image, frame_size);
-	cv::Scalar mean, std_dev;
+cv::Mat Preprocessor::_filterHoney(const cv::Mat& opt_image,
+		const cv::Mat& orig_image) {
 
-	for (cv::Mat block : blocks) {
-		cv::meanStdDev(block, mean, std_dev);
+	cv::Mat image = opt_image.clone();
+	int frame_size = static_cast<int>(this->_options.get_honey_frame_size());
+	std::vector<image_raster> rasters = this->_getRaster(image, frame_size);
+	cv::Mat opt_block, orig_block;
+
+	for (image_raster &raster : rasters) {
+
+		orig_block = orig_image.rowRange(raster.row_range).colRange(
+				raster.col_range);
+		cv::Scalar mean, std_dev;
+
+		cv::meanStdDev(orig_block, mean, std_dev);
 		if (std_dev[0] < this->_options.get_honey_std_dev()
 				&& mean[0] > this->_options.get_honey_average_value()) {
-			block.setTo(mean);
-		} else {
-			allHoney = false;
+			opt_block = image.rowRange(raster.row_range).colRange(
+					raster.col_range);
+			opt_block.setTo(mean);
 		}
 	}
-	return allHoney;
+	return image;
 
 }
 
-std::vector<cv::Mat> Preprocessor::_rasterImage(cv::Mat image, int frame_size) {
-	std::vector<cv::Mat> blocks = std::vector<cv::Mat>();
+std::vector<image_raster> Preprocessor::_getRaster(cv::Mat image,
+		int frame_size) {
+	std::vector<image_raster> raster = std::vector<image_raster>();
 
 	div_t div_rows, div_cols;
 	div_rows = div(image.rows, frame_size);
@@ -249,17 +255,10 @@ std::vector<cv::Mat> Preprocessor::_rasterImage(cv::Mat image, int frame_size) {
 			cols = ((j == col_iterations - 1) ?
 					cv::Range(frame_size * j, image.cols) :
 					cv::Range(frame_size * j, frame_size * (j + 1)));
-
-			try {
-
-				blocks.push_back(image.rowRange(rows).colRange(cols));
-			} catch (std::exception & e) {
-				std::cerr << "error in block (" << rows.start << ',' << rows.end
-						<< "," << cols.start << "," << cols.end;
-			}
+			raster.push_back(image_raster { rows, cols });
 		}
 	}
-	return blocks;
+	return raster;
 }
 
 void Preprocessor::_filterCombs(cv::Mat& sobel) {

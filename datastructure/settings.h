@@ -14,6 +14,7 @@
 #include <boost/type_traits/is_same.hpp>
 #include <boost/variant.hpp>
 #include <map>
+#include <iostream>
 
 #ifndef piplineStandalone
 class Settings;
@@ -47,7 +48,7 @@ static const double HONEY_AVERAGE_VALUE = 80;
 
 namespace Params {
 static const std::string BASE = "BEESBOOKPIPELINE.PREPROCESSOR.";
-
+static const std::string BASE_STANDALONE = "PREPROCESSOR.";
 static const std::string OPT_USE_CONTRAST_STRETCHING =
 		"OPT_USE_CONTRAST_STRETCHING";
 static const std::string OPT_USE_EQUALIZE_HISTOGRAM =
@@ -162,15 +163,38 @@ public:
 	settings_abs(std::string section) :
 			_base(section) {
 	}
-	/**
-	 * load all setting values form the json-file (concerning to the section)
-	 * @param filename absolute path to the file
-	 */
-	void loadFromJson(std::string filename) {
-		boost::property_tree::ptree pt;
-		boost::property_tree::read_json(filename, pt);
-		loadValues(pt);
+
+	const std::string& getBase() const {
+		return _base;
 	}
+
+	void setBase(const std::string& base) {
+		_base = base;
+	}
+	/**
+	 * add settings to existing ptree
+	 * @param pt propertytree with existing settings
+	 */
+	void addToPTree(boost::property_tree::ptree& pt) {
+
+		typedef std::map<std::string, setting_entry>::iterator it_type;
+		for (it_type it = _settings.begin(); it != _settings.end(); it++) {
+			setting_entry& entry = it->second;
+			pt.put(_base + entry.setting_name, entry.field);
+
+		}
+
+	}
+	/**
+	 * get ptTree with all settings
+	 * @return ptree
+	 */
+	boost::property_tree::ptree getPTree() {
+		boost::property_tree::ptree pt;
+		addToPTree(pt);
+		return pt;
+	}
+
 	/**
 	 *  writes all values found in the ptree in the depending entries
 	 * @param ptree with nodes for the settings
@@ -216,8 +240,42 @@ public:
 			}
 			}
 		}
-
 	}
+	/**
+	 * load all setting values form the json-file (concerning to the base)
+	 * @param filename absolute path to the file
+	 */
+	void loadFromJson(std::string filename) {
+		boost::property_tree::ptree pt;
+		boost::property_tree::read_json(filename, pt);
+		loadValues(pt);
+	}
+	/**
+	 * writes all setting values form the json-file (concerning to the base)
+	 * @param filename absolute path to the file
+	 */
+	bool writeToJson(std::string filename) {
+		try {
+
+			boost::property_tree::ptree pt = getPTree();
+
+			boost::property_tree::write_json(filename, pt);
+			return true;
+		} catch (std::exception& e) {
+			std::cerr << "Error on writing config in " << filename << std::endl;
+			return false;
+		}
+	}
+
+	bool writeToJson(std::string filename, boost::property_tree::ptree pt) {
+			try {
+				boost::property_tree::write_json(filename, pt);
+				return true;
+			} catch (std::exception& e) {
+				std::cerr << "Error on writing config in " << filename << std::endl;
+				return false;
+			}
+		}
 
 #ifndef piplineStandalone
 	void loadValues(Settings &settings, std::string base);
@@ -321,6 +379,7 @@ public:
 
 	preprocessor_settings_t() {
 
+		_base = Preprocessor::Params::BASE_STANDALONE;
 		/*
 		 * general optimizations
 		 */

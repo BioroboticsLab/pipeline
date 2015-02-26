@@ -18,6 +18,12 @@
 #endif
 
 namespace pipeline {
+
+typedef struct{
+	cv::Range row_range;
+	cv::Range col_range;
+}image_raster;
+
 class Preprocessor{
 private:
 	settings::preprocessor_settings_t _options;
@@ -28,11 +34,11 @@ private:
 
 
 	cv::Mat _computeSobel(const cv::Mat &grayImage) const;
-	std::vector<cv::Mat> _rasterImage(cv::Mat image, int frame_size);
-	void _contrastStretching(cv::Mat& image);
+	std::vector<image_raster> _getRaster(cv::Mat image, int frame_size);
+	cv::Mat _contrastStretching(const cv::Mat& image);
 	void _equalizeHistogramm(cv::Mat& image);
 	void _filterCombs(cv::Mat& image);
-	bool _filterHoney(cv::Mat& image);
+	cv::Mat _filterHoney(const cv::Mat& opt_image, const cv::Mat& orig_image);
 
 
 public:
