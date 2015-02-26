@@ -27,10 +27,10 @@ typedef struct {
     double adaptiveC      = 3;
 
 	// gradient descent parameters
-	size_t numInitial = 6;
+	size_t numInitial = 1;
 	size_t numResults = 1;
 
-	double errorThreshold = 5.;
+	double errorThreshold = 80.;
 	size_t maxIterations  = 100;
 
 	double eps_angle = 0.02;
