@@ -30,13 +30,13 @@ namespace settings {
 static const std::string DEFAULT_PREFIX = "DEFAULT.";
 
 enum setting_entry_type {
-	INT = 1, DOUBLE = 2, BOOL = 3, U_INT = 4
+	INT = 1, DOUBLE = 2, BOOL = 3, U_INT = 4, SIZE_T = 5
 };
 
 class setting_entry {
 public:
 	std::string setting_name;
-	boost::variant<int, double, bool, unsigned int> field;
+	boost::variant<int, double, bool, unsigned int, size_t> field;
 	setting_entry_type type;
 
 	setting_entry() {
@@ -64,6 +64,11 @@ public:
 		type = setting_entry_type::BOOL;
 
 	}
+	setting_entry(std::string name, size_t member) :
+				setting_name(name), field(member) {
+			type = setting_entry_type::SIZE_T;
+
+		}
 
 };
 
@@ -190,6 +195,14 @@ public:
 
 				break;
 			}
+			case (setting_entry_type::SIZE_T): {
+							const boost::optional<size_t> param = ptree.get_optional<
+									size_t>(_base + entry.setting_name);
+							if (param)
+								entry.field = boost::get<size_t>(param);
+
+							break;
+						}
 			}
 		}
 	}
@@ -639,6 +652,66 @@ public:
 
 	}
 };
+
+
+/**************************************
+ *
+ *         Gridfitter Settings
+ *
+ **************************************/
+
+namespace Gridfitter {
+namespace Params {
+static const std::string BASE = "BEESBOOKPIPELINE.GRIDFITTER.";
+static const std::string BASE_STANDALONE = "GRIDFITTER.";
+static const std::string ERR_FUNC_ALPHA_INNER =  "NUM_INITIAL";
+static const std::string ERR_FUNC_ALPHA_OUTER =  "NUM_INITIAL";
+static const std::string ERR_FUNC_ALPHA_VARIANCE =  "NUM_INITIAL";
+static const std::string ERR_FUNC_ALPHA_OUTER_EDGE =  "NUM_INITIAL";
+static const std::string ERR_FUNC_ALPHA_INNER_EDGE =  "NUM_INITIAL";
+}
+
+
+typedef struct {
+	// error function weights
+	double alpha_inner    = 500.0;
+	double alpha_outer    = 100.0;
+	double alpha_variance = 0.8;
+	double alpha_outer_edge = 5.0;
+	double alpha_inner_edge = 10.0;
+
+    // size of neighbourhood area
+    int adaptiveBlockSize = 23;
+    // constant which is substracted from mean of neighborhood area
+    double adaptiveC      = 3;
+
+	// gradient descent parameters
+	size_t numInitial = 6;
+	size_t numResults = 1;
+
+	double errorThreshold = 5.;
+	size_t maxIterations  = 100;
+
+	double eps_angle = 0.02;
+	int eps_pos      = 1;
+	double eps_scale = 0.1;
+	double alpha     = 0.01;
+} gridfitter_settings_t;
+namespace Defaults {
+static const size_t NUM_INITAL = 6;
+}
+}
+class gridfitter_settings_t: public settings_abs {
+public:
+
+	gridfitter_settings_t() {
+
+			_base = Gridfitter::Params::BASE_STANDALONE;
+
+	}
+
+};
+
 }
 }
 
