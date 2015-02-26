@@ -15,6 +15,7 @@
 #include <chrono>
 #include <exception>
 #include <cstring>
+#include <iomanip>
 #include "blargs.h"
 
 
@@ -42,6 +43,20 @@ inline cv::Scalar default_color<CV_32FC1>() { return {0.4f}; }
 template<>
 inline cv::Scalar default_color<CV_32FC3>() { return {1.0f, 0.0f, 0.2f}; }
 
+
+class timer {
+private:
+	const std::chrono::system_clock::time_point start;
+public:
+	explicit timer()
+	: start(std::chrono::system_clock::now())
+	{}
+	~timer() {
+		const std::chrono::system_clock::time_point stop = std::chrono::system_clock::now();
+		const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+		std::cout << std::setw(5) << ms.count() << " ms\n";
+	}
+};
 
 /**
  * compares cv::fillConvexPoly & heyho::fillConvexPoly
@@ -93,6 +108,42 @@ struct compare {
 };
 
 
+struct benchmark {
+
+
+	const cv::Size axes;
+	const int angle;
+	std::size_t times;
+
+	template<typename pixel_t, int line_type>
+	bool operator()() const {
+		constexpr int img_type = cv::DataType<pixel_t>::type;
+		constexpr int shift = 0;
+		const int dim = 2 * std::max(axes.width, axes.height) + 10;
+		const cv::Point center(dim / 2, dim / 2);
+		std::vector<cv::Point> points;
+		cv::ellipse2Poly(center, axes, angle, 0, 360, 1, points);
+		cv::Mat img(dim, dim, img_type, white<img_type>());
+		{
+			std::cout << "opencv: ";
+			timer t;
+			for (size_t i = 0; i < times; ++i) {
+				cv::fillConvexPoly(img, points, default_color<img_type>(), line_type, shift);
+			}
+		}
+		{
+			std::cout << "heyho:  ";
+			timer t;
+			for (size_t i = 0; i < times; ++i) {
+				heyho::fill_convex_poly<pixel_t>(img, points, default_color<img_type>(), line_type);
+			}
+		}
+		return true;
+	}
+};
+
+
+
 /**
  * calls f with each combination of CV image type & CV line type
  */
@@ -125,26 +176,8 @@ struct foreach {
 };
 
 
-
-class timer {
-private:
-	const std::chrono::system_clock::time_point start;
-public:
-	explicit timer()
-	: start(std::chrono::system_clock::now())
-	{}
-	~timer() {
-		const std::chrono::system_clock::time_point stop = std::chrono::system_clock::now();
-		const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
-		std::cout << ms.count() << " ms\n";
-	}
-};
-
-
 const cv::Scalar BLUE(255,    0,   0);
 const cv::Scalar WHITE(255, 255, 255);
-
-
 
 using fill_convex_poly_f = void (*) (cv::InputOutputArray img, cv::InputArray points, const cv::Scalar& color, int line_type);
 
@@ -191,6 +224,8 @@ int main() {
 	};
 
 	if (false or true) {
+
+		foreach()(benchmark{{400, 200}, 45, 500});
 
 		bench_fill_convex_poly(e, 400, 5000);
 	}
