@@ -17,7 +17,7 @@
 #include "source/utility/CvHelper.h"
 #include "source/utility/util.h"
 
-//#define DEBUG_GRIDFITTER
+//l#define DEBUG_GRIDFITTER
 
 namespace pipeline {
 GridFitter::GridFitter()
@@ -31,11 +31,17 @@ void GridFitter::loadSettings(gridfitter_settings_t &&settings)
 std::vector<Tag> GridFitter::process(std::vector<Tag> &&taglist)
 {
 #ifdef DEBUG_GRIDFITTER
-    static const size_t numThreads = 1;
+	for (Tag& tag : taglist) {
+		tag.setValid(false);
+		for (TagCandidate& candidate : tag.getCandidates()) {
+				std::vector<PipelineGrid> grids = fitGrid(tag, candidate);
+				if (!grids.empty()) { tag.setValid(true); };
+				candidate.setGrids(std::move(grids));
+		}
+	}
 #else
     static const size_t numThreads = std::thread::hardware_concurrency() ?
                 std::thread::hardware_concurrency() * 2 : 1;
-#endif
     ThreadPool pool(numThreads);
 
     std::vector<std::future<void>> results;
@@ -52,6 +58,7 @@ std::vector<Tag> GridFitter::process(std::vector<Tag> &&taglist)
 	}
 
     for (auto && result : results) result.get();
+#endif
 
 	// remove tags without any fitted grids
 	taglist.erase(std::remove_if(taglist.begin(), taglist.end(), [](Tag& tag) { return !tag.isValid(); }), taglist.end());
@@ -87,12 +94,15 @@ cv::Mat GridFitter::calculateHistogram(const cv::Mat& roi, const Ellipse& ellips
     return histImg;
 }
 
-void GridFitter::visualizeDebug(std::multiset<candidate_t> const& bestGrids, const size_t numResults, const cv::Size2i roiSize, const Tag& tag, cv::Mat const& binarizedROI) const
+void GridFitter::visualizeDebug(std::multiset<candidate_t> const& bestGrids, const cv::Size2i roiSize, const Tag& tag, cv::Mat const& binarizedROI, std::string winName) const
 {
     cv::Mat binarizedROICpy;
     cv::cvtColor(binarizedROI, binarizedROICpy, CV_GRAY2BGR);
 
-    const size_t to = std::min(numResults, bestGrids.size());
+    cv::Mat cannyImg;
+    cv::cvtColor(tag.getCannySubImage(), cannyImg, CV_GRAY2BGR);
+
+    const size_t to = std::min(_settings.numResults, bestGrids.size());
     size_t idx = 0;
     for (candidate_t const& candidate : bestGrids) {
         std::vector<cv::Mat> images;
@@ -100,6 +110,14 @@ void GridFitter::visualizeDebug(std::multiset<candidate_t> const& bestGrids, con
         PipelineGrid grid(candidate.config);
 
         images.push_back(tag.getOrigSubImage());
+
+        cv::Mat origCopy;
+        tag.getOrigSubImage().copyTo(origCopy);
+        pipeline::Ellipse const& ell = tag.getCandidates().front().getEllipse();
+        cv::ellipse(origCopy, ell.getCen(), ell.getAxis(), ell.getAngle(), 0, 360, cv::Scalar(0, 255, 0), 2);
+        images.push_back(origCopy);
+
+        images.push_back(cannyImg);
         images.push_back(binarizedROICpy);
         images.push_back(grid.getProjectedImage(roiSize));
 
@@ -111,9 +129,18 @@ void GridFitter::visualizeDebug(std::multiset<candidate_t> const& bestGrids, con
         cv::addWeighted(tag.getOrigSubImage(), 0.8, grid.getProjectedImage(roiSize), 0.2, 0.0, blended);
         images.push_back(blended);
 
+        cv::Mat cannyBlended;
+        cv::addWeighted(cannyImg, 0.8, grid.getProjectedImage(roiSize), 0.2, 0.0, cannyBlended);
+        images.push_back(cannyBlended);
+
+        cv::Mat origCopyOverlay;
+        tag.getOrigSubImage().copyTo(origCopyOverlay);
+        grid.drawContours(origCopyOverlay, 0.5);
+        images.push_back(origCopyOverlay);
+
         const auto canvas = CvHelper::makeCanvas(images, images[0].rows + 10, 1);
 
-        std::string title("best fit (error: " + std::to_string(candidate.error) + ")");
+        std::string title(winName + " (error: " + std::to_string(candidate.error) + ")");
         cv::namedWindow(title);
         cv::imshow(title, canvas);
 
@@ -121,39 +148,42 @@ void GridFitter::visualizeDebug(std::multiset<candidate_t> const& bestGrids, con
         if (idx == to) break;
     }
 
-	bool cont = true;
-	while (cont) {
-		const char c = cv::waitKey();
-		if (c == 'd') {
-			cv::destroyAllWindows();
-			cont = false;
-		} else if (c == 'c') {
-			cont = false;
-		}
-	}
+    if (!bestGrids.empty()) {
+        bool cont = true;
+        while (cont) {
+            const char c = cv::waitKey();
+            if (c == 'd') {
+                    cv::destroyAllWindows();
+                    cont = false;
+            } else if (c == 'c') {
+                    cont = false;
+            }
+        }
+    }
 }
 
-GridFitter::candidate_set GridFitter::getInitialCandidates(const cv::Mat &binarizedROI, const Ellipse& ellipse_orig, const cv::Mat &roi) const
+GridFitter::candidate_set GridFitter::getInitialCandidates(const cv::Mat &binarizedROI, const cv::Mat& edgeROI, const Ellipse& ellipse_orig, const cv::Mat &roi) const
 {
-	static const auto initial_rotations        = util::linspace<double>(0, 2 * CV_PI, 32);
+	static const auto initial_rotations        = util::linspace<double>(0, 2 * CV_PI, 64);
 	static const auto initial_position_offsets = util::linspace<int>(-4, 4, 9);
 
     // initial search for gradiant descent candidates in ellipse parameter space
     candidate_set gridCandidates;
-    for (const int pos_x_offset : initial_position_offsets) {
-        for (const int pos_y_offset : initial_position_offsets) {
-            for (const double rotation : initial_rotations) {
-                Ellipse ell(ellipse_orig);
-                ell.setCen(ellipse_orig.getCen() + cv::Point2i(pos_x_offset, pos_y_offset));
-                const std::array<PipelineGrid::gridconfig_t, 2> configCandidates =
-                        Util::gridCandidatesFromEllipse(ell, rotation);
-                for (PipelineGrid::gridconfig_t const& config : configCandidates) {
-                    PipelineGrid candidate(config);
-                    const double error = evaluateCandidate(candidate, roi, binarizedROI, _settings);
-                    gridCandidates.insert({error, config});
+    for (const double rotation : initial_rotations) {
+        candidate_set candidatesForRotation;
+        const std::array<PipelineGrid::gridconfig_t, 2> configCandidates =
+                Util::gridCandidatesFromEllipse(ellipse_orig, rotation);
+        for (PipelineGrid::gridconfig_t const& config : configCandidates) {
+            PipelineGrid grid(config);
+            for (const int pos_x_offset : initial_position_offsets) {
+                for (const int pos_y_offset : initial_position_offsets) {
+                    grid.setCenter({config.center.x + pos_x_offset, config.center.y + pos_y_offset});
+                    const double error = evaluateCandidate(grid, roi, binarizedROI, edgeROI, _settings);
+                    candidatesForRotation.insert({error, grid.getConfig()});
                 }
             }
         }
+        gridCandidates.insert(*candidatesForRotation.begin());
     }
 
 	return gridCandidates;
@@ -174,10 +204,12 @@ std::vector<PipelineGrid> GridFitter::fitGrid(const Tag& tag, const TagCandidate
                           cv::THRESH_BINARY, _settings.adaptiveBlockSize,
                           _settings.adaptiveC);
 
-	// initial search parameter space
-	candidate_set gridCandidates = getInitialCandidates(binarizedROI, ellipse_orig, roi);
+    const cv::Mat& edgeROI = tag.getCannySubImage();
 
-	GradientDescent optimizer(gridCandidates, roi, binarizedROI, _settings);
+	// initial search parameter space
+	candidate_set gridCandidates = getInitialCandidates(binarizedROI, edgeROI, ellipse_orig, roi);
+
+	GradientDescent optimizer(gridCandidates, roi, binarizedROI, edgeROI, _settings);
 	optimizer.optimize();
 
 	const candidate_set& bestGrids = optimizer.getBestGrids();
@@ -186,7 +218,8 @@ std::vector<PipelineGrid> GridFitter::fitGrid(const Tag& tag, const TagCandidate
     std::cout << "min initial candidate error: " << gridCandidates.begin()->error << std::endl;
     std::cout << "min final candidate error: " << bestGrids.begin()->error << std::endl;
 
-    visualizeDebug(bestGrids, numResults, roiSize, tag, binarizedROI);
+    visualizeDebug(gridCandidates, roiSize, tag, binarizedROI, "initial fit");
+    visualizeDebug(bestGrids, roiSize, tag, binarizedROI, "best fit");
 #endif
 
     std::vector<PipelineGrid> results;
@@ -205,111 +238,131 @@ std::vector<PipelineGrid> GridFitter::fitGrid(const Tag& tag, const TagCandidate
     return results;
 }
 
-double GridFitter::evaluateCandidate(PipelineGrid& grid, cv::Mat const& roi, cv::Mat const& binarizedROI, const gridfitter_settings_t &settings)
+double GridFitter::evaluateCandidate(PipelineGrid& grid, cv::Mat const& roi, cv::Mat const& binarizedROI, cv::Mat const& edgeROI, const gridfitter_settings_t &settings)
 {
-	// TODO: fix PipelineGrid bugs
-	try {
     double error = 0;
 
-    // bounding box and center of grid candidate
-    const cv::Rect boundingBox   = grid.getBoundingBox();
-    const cv::Point2i gridCenter = grid.getCenter();
+    // bounding box of grid candidate
+    const cv::Rect boundingBox = grid.getBoundingBox();
 
-    // temporarily shift grid position so that top left corner is at
-    // position (0, 0) of boundingBox
-    // TODO: maybe it's better to adjust get*Coordinates functions so that
-    // they take the roi location into account
-    grid.setCenter(gridCenter - boundingBox.tl());
+    if (!boundingBox.area()) return std::numeric_limits<double>::max();
+    if (boundingBox.x < 0 || boundingBox.y < 0) return std::numeric_limits<double>::max();
+    if (boundingBox.x + boundingBox.width >= roi.rows ||
+        boundingBox.y + boundingBox.height >= roi.cols) return std::numeric_limits<double>::max();
 
     // define region of interest based on bounding box of grid candidate
     // from now on, we do all calculations on this roi to speed up all
     // computations that have to iterate over the (sub)image
     cv::Mat subROI;
     subROI = roi(boundingBox);
-    const cv::Size subROIsize = subROI.size();
 
     // region of interest of binarized image
-    cv::Mat subBinarized;
-    subBinarized = binarizedROI(boundingBox);
+    cv::Mat subBinarized = binarizedROI(boundingBox);
+    cv::Mat subEdges = edgeROI(boundingBox);
 
     // get coordinates of current grid configuration
-    const cv::Mat& outerRingCoordinates  = grid.getOuterRingCoordinates(subROIsize);
-    const cv::Mat& innerWhiteCoordinates = grid.getInnerWhiteRingCoordinates(subROIsize);
-    const cv::Mat& innerBlackCoordinates = grid.getInnerBlackRingCoordinates(subROIsize);
-    const std::vector<cv::Mat>& cellCoordinates = grid.getGridCellCoordinates(subROIsize);
+    const PipelineGrid::coordinates_t& outerRingCoordinates  = grid.getOuterRingCoordinates();
+    const PipelineGrid::coordinates_t& innerWhiteCoordinates = grid.getInnerWhiteRingCoordinates();
+    const PipelineGrid::coordinates_t& innerBlackCoordinates = grid.getInnerBlackRingCoordinates();
 
     // compare outer circle
     size_t outerCircleError = 0;
-    for (size_t idx = 0; idx < outerRingCoordinates.total(); ++idx) {
-        const cv::Point2i coords = outerRingCoordinates.at<cv::Point2i>(idx);
-        const uint8_t value      = subBinarized.at<uint8_t>(coords);
+    for (const cv::Point2i coords : outerRingCoordinates.areaCoordinates) {
+        const uint8_t value      = subBinarized.at<uint8_t>(coords - boundingBox.tl());
         // no branching => better performance
         outerCircleError += 255 - value;
     }
-    error += (settings.alpha_outer * outerCircleError) / outerRingCoordinates.total();
+    if (outerRingCoordinates.areaCoordinates.size())
+        error += settings.alpha_outer * (outerCircleError / outerRingCoordinates.areaCoordinates.size()) / 255.;
+
+    size_t outerCircleEdgeError = 0;
+    for (const cv::Point2i coords : outerRingCoordinates.edgeCoordinates) {
+        const uint8_t value      = subEdges.at<uint8_t>(coords - boundingBox.tl());
+        outerCircleEdgeError += 255 - value;
+    }
+    if (outerRingCoordinates.edgeCoordinates.size())
+        error += settings.alpha_outer_edge * (outerCircleEdgeError / outerRingCoordinates.edgeCoordinates.size()) / 255.;
 
     // compare inner white semicircle
     size_t innerWhiteError = 0;
-    for (size_t idx = 0; idx < innerWhiteCoordinates.total(); ++idx) {
-        const cv::Point2i coords = innerWhiteCoordinates.at<cv::Point2i>(idx);
-        const uint8_t value      = subBinarized.at<uint8_t>(coords);
+    for (const cv::Point2i coords : innerWhiteCoordinates.areaCoordinates) {
+        const uint8_t value      = subBinarized.at<uint8_t>(coords - boundingBox.tl());
         innerWhiteError += 255 - value;
     }
-    error += (settings.alpha_inner * innerWhiteError) / innerWhiteCoordinates.total();
+    if (innerWhiteCoordinates.areaCoordinates.size())
+        error += settings.alpha_inner * (innerWhiteError / innerWhiteCoordinates.areaCoordinates.size()) / 255.;
 
     // compare inner black semicircle
     size_t innerBlackError = 0;
-    for (size_t idx = 0; idx < innerBlackCoordinates.total(); ++idx) {
-        const cv::Point2i coords = innerBlackCoordinates.at<cv::Point2i>(idx);
-        const uint8_t value      = subBinarized.at<uint8_t>(coords);
+    for (const cv::Point2i coords : innerBlackCoordinates.areaCoordinates) {
+        const uint8_t value      = subBinarized.at<uint8_t>(coords - boundingBox.tl());
         innerBlackError += value;
     }
-    error += (settings.alpha_inner * innerBlackError) / innerBlackCoordinates.total();
+    if (innerBlackCoordinates.areaCoordinates.size())
+        error += settings.alpha_inner * (innerBlackError / innerBlackCoordinates.areaCoordinates.size()) / 255;
 
-    error /= 255.;
+    // TODO: more efficient implementation for this!
+//    auto vectorCmp = [&](const cv::Point2i& first, const cv::Point2i second) {
+//        if (first.x != second.x) return first.x < second.x;
+//        return first.y < second.y;
+//    };
+//    std::vector<cv::Point2i> blackCoordinates = innerBlackCoordinates.edgeCoordinates;
+//    std::sort(blackCoordinates.begin(), blackCoordinates.end(), vectorCmp);
+//    std::vector<cv::Point2i> whiteCoordinates = innerWhiteCoordinates.edgeCoordinates;
+//    std::sort(whiteCoordinates.begin(), whiteCoordinates.end(), vectorCmp);
+
+//    std::vector<cv::Point2i> intersection;
+//    std::set_intersection(blackCoordinates.begin(), blackCoordinates.end(),
+//                          whiteCoordinates.begin(), whiteCoordinates.end(),
+//                          std::back_inserter(intersection), vectorCmp);
+//    size_t innerEdgeError = 0;
+//    for (const cv::Point2i coords : intersection) {
+//        const uint8_t value      = subEdges.at<uint8_t>(coords - boundingBox.tl());
+//        innerEdgeError += value;
+//    }
+//    if (intersection.size())
+//        error += settings.alpha_inner_edge * (innerEdgeError / intersection.size()) / 255;
 
     // add variance of each grid cells to error
-    for (cv::Mat const& cell : cellCoordinates) {
-        // two-pass variance calculation. first pass calculates mean of
-        // points in cell, second pass calculates variance based on mean.
-        // TODO: evaluate whether a one-pass method significantly improves
-        // performance and whether a more numerically stable algorithm is
-        // required.
-        // see: http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
-        size_t sum = 0;
-        for (size_t idx = 0; idx < cell.total(); ++idx) {
-            const cv::Point2i coords = cell.at<cv::Point2i>(idx);
-            const uint8_t value      = subBinarized.at<uint8_t>(coords);
-            sum += value;
-        }
-        const double mean = static_cast<double>(sum) / static_cast<double>(cell.total());
+    for (size_t cellIdx = 0; cellIdx < Grid::NUM_MIDDLE_CELLS; ++cellIdx) {
+        PipelineGrid::coordinates_t const& cellCoordinates = grid.getGridCellCoordinates(cellIdx);
+        if (cellCoordinates.areaCoordinates.size() > 1) {
+            // two-pass variance calculation. first pass calculates mean of
+            // points in cell, second pass calculates variance based on mean.
+            // TODO: evaluate whether a one-pass method significantly improves
+            // performance and whether a more numerically stable algorithm is
+            // required.
+            // see: http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
+            size_t sum = 0;
+            for (const cv::Point2i coords : cellCoordinates.areaCoordinates) {
+                const uint8_t value      = subBinarized.at<uint8_t>(coords);
+                sum += value;
+            }
+            const double mean = static_cast<double>(sum) / static_cast<double>(cellCoordinates.areaCoordinates.size());
 
-        double sum2 = 0;
-        for (size_t idx = 0; idx < cell.total(); ++idx) {
-            const cv::Point2i coords = cell.at<cv::Point2i>(idx);
-            const double value       = static_cast<double>(subBinarized.at<uint8_t>(coords));
-            sum2 += (value - mean) * (value - mean);
-        }
-        const double variance = (sum2 / (cell.total() - 1));
+            double sum2 = 0;
+            for (const cv::Point2i coords : cellCoordinates.areaCoordinates) {
+                const double value       = static_cast<double>(subBinarized.at<uint8_t>(coords));
+                sum2 += (value - mean) * (value - mean);
+            }
+            const double variance = (sum2 / (cellCoordinates.areaCoordinates.size() - 1));
 
-        error += settings.alpha_variance * (variance / 255.);
+            error += settings.alpha_variance * (variance / 255.);
+        }
     }
 
-    // reset grid to original position
-    grid.setCenter(gridCenter);
+    // TODO
+//    error += 10 * std::abs(boundingBox.width - boundingBox.height);
 
 	return error;
-	}
-	catch (std::exception const& ex) {
-		return std::numeric_limits<double>::max();
-	}
 }
 
-GridFitter::GradientDescent::GradientDescent(const GridFitter::candidate_set &initialCandidates, const cv::Mat &roi, const cv::Mat &binarizedRoi, const gridfitter_settings_t &settings)
+GridFitter::GradientDescent::GradientDescent(const GridFitter::candidate_set &initialCandidates, const cv::Mat &roi, const cv::Mat &binarizedRoi, const cv::Mat& edgeRoi, const gridfitter_settings_t &settings)
     : _initialCandidates(initialCandidates)
     , _settings(settings)
     , _roi(roi)
     , _binarizedRoi(binarizedRoi)
+    , _edgeRoi(edgeRoi)
 {}
 
 void GridFitter::GradientDescent::optimize()
@@ -324,7 +377,8 @@ void GridFitter::GradientDescent::optimize()
         PipelineGrid grid(initial_config);
         PipelineGrid::gridconfig_t config = initial_config;
         grid  = PipelineGrid(initial_config);
-        double error = evaluateCandidate(grid, _roi, _binarizedRoi, _settings);
+        double error = evaluateCandidate(grid, _roi, _binarizedRoi, _edgeRoi, _settings);
+        storeConfig(error, config);
         while ((error > _settings.errorThreshold) && (iteration < _settings.maxIterations)) {
             double const initerror = error;
 
@@ -337,7 +391,12 @@ void GridFitter::GradientDescent::optimize()
 
             ++iteration;
 			if (std::abs(initerror - error) < 0.01) break;
-        }
+
+			if (!_bestGrids.empty()) {
+				error  = _bestGrids.begin()->error;
+				config = _bestGrids.begin()->config;
+			}
+		}
         ++candidate_it;
 	}
 }
@@ -378,9 +437,8 @@ std::pair<double, PipelineGrid::gridconfig_t> GridFitter::GradientDescent::step(
 		}
 
 		// TODO: don't construct new Grid in each step
-		// TODO: don't recalculate coordinates for position change
 		PipelineGrid newGrid(newConfig);
-		double newError = evaluateCandidate(newGrid, _roi, _binarizedRoi, _settings);
+		double newError = evaluateCandidate(newGrid, _roi, _binarizedRoi, _edgeRoi, _settings);
 
 		if (param != POSX && param != POSY) {
 			switch (param) {
@@ -401,7 +459,7 @@ std::pair<double, PipelineGrid::gridconfig_t> GridFitter::GradientDescent::step(
 			}
 
 			PipelineGrid newGrid(newConfig);
-			newError = evaluateCandidate(newGrid, _roi, _binarizedRoi, _settings);
+			newError = evaluateCandidate(newGrid, _roi, _binarizedRoi, _edgeRoi, _settings);
 
 			storeConfig(newError, newConfig);
 			return {newError, newConfig};

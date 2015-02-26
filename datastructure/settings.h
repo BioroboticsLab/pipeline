@@ -24,54 +24,6 @@ namespace pipeline {
 
 namespace settings {
 
-namespace Preprocessor {
-namespace Defaults {
-
-static const bool OPT_USE_CONTRAST_STRETCHING = true;
-static const bool OPT_USE_EQUALIZE_HISTOGRAM = false;
-static const unsigned int OPT_FRAME_SIZE = 200;
-static const double OPT_AVERAGE_CONTRAST_VALUE = 120;
-
-static const bool COMB_ENABLED = true;
-static const unsigned int COMB_MIN_SIZE = 65;
-static const unsigned int COMB_MAX_SIZE = 80;
-static const double COMB_THRESHOLD = 27;
-static const unsigned int COMB_DIFF_SIZE = 15;
-static const unsigned int COMB_LINE_WIDTH = 9;
-static const unsigned int COMB_LINE_COLOR = 0;
-
-static const bool HONEY_ENABLED = false;
-static const double HONEY_STD_DEV = 0;
-static const unsigned int HONEY_FRAME_SIZE = 30;
-static const double HONEY_AVERAGE_VALUE = 80;
-}
-
-namespace Params {
-static const std::string BASE = "BEESBOOKPIPELINE.PREPROCESSOR.";
-static const std::string BASE_STANDALONE = "PREPROCESSOR.";
-static const std::string OPT_USE_CONTRAST_STRETCHING =
-		"OPT_USE_CONTRAST_STRETCHING";
-static const std::string OPT_USE_EQUALIZE_HISTOGRAM =
-		"OPT_USE_EQUALIZE_HISTOGRAM";
-static const std::string OPT_FRAME_SIZE = "OPT_FRAME_SIZE";
-static const std::string OPT_AVERAGE_CONTRAST_VALUE =
-		"OPT_AVERAGE_CONTRAST_VALUE";
-
-static const std::string COMB_ENABLED = "COMB_ENABLED";
-static const std::string COMB_MIN_SIZE = "COMB_MIN_SIZE";
-static const std::string COMB_MAX_SIZE = "COMB_MAX_SIZE";
-static const std::string COMB_THRESHOLD = "COMB_THRESHOLD";
-static const std::string COMB_DIFF_SIZE = "COMB_DIFF_SIZE";
-static const std::string COMB_LINE_WIDTH = "COMB_LINE_WIDTH";
-static const std::string COMB_LINE_COLOR = "COMB_LINE_COLOR";
-
-static const std::string HONEY_ENABLED = "HONEY_ENABLED";
-static const std::string HONEY_STD_DEV = "HONEY_STD_DEV";
-static const std::string HONEY_FRAME_SIZE = "HONEY_FRAME_SIZE";
-static const std::string HONEY_AVERAGE_VALUE = "HONEY_AVERAGE_VALUE";
-}
-}
-
 /**
  * @var prefix for the default-values in the config files
  */
@@ -268,14 +220,14 @@ public:
 	}
 
 	bool writeToJson(std::string filename, boost::property_tree::ptree pt) {
-			try {
-				boost::property_tree::write_json(filename, pt);
-				return true;
-			} catch (std::exception& e) {
-				std::cerr << "Error on writing config in " << filename << std::endl;
-				return false;
-			}
+		try {
+			boost::property_tree::write_json(filename, pt);
+			return true;
+		} catch (std::exception& e) {
+			std::cerr << "Error on writing config in " << filename << std::endl;
+			return false;
 		}
+	}
 
 #ifndef piplineStandalone
 	void loadValues(Settings &settings, std::string base);
@@ -292,6 +244,55 @@ public:
  *         Preprocessor Settings
  *
  **************************************/
+
+namespace Preprocessor {
+namespace Defaults {
+
+static const bool OPT_USE_CONTRAST_STRETCHING = true;
+static const bool OPT_USE_EQUALIZE_HISTOGRAM = false;
+static const unsigned int OPT_FRAME_SIZE = 200;
+static const double OPT_AVERAGE_CONTRAST_VALUE = 120;
+
+static const bool COMB_ENABLED = true;
+static const unsigned int COMB_MIN_SIZE = 65;
+static const unsigned int COMB_MAX_SIZE = 80;
+static const double COMB_THRESHOLD = 27;
+static const unsigned int COMB_DIFF_SIZE = 15;
+static const unsigned int COMB_LINE_WIDTH = 9;
+static const unsigned int COMB_LINE_COLOR = 0;
+
+static const bool HONEY_ENABLED = false;
+static const double HONEY_STD_DEV = 0;
+static const unsigned int HONEY_FRAME_SIZE = 30;
+static const double HONEY_AVERAGE_VALUE = 80;
+}
+
+namespace Params {
+static const std::string BASE = "BEESBOOKPIPELINE.PREPROCESSOR.";
+static const std::string BASE_STANDALONE = "PREPROCESSOR.";
+static const std::string OPT_USE_CONTRAST_STRETCHING =
+		"OPT_USE_CONTRAST_STRETCHING";
+static const std::string OPT_USE_EQUALIZE_HISTOGRAM =
+		"OPT_USE_EQUALIZE_HISTOGRAM";
+static const std::string OPT_FRAME_SIZE = "OPT_FRAME_SIZE";
+static const std::string OPT_AVERAGE_CONTRAST_VALUE =
+		"OPT_AVERAGE_CONTRAST_VALUE";
+
+static const std::string COMB_ENABLED = "COMB_ENABLED";
+static const std::string COMB_MIN_SIZE = "COMB_MIN_SIZE";
+static const std::string COMB_MAX_SIZE = "COMB_MAX_SIZE";
+static const std::string COMB_THRESHOLD = "COMB_THRESHOLD";
+static const std::string COMB_DIFF_SIZE = "COMB_DIFF_SIZE";
+static const std::string COMB_LINE_WIDTH = "COMB_LINE_WIDTH";
+static const std::string COMB_LINE_COLOR = "COMB_LINE_COLOR";
+
+static const std::string HONEY_ENABLED = "HONEY_ENABLED";
+static const std::string HONEY_STD_DEV = "HONEY_STD_DEV";
+static const std::string HONEY_FRAME_SIZE = "HONEY_FRAME_SIZE";
+static const std::string HONEY_AVERAGE_VALUE = "HONEY_AVERAGE_VALUE";
+}
+}
+
 class preprocessor_settings_t: public settings_abs {
 
 public:
@@ -452,6 +453,89 @@ public:
  *
  **************************************/
 
+namespace Localizer {
+namespace Params {
+static const std::string BASE = "BEESBOOKPIPELINE.LOCALIZER.";
+static const std::string BASE_STANDALONE = "LOCALIZER.";
+static const std::string BINARY_THRESHOLD = "BINARY_THRESHOLD";
+static const std::string FIRST_DILATION_NUM_ITERATIONS =
+		"FIRST_DILATION_NUM_ITERATIONS";
+static const std::string FIRST_DILATION_SIZE = "FIRST_DILATION_SIZE";
+static const std::string EROSION_SIZE = "EROSION_SIZE";
+static const std::string SECOND_DILATION_SIZE = "SECOND_DILATION_SIZE";
+static const std::string MAX_TAG_SIZE = "MAX_TAG_SIZE";
+static const std::string MIN_BOUNDING_BOX_SIZE = "MIN_BOUNDING_BOX_SIZE";
+}
+
+namespace Defaults {
+static const int BINARY_THRESHOLD = 29;
+static const int FIRST_DILATION_NUM_ITERATIONS = 4;
+static const int FIRST_DILATION_SIZE = 2;
+static const int EROSION_SIZE = 25;
+static const int SECOND_DILATION_SIZE = 2;
+static const int MAX_TAG_SIZE = 250;
+static const int MIN_BOUNDING_BOX_SIZE = 100;
+}
+}
+
+class localizer_settings_t: public settings_abs {
+
+public:
+	int get_binary_threshold() {
+		return this->_getValue<int>(Localizer::Params::BINARY_THRESHOLD);
+	}
+
+	int get_first_dilation_num_iterations() {
+		return this->_getValue<int>(
+				Localizer::Params::FIRST_DILATION_NUM_ITERATIONS);
+	}
+
+	int get_first_dilation_size() {
+		return this->_getValue<int>(Localizer::Params::FIRST_DILATION_SIZE);
+	}
+
+	int get_erosion_size() {
+		return this->_getValue<int>(Localizer::Params::EROSION_SIZE);
+	}
+
+	int get_second_dilation_size() {
+		return this->_getValue<int>(Localizer::Params::SECOND_DILATION_SIZE);
+	}
+
+	int get_max_tag_size() {
+		return this->_getValue<int>(Localizer::Params::MAX_TAG_SIZE);
+	}
+	int get_min_bounding_box_size() {
+		return this->_getValue<int>(Localizer::Params::MIN_BOUNDING_BOX_SIZE);
+	}
+
+	localizer_settings_t() {
+
+		_base = Localizer::Params::BASE_STANDALONE;
+
+		_addEntry(
+				setting_entry(Localizer::Params::BINARY_THRESHOLD,
+						Localizer::Defaults::BINARY_THRESHOLD));
+		_addEntry(
+				setting_entry(Localizer::Params::FIRST_DILATION_NUM_ITERATIONS,
+						Localizer::Defaults::FIRST_DILATION_NUM_ITERATIONS));
+		_addEntry(
+				setting_entry(Localizer::Params::FIRST_DILATION_SIZE,
+						Localizer::Defaults::FIRST_DILATION_SIZE));
+		_addEntry(
+				setting_entry(Localizer::Params::EROSION_SIZE,
+						Localizer::Defaults::EROSION_SIZE));
+		_addEntry(
+				setting_entry(Localizer::Params::SECOND_DILATION_SIZE,
+						Localizer::Defaults::SECOND_DILATION_SIZE));
+		_addEntry(
+				setting_entry(Localizer::Params::MAX_TAG_SIZE,
+						Localizer::Defaults::MAX_TAG_SIZE));
+		_addEntry(
+				setting_entry(Localizer::Params::MIN_BOUNDING_BOX_SIZE,
+						Localizer::Defaults::MIN_BOUNDING_BOX_SIZE));
+	}
+};
 }
 }
 

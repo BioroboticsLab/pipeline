@@ -47,7 +47,6 @@ std::vector<Tag> Decoder::process(std::vector<Tag> &&taglist)
 std::vector<decoding_t> Decoder::getDecodings(const Tag &tag, TagCandidate &candidate) const
 {
 	// region of interest of tag candidate
-	const cv::Size2i roiSize = tag.getBox().size();
 	cv::Mat roi;
 	// TODO: shouldn't be BGR in the first place
 	cv::cvtColor(tag.getOrigSubImage(), roi, CV_BGR2GRAY);
@@ -55,52 +54,39 @@ std::vector<decoding_t> Decoder::getDecodings(const Tag &tag, TagCandidate &cand
 	std::vector<decoding_t> decodings;
 	for (PipelineGrid& grid : candidate.getGrids()) {
 		decoding_t decoding;
-		// TODO: fix PipelineGrid bugs
-		try {
-		// TODO: remove workaround
-		cv::Point gridCenter = grid.getCenter();
-		grid.setCenter(gridCenter - tag.getBox().tl());
-		const std::vector<cv::Mat>& gridCellCoordinates = grid.getGridCellCoordinates(roiSize);
 
-		const double meanBlack = getMeanIntensity(roi, grid.getInnerBlackRingCoordinates(roiSize));
-		const double meanWhite = getMeanIntensity(roi, grid.getInnerWhiteRingCoordinates(roiSize));
+		const double meanBlack = getMeanIntensity(roi, grid.getInnerBlackRingCoordinates(), tag.getBox().tl());
+		const double meanWhite = getMeanIntensity(roi, grid.getInnerWhiteRingCoordinates(), tag.getBox().tl());
 
 		for (size_t idx = 0; idx < Grid::NUM_MIDDLE_CELLS; ++ idx) {
-			const double distanceBlack = getMeanDistance(roi, gridCellCoordinates[idx], meanBlack);
-			const double distanceWhite = getMeanDistance(roi, gridCellCoordinates[idx], meanWhite);
+			const PipelineGrid::coordinates_t& coordinates = grid.getGridCellCoordinates(idx);
+			const double distanceBlack = getMeanDistance(roi, coordinates, tag.getBox().tl(), meanBlack);
+			const double distanceWhite = getMeanDistance(roi, coordinates, tag.getBox().tl(), meanWhite);
 
 			if (distanceBlack < distanceWhite) {
 				decoding.set(idx, true);
 			}
-		}
-		// TODO: remove workaround
-		grid.setCenter(gridCenter);
-		} catch (std::exception& ex) {
-			std::cout << ex.what() << std::endl;
-			continue;
 		}
 		decodings.push_back(decoding);
 	}
 	return decodings;
 }
 
-double Decoder::getMeanIntensity(const cv::Mat &image, const cv::Mat &coords) const
+double Decoder::getMeanIntensity(const cv::Mat &image, const PipelineGrid::coordinates_t &coords, const cv::Point& offset) const
 {
 	size_t sum = 0;
-    for (size_t idx = 0; idx < coords.total(); ++idx) {
-        const cv::Point2i loc = coords.at<cv::Point2i>(idx);
-		sum += image.at<uint8_t>(loc);
+	for (cv::Point const& loc : coords.areaCoordinates) {
+		sum += image.at<uint8_t>(loc - offset);
     }
-	return static_cast<double>(sum) / static_cast<double>(coords.total());
+    return static_cast<double>(sum) / static_cast<double>(coords.areaCoordinates.size());
 }
 
-double Decoder::getMeanDistance(const cv::Mat &image, const cv::Mat &coords, const double mean) const
+double Decoder::getMeanDistance(const cv::Mat &image, const PipelineGrid::coordinates_t &coords, const cv::Point& offset, const double mean) const
 {
 	double sum = 0;
-    for (size_t idx = 0; idx < coords.total(); ++idx) {
-        const cv::Point2i loc = coords.at<cv::Point2i>(idx);
-		sum += std::abs(image.at<uint8_t>(loc) - mean);
+	for (cv::Point const& loc : coords.areaCoordinates) {
+		sum += std::abs(image.at<uint8_t>(loc - offset) - mean);
     }
-	return sum / static_cast<double>(coords.total());
+    return sum / static_cast<double>(coords.areaCoordinates.size());
 }
 }
