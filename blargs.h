@@ -43,10 +43,10 @@ template<typename F>
 inline F hline(cv::Size size, int x1, int x2, int y, F f);
 
 template<typename F>
-F line(cv::Mat& img, cv::Point pt1, cv::Point pt2, F f, int connectivity = 8);
+F line(cv::Size size, cv::Point pt1, cv::Point pt2, F f, int connectivity = 8);
 
 template<typename F>
-F convex_poly(cv::Mat& img, const cv::Point* v, int npts, F f, int line_type = 8);
+F convex_poly(cv::Size size, const cv::Point* v, int npts, F f, int line_type = 8);
 
 
 
@@ -57,7 +57,7 @@ inline void draw_hline(cv::Mat &img, int x1, int x2, int y, const pixel_t &color
 
 template<typename pixel_t>
 void draw_line(cv::Mat& img, cv::Point pt1, cv::Point pt2, const pixel_t &color, int connectivity = 8) {
-	heyho::line(img, pt1, pt2, pixel_setter<pixel_t>{img, color}, connectivity);
+	heyho::line(img.size(), pt1, pt2, pixel_setter<pixel_t>{img, color}, connectivity);
 }
 
 

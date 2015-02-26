@@ -44,9 +44,18 @@ inline F hline(cv::Size size, int x1, int x2, int y, F f)
 
 
 template<typename F>
-inline F line(cv::Mat& img, cv::Point pt1, cv::Point pt2, F f, int connectivity)
+inline F line(cv::Size size, cv::Point pt1, cv::Point pt2, F f, int connectivity)
 {
-	cv::LineIterator iterator(img, pt1, pt2, connectivity, true);
+	/*
+	 *  The cv::lineIterator requires a cv::Mat to get the image
+	 * dimensions (i.e. valid coordinates) and does all calculations
+	 * on the matrix' data pointer, step size etc.
+	 * Thus this dummy matrix is used.
+	 * Technically this is undefined behavior but it's probably ok, since
+	 * the (invalid) pointers are never dereferenced.
+	 */
+	const cv::Mat dummy_img(size, CV_8UC1, nullptr);
+	cv::LineIterator iterator(dummy_img, pt1, pt2, connectivity, true);
 	const int count = iterator.count;
 	for (int i = 0; i < count; ++i, ++iterator ) {
 		f(iterator.pos());
@@ -56,7 +65,7 @@ inline F line(cv::Mat& img, cv::Point pt1, cv::Point pt2, F f, int connectivity)
 
 
 template<typename F>
-F convex_poly(cv::Mat& img, const cv::Point* pts, int npts, F f, int line_type)
+F convex_poly(cv::Size size, const cv::Point* pts, int npts, F f, int line_type)
 {
 
 	if (line_type != 4 && line_type != 8) {
@@ -68,8 +77,6 @@ F convex_poly(cv::Mat& img, const cv::Point* pts, int npts, F f, int line_type)
 		int x, dx, ye;
 	}
 	edge[2];
-
-	const cv::Size size = img.size();
 
 	// draw outline, calc min/max x/y coordinates
 	int imin = 0;
@@ -92,7 +99,7 @@ F convex_poly(cv::Mat& img, const cv::Point* pts, int npts, F f, int line_type)
 			xmax = std::max( xmax, p.x );
 			xmin = std::min( xmin, p.x );
 
-			f = heyho::line(img, p0, p, std::move(f), line_type);
+			f = heyho::line(size, p0, p, std::move(f), line_type);
 
 			p0 = p;
 		}
@@ -234,7 +241,7 @@ void fill_convex_poly(cv::Mat& img, const cv::Point* v, int npts, const pixel_t 
 		throw std::invalid_argument("invalid image pixel size");
 	}
 
-	heyho::convex_poly(img, v, npts, pixel_setter<pixel_t>{img, color}, line_type);
+	heyho::convex_poly(img.size(), v, npts, pixel_setter<pixel_t>{img, color}, line_type);
 
 	/**
 	 * size_t Mat::elemSize()  const --> num_chans * sizeof(T)
