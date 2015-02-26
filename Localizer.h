@@ -11,6 +11,8 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/opencv.hpp>
 
+#include "datastructure/settings.h"
+
 #ifdef PipelineStandalone
 #include "../config.h"
 #include <boost/property_tree/ini_parser.hpp>
@@ -22,28 +24,6 @@ namespace pipeline {
 class BoundingBox;
 class Tag;
 
-typedef struct {
-	// Threshold for binarisation
-	int binary_threshold = 29;
-
-	// number of first dilation iterations
-	int dilation_1_iteration_number = 4;
-
-	// size of dilation-radius
-	int dilation_1_size = 2;
-
-	// erosion-size
-	int erosion_size = 25;
-
-	// second dilation-size
-	int dilation_2_size = 2;
-
-	// maximal size of a possible tag
-	unsigned int max_tag_size =  250;
-
-	// minimal size of bounding box
-	int min_tag_size =  100;
-} localizer_settings_t;
 
 class Localizer {
 private:
@@ -51,7 +31,7 @@ private:
 	cv::Mat canny_map_;
 	cv::Mat _threshold_image;
 
-	localizer_settings_t _settings;
+	settings::localizer_settings_t _settings;
 
 	cv::Mat computeBlobs(const cv::Mat &sobel) ;
 	cv::Mat highlightTags(const cv::Mat &grayImage) ;
@@ -68,7 +48,7 @@ public:
 #endif
 	virtual ~Localizer();
 
-	void loadSettings(localizer_settings_t&& settings);
+	void loadSettings(settings::localizer_settings_t&& settings);
 
 	const cv::Mat& getBlob() const;
 	void setBlob(const cv::Mat& blob);

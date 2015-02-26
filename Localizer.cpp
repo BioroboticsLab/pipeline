@@ -119,7 +119,7 @@ cv::Mat Localizer::highlightTags(const cv::Mat &grayImage)  {
 	        cv::Mat block = image.rowRange(100*i, 100*(i+1)).colRange(100*j, 100*(j+1));
 	        cv::Scalar mean_sobel = mean(block);
 	        double average_value = mean_sobel.val[0];
-	        cv::threshold(block, block, average_value+ this->_settings.binary_threshold, 255, cv::THRESH_BINARY);
+	        cv::threshold(block, block, average_value+ this->_settings.get_binary_threshold(), 255, cv::THRESH_BINARY);
 	    }
 	}
 
@@ -140,12 +140,12 @@ cv::Mat Localizer::highlightTags(const cv::Mat &grayImage)  {
 
     //cv::MORPH_OPEN
     cv::Mat dilatedImage = cv::getStructuringElement(cv::MORPH_ELLIPSE,
-        cv::Size(2 * this->_settings.dilation_1_size + 1,
-        2 * this->_settings.dilation_1_size + 1),
-        cv::Point(this->_settings.dilation_1_size,
-        this->_settings.dilation_1_size));
+        cv::Size(2 * this->_settings.get_first_dilation_size() + 1,
+        2 * this->_settings.get_first_dilation_size() + 1),
+        cv::Point(this->_settings.get_first_dilation_size(),
+        this->_settings.get_first_dilation_size()));
     cv::dilate(imageCopy, imageCopy, dilatedImage, cv::Point(-1, -1),
-	  this->_settings.dilation_1_iteration_number);
+	  this->_settings.get_first_dilation_num_iterations());
 
 #ifdef PipelineStandalone
     if (config::DEBUG_MODE_LOCALIZER) {
@@ -158,10 +158,10 @@ cv::Mat Localizer::highlightTags(const cv::Mat &grayImage)  {
 
     //erosion
     cv::Mat erodedImage = cv::getStructuringElement(cv::MORPH_ELLIPSE,
-        cv::Size(2 * this->_settings.erosion_size + 1,
-        2 * this->_settings.erosion_size + 1),
-        cv::Point(this->_settings.erosion_size,
-        this->_settings.erosion_size));
+        cv::Size(2 * this->_settings.get_erosion_size() + 1,
+        2 * this->_settings.get_erosion_size() + 1),
+        cv::Point(this->_settings.get_erosion_size(),
+        this->_settings.get_erosion_size()));
     cv::erode(imageCopy, imageCopy, erodedImage);
 
 #ifdef PipelineStandalone
@@ -174,10 +174,10 @@ cv::Mat Localizer::highlightTags(const cv::Mat &grayImage)  {
 #endif
 
     dilatedImage = cv::getStructuringElement(cv::MORPH_ELLIPSE,
-        cv::Size(2 * this->_settings.dilation_2_size + 1,
-        2 * this->_settings.dilation_2_size + 1),
-        cv::Point(this->_settings.dilation_2_size,
-        this->_settings.dilation_2_size));
+        cv::Size(2 * this->_settings.get_second_dilation_size() + 1,
+        2 * this->_settings.get_second_dilation_size() + 1),
+        cv::Point(this->_settings.get_second_dilation_size(),
+        this->_settings.get_second_dilation_size()));
     cv::dilate(imageCopy, imageCopy, dilatedImage);
 
 #ifdef PipelineStandalone
@@ -210,17 +210,17 @@ std::vector<Tag> Localizer::locateTagCandidates(cv::Mat blobImage_old,
     //extract contour bounding boxes for tag candidates
     for (const auto &contour : contours) {
         //filter contours which are too big
-        if (contour.size() < this->_settings.max_tag_size) {
+        if (contour.size() < this->_settings.get_max_tag_size()) {
             cv::Rect rec = cv::boundingRect(contour) * 2;
 
-            if (rec.width < this->_settings.min_tag_size) {
-                const int offset = abs(rec.width - this->_settings.min_tag_size);
+            if (rec.width < this->_settings.get_min_bounding_box_size()) {
+                const int offset = abs(rec.width - this->_settings.get_min_bounding_box_size());
                 rec.x     = rec.x - offset / 2;
                 rec.width = rec.width + offset;
             }
 
-            if (rec.height < this->_settings.min_tag_size) {
-                const int offset = abs(rec.height - this->_settings.min_tag_size);
+            if (rec.height < this->_settings.get_min_bounding_box_size()) {
+                const int offset = abs(rec.height - this->_settings.get_min_bounding_box_size());
                 rec.y      = rec.y - offset / 2;
                 rec.height = rec.height + offset;
             }
@@ -243,15 +243,14 @@ std::vector<Tag> Localizer::locateTagCandidates(cv::Mat blobImage_old,
             }
 
             // if rectangle-size is big/small enough add it to Bounding Boxes
-            if ((rec.height * rec.width) > 800
-              && (rec.height * rec.width) < 20000) {
+
                 Tag tag(rec, taglist.size() + 1);
                 cv::Mat sub_image_orig(grayImage, rec);
                 cv::Mat subImageOrig_cp = sub_image_orig.clone();
                 tag.setOrigSubImage(subImageOrig_cp);
 
                 taglist.push_back(tag);
-            }
+
         }
     }
 
@@ -308,7 +307,7 @@ void Localizer::loadConfigVars(const std::string &filename) {
 }
 #endif
 
-void Localizer::loadSettings(localizer_settings_t &&settings)
+void Localizer::loadSettings(settings::localizer_settings_t &&settings)
 {
 	_settings = std::move(settings);
 }

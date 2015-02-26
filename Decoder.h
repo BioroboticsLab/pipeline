@@ -23,7 +23,7 @@ private:
 
 	std::vector<decoding_t> getDecodings(pipeline::Tag const& tag, TagCandidate &candidate) const;
 
-	double getMeanIntensity(cv::Mat const& image, cv::Mat const& coords) const;
-	double getMeanDistance(cv::Mat const& image, cv::Mat const& coords, const double mean) const;
+	double getMeanIntensity(cv::Mat const& image, const PipelineGrid::coordinates_t& coords, const cv::Point& offset) const;
+	double getMeanDistance(cv::Mat const& image, const PipelineGrid::coordinates_t& coords, const cv::Point& offset, const double mean) const;
 };
 }
