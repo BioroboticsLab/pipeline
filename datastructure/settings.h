@@ -547,15 +547,15 @@ namespace Recognizer {
 namespace Params {
 static const std::string BASE = "BEESBOOKPIPELINE.RECOGNIZER.";
 static const std::string BASE_STANDALONE = "RECOGNIZER.";
-static const std::string CANNY_THRESHOLD_LOW = BASE + "CANNY_THRESHOLD_LOW";
-static const std::string CANNY_THRESHOLD_HIGH = BASE + "CANNY_THRESHOLD_HIGH";
-static const std::string MIN_MAJOR_AXIS = BASE + "MIN_MAJOR_AXIS";
-static const std::string MAX_MAJOR_AXIS = BASE + "MAX_MAJOR_AXIS";
-static const std::string MIN_MINOR_AXIS = BASE + "MIN_MINOR_AXIS";
-static const std::string MAX_MINOR_AXIS = BASE + "MAX_MINOR_AXIS";
-static const std::string THRESHOLD_EDGE_PIXELS = BASE + "THRESHOLD_EDGE_PIXELS";
-static const std::string THRESHOLD_VOTE = BASE + "THRESHOLD_VOTE";
-static const std::string THRESHOLD_BEST_VOTE = BASE + "THRESHOLD_BEST_VOTE";
+static const std::string CANNY_THRESHOLD_LOW =  "CANNY_THRESHOLD_LOW";
+static const std::string CANNY_THRESHOLD_HIGH =  "CANNY_THRESHOLD_HIGH";
+static const std::string MIN_MAJOR_AXIS =   "MIN_MAJOR_AXIS";
+static const std::string MAX_MAJOR_AXIS =   "MAX_MAJOR_AXIS";
+static const std::string MIN_MINOR_AXIS =   "MIN_MINOR_AXIS";
+static const std::string MAX_MINOR_AXIS =   "MAX_MINOR_AXIS";
+static const std::string THRESHOLD_EDGE_PIXELS =   "THRESHOLD_EDGE_PIXELS";
+static const std::string THRESHOLD_VOTE =   "THRESHOLD_VOTE";
+static const std::string THRESHOLD_BEST_VOTE =  "THRESHOLD_BEST_VOTE";
 }
 namespace Defaults {
 static const int CANNY_THRESHOLD_LOW = 70;
