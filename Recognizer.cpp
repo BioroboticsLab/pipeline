@@ -35,7 +35,7 @@ Recognizer::Recognizer() {
 #endif
 }
 
-void Recognizer::loadSettings(recognizer_settings_t &&settings)
+void Recognizer::loadSettings(settings::recognizer_settings_t &&settings)
 {
 	_settings = std::move(settings);
 }
@@ -50,10 +50,10 @@ Recognizer::Recognizer(std::string configFile) {
  * @param tag for which ellipses should be detected
  */
 void Recognizer::detectXieEllipse(Tag &tag) {
-	const double recognizer_max_minor = _settings.max_minor_axis;
-	const double recognizer_max_major = _settings.max_major_axis;
-	const double recognizer_min_major = _settings.min_major_axis;
-	const double recognizer_min_minor = _settings.min_minor_axis;
+	const double recognizer_max_minor = _settings.get_max_minor_axis();
+	const double recognizer_max_major = _settings.get_max_major_axis();
+	const double recognizer_min_major = _settings.get_min_major_axis();
+	const double recognizer_min_minor = _settings.get_min_minor_axis();
 
     const cv::Mat& subImage  = tag.getOrigSubImage();
     const cv::Mat cannyImage = computeCannyEdgeMap(subImage);
@@ -75,7 +75,7 @@ void Recognizer::detectXieEllipse(Tag &tag) {
     }
 
     // (2) initiate the accumulator array
-	std::vector<int> accu((this->_settings.max_minor_axis) / 2 + 1);
+	std::vector<int> accu((this->_settings.get_max_minor_axis()) / 2 + 1);
 
     // (3) loop through each edge pixel in ep
     const size_t epsize = ep.size();
@@ -128,7 +128,7 @@ void Recognizer::detectXieEllipse(Tag &tag) {
                     const auto max_ind = std::distance(accu.begin(), max_it);
                     int vote_minor     = *max_it;
 
-					if (vote_minor >= _settings.threshold_edge_pixels) {
+					if (vote_minor >= _settings.get_threshold_edge_pixels()) {
                         // (11) save ellipse parameters
                         const cv::Point2i cen(cvRound(centerx), cvRound(centery));
                         const cv::Size axis(cvRound(a), max_ind);
@@ -142,7 +142,7 @@ void Recognizer::detectXieEllipse(Tag &tag) {
 
                         if (candidates.size() == 0) {
                             candidates.emplace_back(vote_minor, cen, axis, angle, tag.getBox().size());
-							if (vote_minor >= _settings.threshold_best_vote) {
+							if (vote_minor >= _settings.get_threshold_best_vote()) {
                                 goto foundEllipse;
                             }
                         }
@@ -166,7 +166,7 @@ void Recognizer::detectXieEllipse(Tag &tag) {
                             if (idx == candidates.size() - 1) {
                                 candidates.emplace_back(vote_minor, cen, axis, angle, tag.getBox().size());
 
-								if (vote_minor >= _settings.threshold_best_vote) {
+								if (vote_minor >= _settings.get_threshold_best_vote()) {
                                     goto foundEllipse;
                                 }
                             }
@@ -209,7 +209,7 @@ foundEllipse:
     candidates.erase(candidates.begin() + num, candidates.end());
     // remove all candidates with vote < RECOGNIZER_THRESHOLD_VOTE
     candidates.erase(std::remove_if(candidates.begin(), candidates.end(),
-	  [&](Ellipse& ell) { return ell.getVote() < _settings.threshold_vote; }),
+	  [&](Ellipse& ell) { return ell.getVote() < _settings.get_threshold_vote(); }),
       candidates.end());
     // add remaining candidates to tag
     for (Ellipse const& ell : candidates) {
@@ -248,15 +248,16 @@ void Recognizer::visualizeEllipse(Tag const& tag, Ellipse const& ell, std::strin
     cv::waitKey();
 }
 
-cv::Mat Recognizer::computeCannyEdgeMap(cv::Mat const& grayImage) const {
+cv::Mat Recognizer::computeCannyEdgeMap(cv::Mat const& grayImage) {
     cv::Mat localGrayImage = grayImage.clone();
 
     cv::GaussianBlur(localGrayImage, localGrayImage, cv::Size(3, 3), 0, 0,
       cv::BORDER_DEFAULT);
 
+
     cv::Mat cannyEdgeMap;
-	Canny(localGrayImage, cannyEdgeMap, this->_settings.canny_threshold_low,
-	  this->_settings.canny_threshold_high);
+	Canny(localGrayImage, cannyEdgeMap, static_cast<double>(this->_settings.get_canny_threshold_low()),
+			static_cast<double>(this->_settings.get_canny_threshold_high()));
 #ifdef PipelineStandalone
     if (config::DEBUG_MODE_RECOGNIZER_IMAGE) {
 		cv::namedWindow("Canny", cv::WINDOW_AUTOSIZE);

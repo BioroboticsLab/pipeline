@@ -12,6 +12,7 @@
 
 #include "datastructure/Tag.h"
 #include "datastructure/Ellipse.h"
+#include "datastructure/settings.h"
 
 #ifdef PipelineStandalone
 #include "../config.h"
@@ -22,38 +23,10 @@
 
 namespace pipeline {
 
-typedef struct {
-	// Lower Threshold for Canny
-	int canny_threshold_low = 70;
-
-	// Higher Threshold for Canny
-	int canny_threshold_high = 90;
-
-	// major axis' minimum length
-	int min_major_axis = 42;
-
-	// major axis' maximum length
-	int max_major_axis = 54;
-
-	// minor axis' minimum length
-	int min_minor_axis = 30;
-
-	// minor axis' maximum length
-	int max_minor_axis = 54;
-
-	// threshold minimum number of edge pixels required to support an ellipse
-	int threshold_edge_pixels = 25;
-
-	// threshold vote
-	int threshold_vote = 1800;
-
-	// threshold best vote: if this vote is reached, the algorithm stops searching for other ellipses
-	int threshold_best_vote = 3000;
-} recognizer_settings_t;
 
 class Recognizer {
 private:
-	recognizer_settings_t _settings;
+	settings::recognizer_settings_t _settings;
 
     void detectXieEllipse(Tag &tag);
 
@@ -69,11 +42,11 @@ public:
 #endif
     virtual ~Recognizer() {}
 
-	void loadSettings(recognizer_settings_t &&settings);
+	void loadSettings(settings::recognizer_settings_t &&settings);
 
     std::vector<Tag> process(std::vector<Tag> &&taglist);
     void visualizeEllipse(Tag const& tag , Ellipse const& ell, std::string const& title);
 
-	cv::Mat computeCannyEdgeMap(const cv::Mat &grayImage) const;
+	cv::Mat computeCannyEdgeMap(const cv::Mat &grayImage);
 };
 }

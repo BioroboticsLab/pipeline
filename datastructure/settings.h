@@ -469,12 +469,12 @@ static const std::string MIN_BOUNDING_BOX_SIZE = "MIN_BOUNDING_BOX_SIZE";
 
 namespace Defaults {
 static const int BINARY_THRESHOLD = 29;
-static const int FIRST_DILATION_NUM_ITERATIONS = 4;
-static const int FIRST_DILATION_SIZE = 2;
-static const int EROSION_SIZE = 25;
-static const int SECOND_DILATION_SIZE = 2;
-static const int MAX_TAG_SIZE = 250;
-static const int MIN_BOUNDING_BOX_SIZE = 100;
+static const unsigned int FIRST_DILATION_NUM_ITERATIONS = 4;
+static const unsigned int FIRST_DILATION_SIZE = 2;
+static const unsigned int EROSION_SIZE = 25;
+static const unsigned int SECOND_DILATION_SIZE = 2;
+static const unsigned int MAX_TAG_SIZE = 250;
+static const  int MIN_BOUNDING_BOX_SIZE = 100;
 }
 }
 
@@ -485,27 +485,27 @@ public:
 		return this->_getValue<int>(Localizer::Params::BINARY_THRESHOLD);
 	}
 
-	int get_first_dilation_num_iterations() {
-		return this->_getValue<int>(
+	unsigned int get_first_dilation_num_iterations() {
+		return this->_getValue<unsigned int>(
 				Localizer::Params::FIRST_DILATION_NUM_ITERATIONS);
 	}
 
-	int get_first_dilation_size() {
-		return this->_getValue<int>(Localizer::Params::FIRST_DILATION_SIZE);
+	unsigned int get_first_dilation_size() {
+		return this->_getValue<unsigned int>(Localizer::Params::FIRST_DILATION_SIZE);
 	}
 
-	int get_erosion_size() {
-		return this->_getValue<int>(Localizer::Params::EROSION_SIZE);
+	unsigned int get_erosion_size() {
+		return this->_getValue<unsigned int>(Localizer::Params::EROSION_SIZE);
 	}
 
-	int get_second_dilation_size() {
-		return this->_getValue<int>(Localizer::Params::SECOND_DILATION_SIZE);
+	unsigned int get_second_dilation_size() {
+		return this->_getValue<unsigned int>(Localizer::Params::SECOND_DILATION_SIZE);
 	}
 
-	int get_max_tag_size() {
-		return this->_getValue<int>(Localizer::Params::MAX_TAG_SIZE);
+	unsigned int get_max_tag_size() {
+		return this->_getValue<unsigned int>(Localizer::Params::MAX_TAG_SIZE);
 	}
-	int get_min_bounding_box_size() {
+	 int get_min_bounding_box_size() {
 		return this->_getValue<int>(Localizer::Params::MIN_BOUNDING_BOX_SIZE);
 	}
 
@@ -534,6 +534,109 @@ public:
 		_addEntry(
 				setting_entry(Localizer::Params::MIN_BOUNDING_BOX_SIZE,
 						Localizer::Defaults::MIN_BOUNDING_BOX_SIZE));
+	}
+};
+
+/**************************************
+ *
+ *         Recognizer Settings
+ *
+ **************************************/
+
+namespace Recognizer {
+namespace Params {
+static const std::string BASE = "BEESBOOKPIPELINE.RECOGNIZER.";
+static const std::string BASE_STANDALONE = "RECOGNIZER.";
+static const std::string CANNY_THRESHOLD_LOW = BASE + "CANNY_THRESHOLD_LOW";
+static const std::string CANNY_THRESHOLD_HIGH = BASE + "CANNY_THRESHOLD_HIGH";
+static const std::string MIN_MAJOR_AXIS = BASE + "MIN_MAJOR_AXIS";
+static const std::string MAX_MAJOR_AXIS = BASE + "MAX_MAJOR_AXIS";
+static const std::string MIN_MINOR_AXIS = BASE + "MIN_MINOR_AXIS";
+static const std::string MAX_MINOR_AXIS = BASE + "MAX_MINOR_AXIS";
+static const std::string THRESHOLD_EDGE_PIXELS = BASE + "THRESHOLD_EDGE_PIXELS";
+static const std::string THRESHOLD_VOTE = BASE + "THRESHOLD_VOTE";
+static const std::string THRESHOLD_BEST_VOTE = BASE + "THRESHOLD_BEST_VOTE";
+}
+namespace Defaults {
+static const int CANNY_THRESHOLD_LOW = 70;
+static const int CANNY_THRESHOLD_HIGH = 90;
+static const int MIN_MAJOR_AXIS = 42;
+static const int MAX_MAJOR_AXIS = 54;
+static const int MIN_MINOR_AXIS = 30;
+static const int MAX_MINOR_AXIS = 54;
+static const int THRESHOLD_EDGE_PIXELS = 25;
+static const int THRESHOLD_VOTE = 1800;
+static const int THRESHOLD_BEST_VOTE = 3000;
+}
+}
+class recognizer_settings_t: public settings_abs {
+public:
+	int get_canny_threshold_low() {
+		return this->_getValue<int>(Recognizer::Params::CANNY_THRESHOLD_LOW);
+	}
+	int get_canny_threshold_high() {
+		return this->_getValue<int>(Recognizer::Params::CANNY_THRESHOLD_HIGH);
+	}
+	int get_min_major_axis() {
+		return this->_getValue<int>(Recognizer::Params::MIN_MAJOR_AXIS);
+	}
+	int get_max_major_axis() {
+		return this->_getValue<int>(Recognizer::Params::MAX_MAJOR_AXIS);
+	}
+	int get_min_minor_axis() {
+		return this->_getValue<int>(Recognizer::Params::MIN_MAJOR_AXIS);
+	}
+	int get_max_minor_axis() {
+		return this->_getValue<int>(Recognizer::Params::MAX_MAJOR_AXIS);
+	}
+	int get_threshold_edge_pixels() {
+		return this->_getValue<int>(Recognizer::Params::THRESHOLD_EDGE_PIXELS);
+	}
+	int get_threshold_vote() {
+		return this->_getValue<int>(Recognizer::Params::THRESHOLD_VOTE);
+	}
+	int get_threshold_best_vote() {
+		return this->_getValue<int>(Recognizer::Params::THRESHOLD_BEST_VOTE);
+	}
+
+	recognizer_settings_t() {
+
+		_base = Recognizer::Params::BASE_STANDALONE;
+
+		_addEntry(
+				setting_entry(Recognizer::Params::CANNY_THRESHOLD_LOW,
+						Recognizer::Defaults::CANNY_THRESHOLD_LOW));
+
+		_addEntry(
+				setting_entry(Recognizer::Params::CANNY_THRESHOLD_HIGH,
+						Recognizer::Defaults::CANNY_THRESHOLD_HIGH));
+
+		_addEntry(
+				setting_entry(Recognizer::Params::MIN_MAJOR_AXIS,
+						Recognizer::Defaults::MIN_MAJOR_AXIS));
+
+		_addEntry(
+				setting_entry(Recognizer::Params::MAX_MAJOR_AXIS,
+						Recognizer::Defaults::MAX_MAJOR_AXIS));
+
+		_addEntry(
+				setting_entry(Recognizer::Params::MIN_MINOR_AXIS,
+						Recognizer::Defaults::MIN_MINOR_AXIS));
+
+		_addEntry(
+				setting_entry(Recognizer::Params::MAX_MINOR_AXIS,
+						Recognizer::Defaults::MAX_MINOR_AXIS));
+
+		_addEntry(
+				setting_entry(Recognizer::Params::THRESHOLD_EDGE_PIXELS,
+						Recognizer::Defaults::THRESHOLD_EDGE_PIXELS));
+		_addEntry(
+				setting_entry(Recognizer::Params::THRESHOLD_VOTE,
+						Recognizer::Defaults::THRESHOLD_VOTE));
+		_addEntry(
+				setting_entry(Recognizer::Params::THRESHOLD_BEST_VOTE,
+						Recognizer::Defaults::THRESHOLD_BEST_VOTE));
+
 	}
 };
 }

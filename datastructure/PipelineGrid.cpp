@@ -198,7 +198,7 @@ PipelineGrid::coordinates_t PipelineGrid::calculatePolygonCoordinates(const size
 
     cv::Mat roi = _idImage(box);
     cv::fillConvexPoly(roi, shiftedPoints, idx, 8);
-    CvHelper::drawPolyline(roi, shiftedPoints, CONTOUR_OFFSET + idx, false, cv::Point(), 3);
+   // CvHelper::drawPolyline(roi, shiftedPoints, CONTOUR_OFFSET + idx, false, cv::Point(), 3);
 
 	const cv::Point offset = box.tl() + _boundingBox.tl() + _center;
 	const int nRows = roi.rows;
