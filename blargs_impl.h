@@ -33,8 +33,9 @@ inline F hline(cv::Size size, int x1, int x2, int y, F f)
 	if (y >= 0 && y < size.height) {
 		x1 = std::max(x1, 0);
 		x2 = std::min(x2, size.width - 1);
-		for(; x1 <= x2; ++x1) {
-			f(y, x1);
+		cv::Point p(x1, y);
+		for(; p.x <= x2; ++p.x) {
+			f(p);
 		}
 	}
 	return std::move(f);

@@ -16,6 +16,11 @@
 
 namespace heyho {
 
+
+template<typename pixel_t>
+inline pixel_t scalar2pixel(const cv::Scalar &color);
+
+
 template<typename pixel_t>
 class pixel_setter
 {
@@ -28,13 +33,12 @@ public:
 		: m_img(img)
 		, m_color(color)
 	{}
-
-	void operator()(int y, int x) {
-		m_img.get().at<pixel_t>(y, x) = m_color;
-	}
+	explicit pixel_setter(cv::Mat &img, const cv::Scalar &color)
+		: pixel_setter(img, scalar2pixel<pixel_t>(color))
+	{}
 
 	void operator()(cv::Point p) {
-		(*this)(p.y, p.x);
+		m_img.get().at<pixel_t>(p) = m_color;
 	}
 };
 
