@@ -110,7 +110,6 @@ F convex_poly(cv::Mat& img, const cv::Point* pts, int npts, F f, int line_type)
 	edge[1].di = npts - 1;
 
 	{
-		uchar* ptr = img.data + img.step * y;
 		int edges = npts;
 		int left  = 0;
 		int right = 1;
@@ -183,7 +182,6 @@ F convex_poly(cv::Mat& img, const cv::Point* pts, int npts, F f, int line_type)
 
 			edge[left].x = x1;
 			edge[right].x = x2;
-			ptr += img.step;
 		}
 		while( ++y <= ymax );
 	}
