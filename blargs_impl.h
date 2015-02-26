@@ -30,10 +30,14 @@ inline pixel_t scalar2pixel(const cv::Scalar &color) {
 
 
 template<typename F>
-inline F hline(cv::Mat&, int x1, int x2, int y, F f)
+inline F hline(cv::Size size, int x1, int x2, int y, F f)
 {
-	for(; x1 <= x2; ++x1) {
-		f(y, x1);
+	if (y >= 0 && y < size.height) {
+		x1 = std::max(x1, 0);
+		x2 = std::min(x2, size.width - 1);
+		for(; x1 <= x2; ++x1) {
+			f(y, x1);
+		}
 	}
 	return std::move(f);
 }
@@ -173,7 +177,7 @@ F convex_poly(cv::Mat& img, const cv::Point* pts, int npts, F f, int line_type)
 						xx1 = 0;
 					if( xx2 >= size.width )
 						xx2 = size.width - 1;
-					f = heyho::hline(img, xx1, xx2, y, std::move(f));
+					f = heyho::hline(size, xx1, xx2, y, std::move(f));
 				}
 			}
 

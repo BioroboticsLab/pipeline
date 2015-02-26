@@ -12,6 +12,7 @@
 #include <utility>            // std::move
 #include <functional>         // std::reverence_wrapper
 #include <exception>          // std::invalid_argument
+#include <algorithm>          // std::min, std::max
 
 namespace heyho {
 
@@ -39,7 +40,7 @@ public:
 
 
 template<typename F>
-inline F hline(cv::Mat&, int x1, int x2, int y, F f);
+inline F hline(cv::Size size, int x1, int x2, int y, F f);
 
 template<typename F>
 F line(cv::Mat& img, cv::Point pt1, cv::Point pt2, F f, int connectivity = 8);
@@ -51,7 +52,7 @@ F convex_poly(cv::Mat& img, const cv::Point* v, int npts, F f, int line_type = 8
 
 template<typename pixel_t>
 inline void draw_hline(cv::Mat &img, int x1, int x2, int y, const pixel_t &color) {
-	heyho::hline(img, x1, x2, y, pixel_setter<pixel_t>{img, color});
+	heyho::hline(img.size(), x1, x2, y, pixel_setter<pixel_t>{img, color});
 }
 
 template<typename pixel_t>
