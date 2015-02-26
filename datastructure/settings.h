@@ -502,11 +502,11 @@ public:
 		return this->_getValue<int>(Localizer::Params::SECOND_DILATION_SIZE);
 	}
 
-	int get_max_tag_size() {
-		return this->_getValue<int>(Localizer::Params::MAX_TAG_SIZE);
+    int get_max_tag_size() {
+        return this->_getValue<int>(Localizer::Params::MAX_TAG_SIZE);
 	}
-	int get_min_bounding_box_size() {
-		return this->_getValue<int>(Localizer::Params::MIN_BOUNDING_BOX_SIZE);
+    int get_min_bounding_box_size() {
+        return this->_getValue<int>(Localizer::Params::MIN_BOUNDING_BOX_SIZE);
 	}
 
 	localizer_settings_t() {

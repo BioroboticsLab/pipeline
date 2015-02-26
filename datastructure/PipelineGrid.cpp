@@ -227,7 +227,7 @@ PipelineGrid::coordinates_t PipelineGrid::calculatePolygonCoordinates(const size
 		}
 	}
 
-	return coordinates;
+    return coordinates;
 }
 
 void PipelineGrid::resetCache()

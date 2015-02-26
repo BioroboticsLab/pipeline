@@ -210,7 +210,7 @@ std::vector<Tag> Localizer::locateTagCandidates(cv::Mat blobImage_old,
     //extract contour bounding boxes for tag candidates
     for (const auto &contour : contours) {
         //filter contours which are too big
-        if (contour.size() < this->_settings.get_max_tag_size()) {
+        if (contour.size() < static_cast<unsigned int>( this->_settings.get_max_tag_size())) {
             cv::Rect rec = cv::boundingRect(contour) * 2;
 
             if (rec.width < this->_settings.get_min_bounding_box_size()) {
