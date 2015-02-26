@@ -227,7 +227,7 @@ PipelineGrid::coordinates_t PipelineGrid::calculatePolygonCoordinates(const size
 		}
 	}
 
-	return coordinates;
+    return coordinates;
 }
 
 void PipelineGrid::resetCache()
@@ -255,4 +255,22 @@ const std::vector<cv::Point2i> PipelineGrid::getOuterRingEdgeCoordinates()
 	}
 
 	return coords;
+}
+
+double PipelineGrid::compare(const PipelineGrid &to) const
+{
+    // distance of centers, inversed
+    // max score is 1, min 0
+    double d1 = 1 / ( 1 + norm( this->_center - to.getCenter() ));
+
+    // get rotation matrices of both grids
+    const auto R = CvHelper::rotationMatrix(this->_angle_z, this->_angle_y, this->_angle_x);
+    const auto R2 = CvHelper::rotationMatrix(to.getZRotation(), to.getYRotation(), to.getXRotation());
+
+    // multiply element-wise (dot-product) and sum up all elements
+    // max should be 3 when all three base vectors point in the same directions
+    // divide by 3, thus max is 1, min is -1
+    double d2 = cv::sum( R.mul(R2) )[0] / 3;
+
+    return d1 + d2;
 }

@@ -56,6 +56,8 @@ public:
 
 	cv::Rect getBoundingBox() const { return Grid::getBoundingBox(); }
 
+    double compare(const PipelineGrid &to) const;
+
 private:
     typedef boost::optional<coordinates_t> cached_coordinates_t;
     cv::Mat _idImage;
