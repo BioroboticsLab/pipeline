@@ -95,6 +95,8 @@ cv::Mat PipelineGrid::getProjectedImage(const cv::Size2i size) const
 
 void PipelineGrid::draw(cv::Mat& img, const double transparency)
 {
+	assert(img.channels() == 1);
+
 	for (const cv::Point& point : getOuterRingCoordinates().areaCoordinates) {
 		uint8_t* ptr = (img.ptr<uint8_t>(point.y));
 		ptr[point.x] = 200;

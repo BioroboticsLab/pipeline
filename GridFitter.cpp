@@ -209,10 +209,13 @@ std::vector<PipelineGrid> GridFitter::fitGrid(const Tag& tag, const TagCandidate
 	// initial search parameter space
 	candidate_set gridCandidates = getInitialCandidates(binarizedROI, edgeROI, ellipse_orig, roi);
 
-	GradientDescent optimizer(gridCandidates, roi, binarizedROI, edgeROI, _settings);
-	optimizer.optimize();
+	const candidate_set& bestGrids = gridCandidates;
 
-	const candidate_set& bestGrids = optimizer.getBestGrids();
+	// TODO: fix speed problems and enable gradient descent
+//	GradientDescent optimizer(gridCandidates, roi, binarizedROI, edgeROI, _settings);
+//	optimizer.optimize();
+
+//	const candidate_set& bestGrids = optimizer.getBestGrids();
 
 #ifdef DEBUG_GRIDFITTER
     std::cout << "min initial candidate error: " << gridCandidates.begin()->error << std::endl;
