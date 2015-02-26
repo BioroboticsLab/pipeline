@@ -75,18 +75,18 @@ std::vector<decoding_t> Decoder::getDecodings(const Tag &tag, TagCandidate &cand
 double Decoder::getMeanIntensity(const cv::Mat &image, const PipelineGrid::coordinates_t &coords, const cv::Point& offset) const
 {
 	size_t sum = 0;
-	for (cv::Point const& loc : coords) {
+	for (cv::Point const& loc : coords.areaCoordinates) {
 		sum += image.at<uint8_t>(loc - offset);
     }
-    return static_cast<double>(sum) / static_cast<double>(coords.size());
+    return static_cast<double>(sum) / static_cast<double>(coords.areaCoordinates.size());
 }
 
 double Decoder::getMeanDistance(const cv::Mat &image, const PipelineGrid::coordinates_t &coords, const cv::Point& offset, const double mean) const
 {
 	double sum = 0;
-	for (cv::Point const& loc : coords) {
+	for (cv::Point const& loc : coords.areaCoordinates) {
 		sum += std::abs(image.at<uint8_t>(loc - offset) - mean);
     }
-    return sum / static_cast<double>(coords.size());
+    return sum / static_cast<double>(coords.areaCoordinates.size());
 }
 }

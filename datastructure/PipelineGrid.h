@@ -9,7 +9,10 @@
 class PipelineGrid : private Grid {
 public:
 	//TODO: add comments
-	typedef std::vector<cv::Point2i> coordinates_t;
+	typedef struct {
+		std::vector<cv::Point2i> areaCoordinates;
+		std::vector<cv::Point2i> edgeCoordinates;
+	} coordinates_t;
 
 	typedef struct {
 		cv::Point2i center;
