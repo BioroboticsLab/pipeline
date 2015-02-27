@@ -65,10 +65,10 @@ public:
 
 	}
 	setting_entry(std::string name, size_t member) :
-				setting_name(name), field(member) {
-			type = setting_entry_type::SIZE_T;
+			setting_name(name), field(member) {
+		type = setting_entry_type::SIZE_T;
 
-		}
+	}
 
 };
 
@@ -196,13 +196,13 @@ public:
 				break;
 			}
 			case (setting_entry_type::SIZE_T): {
-							const boost::optional<size_t> param = ptree.get_optional<
-									size_t>(_base + entry.setting_name);
-							if (param)
-								entry.field = boost::get<size_t>(param);
+				const boost::optional<size_t> param =
+						ptree.get_optional<size_t>(_base + entry.setting_name);
+				if (param)
+					entry.field = boost::get<size_t>(param);
 
-							break;
-						}
+				break;
+			}
 			}
 		}
 	}
@@ -487,7 +487,7 @@ static const unsigned int FIRST_DILATION_SIZE = 2;
 static const unsigned int EROSION_SIZE = 25;
 static const unsigned int SECOND_DILATION_SIZE = 2;
 static const unsigned int MAX_TAG_SIZE = 250;
-static const  int MIN_BOUNDING_BOX_SIZE = 100;
+static const int MIN_BOUNDING_BOX_SIZE = 100;
 }
 }
 
@@ -504,7 +504,8 @@ public:
 	}
 
 	unsigned int get_first_dilation_size() {
-		return this->_getValue<unsigned int>(Localizer::Params::FIRST_DILATION_SIZE);
+		return this->_getValue<unsigned int>(
+				Localizer::Params::FIRST_DILATION_SIZE);
 	}
 
 	unsigned int get_erosion_size() {
@@ -512,13 +513,14 @@ public:
 	}
 
 	unsigned int get_second_dilation_size() {
-		return this->_getValue<unsigned int>(Localizer::Params::SECOND_DILATION_SIZE);
+		return this->_getValue<unsigned int>(
+				Localizer::Params::SECOND_DILATION_SIZE);
 	}
 
 	unsigned int get_max_tag_size() {
 		return this->_getValue<unsigned int>(Localizer::Params::MAX_TAG_SIZE);
 	}
-	 int get_min_bounding_box_size() {
+	int get_min_bounding_box_size() {
 		return this->_getValue<int>(Localizer::Params::MIN_BOUNDING_BOX_SIZE);
 	}
 
@@ -560,15 +562,15 @@ namespace Recognizer {
 namespace Params {
 static const std::string BASE = "BEESBOOKPIPELINE.RECOGNIZER.";
 static const std::string BASE_STANDALONE = "RECOGNIZER.";
-static const std::string CANNY_THRESHOLD_LOW =  "CANNY_THRESHOLD_LOW";
-static const std::string CANNY_THRESHOLD_HIGH =  "CANNY_THRESHOLD_HIGH";
-static const std::string MIN_MAJOR_AXIS =   "MIN_MAJOR_AXIS";
-static const std::string MAX_MAJOR_AXIS =   "MAX_MAJOR_AXIS";
-static const std::string MIN_MINOR_AXIS =   "MIN_MINOR_AXIS";
-static const std::string MAX_MINOR_AXIS =   "MAX_MINOR_AXIS";
-static const std::string THRESHOLD_EDGE_PIXELS =   "THRESHOLD_EDGE_PIXELS";
-static const std::string THRESHOLD_VOTE =   "THRESHOLD_VOTE";
-static const std::string THRESHOLD_BEST_VOTE =  "THRESHOLD_BEST_VOTE";
+static const std::string CANNY_THRESHOLD_LOW = "CANNY_THRESHOLD_LOW";
+static const std::string CANNY_THRESHOLD_HIGH = "CANNY_THRESHOLD_HIGH";
+static const std::string MIN_MAJOR_AXIS = "MIN_MAJOR_AXIS";
+static const std::string MAX_MAJOR_AXIS = "MAX_MAJOR_AXIS";
+static const std::string MIN_MINOR_AXIS = "MIN_MINOR_AXIS";
+static const std::string MAX_MINOR_AXIS = "MAX_MINOR_AXIS";
+static const std::string THRESHOLD_EDGE_PIXELS = "THRESHOLD_EDGE_PIXELS";
+static const std::string THRESHOLD_VOTE = "THRESHOLD_VOTE";
+static const std::string THRESHOLD_BEST_VOTE = "THRESHOLD_BEST_VOTE";
 }
 namespace Defaults {
 static const int CANNY_THRESHOLD_LOW = 70;
@@ -653,7 +655,6 @@ public:
 	}
 };
 
-
 /**************************************
  *
  *         Gridfitter Settings
@@ -664,49 +665,181 @@ namespace Gridfitter {
 namespace Params {
 static const std::string BASE = "BEESBOOKPIPELINE.GRIDFITTER.";
 static const std::string BASE_STANDALONE = "GRIDFITTER.";
-static const std::string ERR_FUNC_ALPHA_INNER =  "NUM_INITIAL";
-static const std::string ERR_FUNC_ALPHA_OUTER =  "NUM_INITIAL";
-static const std::string ERR_FUNC_ALPHA_VARIANCE =  "NUM_INITIAL";
-static const std::string ERR_FUNC_ALPHA_OUTER_EDGE =  "NUM_INITIAL";
-static const std::string ERR_FUNC_ALPHA_INNER_EDGE =  "NUM_INITIAL";
+/*
+ * error function weights
+ */
+static const std::string ERR_FUNC_ALPHA_INNER = "ERR_FUNC_ALPHA_INNER";
+static const std::string ERR_FUNC_ALPHA_OUTER = "ERR_FUNC_ALPHA_OUTER";
+static const std::string ERR_FUNC_ALPHA_VARIANCE = "ERR_FUNC_ALPHA_VARIANCE";
+static const std::string ERR_FUNC_ALPHA_OUTER_EDGE = "ERR_FUNC_ALPHA_OUTER_EDGE";
+static const std::string ERR_FUNC_ALPHA_INNER_EDGE = "ERR_FUNC_ALPHA_INNER_EDGE";
+/*
+ * size of neighbourhood area
+ */
+static const std::string ADAPTIVE_BLOCK_SIZE = "ADAPTIVE_BLOCK_SIZE";
+/*
+ * constant which is substracted from mean of neighborhood area
+ */
+static const std::string ADAPTIVE_C = "ADAPTIVE_C";
+/*
+ *gradient descent parameters
+ */
+static const std::string GRADIENT_NUM_INITIAL = "GRADIENT_NUM_INITIAL";
+static const std::string GRADIENT_NUM_RESULTS = "GRADIENT_NUM_RESULTS";
+static const std::string GRADIENT_ERROR_THRESHOLD = "GRADIENT_ERROR_THRESHOLD";
+static const std::string GRADIENT_MAX_ITERATIONS = "GRADIENT_MAX_ITERATIONS";
+
+static const std::string EPS_ANGLE = "EPS_ANGLE";
+static const std::string EPS_POS = "EPS_POS";
+static const std::string EPS_SCALE = "EPS_SCALE";
+static const std::string ALPHA = "ALPHA";
 }
 
-
-typedef struct {
-	// error function weights
-	double alpha_inner    = 500.0;
-	double alpha_outer    = 100.0;
-	double alpha_variance = 0.8;
-	double alpha_outer_edge = 5.0;
-	double alpha_inner_edge = 10.0;
-
-    // size of neighbourhood area
-    int adaptiveBlockSize = 23;
-    // constant which is substracted from mean of neighborhood area
-    double adaptiveC      = 3;
-
-	// gradient descent parameters
-	size_t numInitial = 6;
-	size_t numResults = 1;
-
-	double errorThreshold = 5.;
-	size_t maxIterations  = 100;
-
-	double eps_angle = 0.02;
-	int eps_pos      = 1;
-	double eps_scale = 0.1;
-	double alpha     = 0.01;
-} gridfitter_settings_t;
 namespace Defaults {
-static const size_t NUM_INITAL = 6;
+static const double ERR_FUNC_ALPHA_INNER = 500.0;
+static const double ERR_FUNC_ALPHA_OUTER = 100.0;
+static const double ERR_FUNC_ALPHA_VARIANCE = 0.8;
+static const double ERR_FUNC_ALPHA_OUTER_EDGE = 5.0;
+static const double ERR_FUNC_ALPHA_INNER_EDGE = 10.0;
+
+static const int ADAPTIVE_BLOCK_SIZE = 23;
+static const double ADAPTIVE_C = 3;
+
+static const size_t GRADIENT_NUM_INITIAL = 6;
+static const size_t GRADIENT_NUM_RESULTS = 1;
+
+static const double GRADIENT_ERROR_THRESHOLD = 5.0;
+static const size_t GRADIENT_MAX_ITERATIONS = 100;
+
+static const double EPS_ANGLE = 0.02;
+static const int EPS_POS = 1;
+static const double EPS_SCALE = 0.1;
+static const double ALPHA = 0.01;
 }
 }
 class gridfitter_settings_t: public settings_abs {
+
 public:
 
-	gridfitter_settings_t() {
+	/*
+	 * error function
+	 */
 
-			_base = Gridfitter::Params::BASE_STANDALONE;
+	double get_err_func_alpha_inner() {
+		return this->_getValue<double>(Gridfitter::Params::ERR_FUNC_ALPHA_INNER);
+	}
+	double get_err_func_alpha_outer() {
+		return this->_getValue<double>(Gridfitter::Params::ERR_FUNC_ALPHA_OUTER);
+	}
+	double get_err_func_alpha_variance() {
+		return this->_getValue<double>(
+				Gridfitter::Params::ERR_FUNC_ALPHA_VARIANCE);
+	}
+	double get_err_func_alpha_inner_edge() {
+		return this->_getValue<double>(
+				Gridfitter::Params::ERR_FUNC_ALPHA_INNER_EDGE);
+	}
+	double get_err_func_alpha_outer_edge() {
+		return this->_getValue<double>(
+				Gridfitter::Params::ERR_FUNC_ALPHA_OUTER_EDGE);
+	}
+	/*
+	 * adaptive
+	 */
+	int get_adaptive_block_size() {
+		return this->_getValue<int>(Gridfitter::Params::ADAPTIVE_BLOCK_SIZE);
+	}
+	double get_adaptive_c() {
+		return this->_getValue<double>(Gridfitter::Params::ADAPTIVE_C);
+	}
+	/*
+	 * gradient
+	 */
+	size_t get_gradient_num_initial() {
+		return this->_getValue<size_t>(Gridfitter::Params::GRADIENT_NUM_INITIAL);
+	}
+	size_t get_gradient_num_results() {
+		return this->_getValue<size_t>(Gridfitter::Params::GRADIENT_NUM_RESULTS);
+	}
+	double get_gradient_error_threshold() {
+		return this->_getValue<double>(
+				Gridfitter::Params::GRADIENT_ERROR_THRESHOLD);
+	}
+	size_t get_gradient_max_iterations() {
+		return this->_getValue<size_t>(
+				Gridfitter::Params::GRADIENT_MAX_ITERATIONS);
+	}
+
+	/*
+	 * eps
+	 */
+	double get_eps_angle() {
+		return this->_getValue<double>(Gridfitter::Params::EPS_ANGLE);
+	}
+	int get_eps_pos() {
+		return this->_getValue<int>(Gridfitter::Params::EPS_POS);
+	}
+	double get_eps_scale() {
+		return this->_getValue<double>(Gridfitter::Params::EPS_SCALE);
+	}
+	double get_alpha() {
+		return this->_getValue<double>(Gridfitter::Params::ALPHA);
+	}
+
+	gridfitter_settings_t() {
+		using namespace Gridfitter;
+		_base = Params::BASE_STANDALONE;
+
+		/*
+		 * error function weights
+		 */
+		_addEntry(
+				setting_entry(Params::ERR_FUNC_ALPHA_INNER,
+						Defaults::ERR_FUNC_ALPHA_INNER));
+		_addEntry(
+				setting_entry(Params::ERR_FUNC_ALPHA_INNER_EDGE,
+						Defaults::ERR_FUNC_ALPHA_INNER_EDGE));
+		_addEntry(
+				setting_entry(Params::ERR_FUNC_ALPHA_OUTER,
+						Defaults::ERR_FUNC_ALPHA_OUTER));
+		_addEntry(
+				setting_entry(Params::ERR_FUNC_ALPHA_OUTER_EDGE,
+						Defaults::ERR_FUNC_ALPHA_OUTER_EDGE));
+		_addEntry(
+				setting_entry(Params::ERR_FUNC_ALPHA_VARIANCE,
+						Defaults::ERR_FUNC_ALPHA_VARIANCE));
+		/*
+		 * adaptive
+		 */
+		_addEntry(
+				setting_entry(Params::ADAPTIVE_BLOCK_SIZE,
+						Defaults::ADAPTIVE_BLOCK_SIZE));
+		_addEntry(setting_entry(Params::ADAPTIVE_C, Defaults::ADAPTIVE_C));
+
+		/*
+		 * gradient
+		 */
+		_addEntry(
+				setting_entry(Params::GRADIENT_ERROR_THRESHOLD,
+						Defaults::GRADIENT_ERROR_THRESHOLD));
+		_addEntry(
+				setting_entry(Params::GRADIENT_MAX_ITERATIONS,
+						Defaults::GRADIENT_MAX_ITERATIONS));
+		_addEntry(
+				setting_entry(Params::GRADIENT_NUM_INITIAL,
+						Defaults::GRADIENT_NUM_INITIAL));
+		_addEntry(
+				setting_entry(Params::GRADIENT_NUM_RESULTS,
+						Defaults::GRADIENT_NUM_RESULTS));
+
+		/*
+		 * eps
+		 */
+
+		_addEntry(setting_entry(Params::EPS_ANGLE, Defaults::EPS_ANGLE));
+		_addEntry(setting_entry(Params::EPS_POS, Defaults::EPS_POS));
+		_addEntry(setting_entry(Params::EPS_SCALE, Defaults::EPS_SCALE));
+		_addEntry(setting_entry(Params::ALPHA, Defaults::ALPHA));
 
 	}
 
