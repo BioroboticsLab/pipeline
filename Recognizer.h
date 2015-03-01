@@ -30,6 +30,7 @@ private:
 
     void detectXieEllipse(Tag &tag);
 
+   cv::Mat _contrastStretching(const cv::Mat& image);
 #ifdef PipelineStandalone
     void loadConfigVars(std::string filename);
     void visualizeEllipse(Ellipse const& ell, std::string const& title);
@@ -46,7 +47,7 @@ public:
 
     std::vector<Tag> process(std::vector<Tag> &&taglist);
     void visualizeEllipse(Tag const& tag , Ellipse const& ell, std::string const& title);
-
+    int calcScore(Ellipse ell, cv::Mat canny);
 	cv::Mat computeCannyEdgeMap(const cv::Mat &grayImage);
 };
 }
