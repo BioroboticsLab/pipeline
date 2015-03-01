@@ -23,7 +23,7 @@ namespace pipeline {
 GridFitter::GridFitter()
 {}
 
-void GridFitter::loadSettings(gridfitter_settings_t &&settings)
+void GridFitter::loadSettings(settings::gridfitter_settings_t &&settings)
 {
 	_settings = std::move(settings);
 }
@@ -94,7 +94,7 @@ cv::Mat GridFitter::calculateHistogram(const cv::Mat& roi, const Ellipse& ellips
     return histImg;
 }
 
-void GridFitter::visualizeDebug(std::multiset<candidate_t> const& bestGrids, const cv::Size2i roiSize, const Tag& tag, cv::Mat const& binarizedROI, std::string winName) const
+void GridFitter::visualizeDebug(std::multiset<candidate_t> const& bestGrids, const cv::Size2i roiSize, const Tag& tag, cv::Mat const& binarizedROI, std::string winName)
 {
     cv::Mat binarizedROICpy;
     cv::cvtColor(binarizedROI, binarizedROICpy, CV_GRAY2BGR);
@@ -102,7 +102,7 @@ void GridFitter::visualizeDebug(std::multiset<candidate_t> const& bestGrids, con
     cv::Mat cannyImg;
     cv::cvtColor(tag.getCannySubImage(), cannyImg, CV_GRAY2BGR);
 
-    const size_t to = std::min(_settings.numResults, bestGrids.size());
+    const size_t to = std::min(_settings.get_gradient_num_results(), bestGrids.size());
     size_t idx = 0;
     for (candidate_t const& candidate : bestGrids) {
         std::vector<cv::Mat> images;
@@ -162,7 +162,7 @@ void GridFitter::visualizeDebug(std::multiset<candidate_t> const& bestGrids, con
     }
 }
 
-GridFitter::candidate_set GridFitter::getInitialCandidates(const cv::Mat &binarizedROI, const cv::Mat& edgeROI, const Ellipse& ellipse_orig, const cv::Mat &roi) const
+GridFitter::candidate_set GridFitter::getInitialCandidates(const cv::Mat &binarizedROI, const cv::Mat& edgeROI, const Ellipse& ellipse_orig, const cv::Mat &roi)
 {
 	static const auto initial_rotations        = util::linspace<double>(0, 2 * CV_PI, 64);
 	static const auto initial_position_offsets = util::linspace<int>(-4, 4, 9);
@@ -189,7 +189,7 @@ GridFitter::candidate_set GridFitter::getInitialCandidates(const cv::Mat &binari
 	return gridCandidates;
 }
 
-std::vector<PipelineGrid> GridFitter::fitGrid(const Tag& tag, const TagCandidate &candidate) const
+std::vector<PipelineGrid> GridFitter::fitGrid(const Tag& tag, const TagCandidate &candidate)
 {
 	const Ellipse& ellipse_orig = candidate.getEllipse();
 
@@ -201,8 +201,8 @@ std::vector<PipelineGrid> GridFitter::fitGrid(const Tag& tag, const TagCandidate
 
     cv::Mat binarizedROI(roiSize, CV_8UC1);
     cv::adaptiveThreshold(roi, binarizedROI, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C,
-                          cv::THRESH_BINARY, _settings.adaptiveBlockSize,
-                          _settings.adaptiveC);
+                          cv::THRESH_BINARY, _settings.get_adaptive_block_size(),
+                          _settings.get_adaptive_c());
 
     const cv::Mat& edgeROI = tag.getCannySubImage();
 
@@ -224,7 +224,7 @@ std::vector<PipelineGrid> GridFitter::fitGrid(const Tag& tag, const TagCandidate
 
     std::vector<PipelineGrid> results;
     {
-        const size_t to = std::min(_settings.numResults, bestGrids.size());
+        const size_t to = std::min(_settings.get_gradient_num_results(), bestGrids.size());
         size_t idx = 0;
         for (candidate_t const& gridCandidate : bestGrids) {
             PipelineGrid::gridconfig_t const& config = gridCandidate.config;
@@ -238,7 +238,7 @@ std::vector<PipelineGrid> GridFitter::fitGrid(const Tag& tag, const TagCandidate
     return results;
 }
 
-double GridFitter::evaluateCandidate(PipelineGrid& grid, cv::Mat const& roi, cv::Mat const& binarizedROI, cv::Mat const& edgeROI, const gridfitter_settings_t &settings)
+double GridFitter::evaluateCandidate(PipelineGrid& grid, cv::Mat const& roi, cv::Mat const& binarizedROI, cv::Mat const& edgeROI,  settings::gridfitter_settings_t &settings)
 {
     double error = 0;
 
@@ -273,7 +273,7 @@ double GridFitter::evaluateCandidate(PipelineGrid& grid, cv::Mat const& roi, cv:
         outerCircleError += 255 - value;
     }
     if (outerRingCoordinates.areaCoordinates.size())
-        error += settings.alpha_outer * (outerCircleError / outerRingCoordinates.areaCoordinates.size()) / 255.;
+        error += settings.get_err_func_alpha_outer() * (outerCircleError / outerRingCoordinates.areaCoordinates.size()) / 255.;
 
     size_t outerCircleEdgeError = 0;
     for (const cv::Point2i coords : outerRingCoordinates.edgeCoordinates) {
@@ -281,7 +281,7 @@ double GridFitter::evaluateCandidate(PipelineGrid& grid, cv::Mat const& roi, cv:
         outerCircleEdgeError += 255 - value;
     }
     if (outerRingCoordinates.edgeCoordinates.size())
-        error += settings.alpha_outer_edge * (outerCircleEdgeError / outerRingCoordinates.edgeCoordinates.size()) / 255.;
+        error += settings.get_err_func_alpha_outer_edge() * (outerCircleEdgeError / outerRingCoordinates.edgeCoordinates.size()) / 255.;
 
     // compare inner white semicircle
     size_t innerWhiteError = 0;
@@ -290,7 +290,7 @@ double GridFitter::evaluateCandidate(PipelineGrid& grid, cv::Mat const& roi, cv:
         innerWhiteError += 255 - value;
     }
     if (innerWhiteCoordinates.areaCoordinates.size())
-        error += settings.alpha_inner * (innerWhiteError / innerWhiteCoordinates.areaCoordinates.size()) / 255.;
+        error += settings.get_err_func_alpha_inner() * (innerWhiteError / innerWhiteCoordinates.areaCoordinates.size()) / 255.;
 
     // compare inner black semicircle
     size_t innerBlackError = 0;
@@ -299,7 +299,7 @@ double GridFitter::evaluateCandidate(PipelineGrid& grid, cv::Mat const& roi, cv:
         innerBlackError += value;
     }
     if (innerBlackCoordinates.areaCoordinates.size())
-        error += settings.alpha_inner * (innerBlackError / innerBlackCoordinates.areaCoordinates.size()) / 255;
+        error += settings.get_err_func_alpha_inner() * (innerBlackError / innerBlackCoordinates.areaCoordinates.size()) / 255;
 
     // TODO: more efficient implementation for this!
 //    auto vectorCmp = [&](const cv::Point2i& first, const cv::Point2i second) {
@@ -347,7 +347,7 @@ double GridFitter::evaluateCandidate(PipelineGrid& grid, cv::Mat const& roi, cv:
             }
             const double variance = (sum2 / (cellCoordinates.areaCoordinates.size() - 1));
 
-            error += settings.alpha_variance * (variance / 255.);
+            error += settings.get_err_func_alpha_variance() * (variance / 255.);
         }
     }
 
@@ -357,7 +357,7 @@ double GridFitter::evaluateCandidate(PipelineGrid& grid, cv::Mat const& roi, cv:
 	return error;
 }
 
-GridFitter::GradientDescent::GradientDescent(const GridFitter::candidate_set &initialCandidates, const cv::Mat &roi, const cv::Mat &binarizedRoi, const cv::Mat& edgeRoi, const gridfitter_settings_t &settings)
+GridFitter::GradientDescent::GradientDescent(const GridFitter::candidate_set &initialCandidates, const cv::Mat &roi, const cv::Mat &binarizedRoi, const cv::Mat& edgeRoi,  settings::gridfitter_settings_t &settings)
     : _initialCandidates(initialCandidates)
     , _settings(settings)
     , _roi(roi)
@@ -367,7 +367,7 @@ GridFitter::GradientDescent::GradientDescent(const GridFitter::candidate_set &in
 
 void GridFitter::GradientDescent::optimize()
 {
-    const size_t num = std::min(_settings.numInitial, _initialCandidates.size());
+    const size_t num = std::min(_settings.get_gradient_num_initial(), _initialCandidates.size());
     candidate_set::iterator candidate_it = _initialCandidates.begin();
     for (size_t idx = 0; idx < num; ++idx) {
         candidate_t candidate = *candidate_it;
@@ -379,7 +379,7 @@ void GridFitter::GradientDescent::optimize()
         grid  = PipelineGrid(initial_config);
         double error = evaluateCandidate(grid, _roi, _binarizedRoi, _edgeRoi, _settings);
         storeConfig(error, config);
-        while ((error > _settings.errorThreshold) && (iteration < _settings.maxIterations)) {
+        while ((error > _settings.get_gradient_error_threshold()) && (iteration < _settings.get_gradient_max_iterations())) {
             double const initerror = error;
 
 			std::tie(error, config) = step(config, error, SCALE);
@@ -405,10 +405,10 @@ std::pair<double, PipelineGrid::gridconfig_t> GridFitter::GradientDescent::step(
 {
 	static const std::array<int, 2> directions {-1, 1};
 
-	const double alpha     = _settings.alpha;
-	const double eps_scale = _settings.eps_scale;
-	const int eps_pos      = _settings.eps_pos;
-	const double eps_angle = _settings.eps_angle;
+	const double alpha     = _settings.get_alpha();
+	const double eps_scale = _settings.get_eps_scale();
+	const int eps_pos      = _settings.get_eps_pos();
+	const double eps_angle = _settings.get_eps_angle();
 
 	for (int direction : directions) {
 		PipelineGrid::gridconfig_t newConfig(config);
@@ -475,7 +475,7 @@ void GridFitter::GradientDescent::storeConfig(const double error, const Pipeline
 {
 	_bestGrids.insert({error, config});
 
-	if (_bestGrids.size() > _settings.numResults) {
+	if (_bestGrids.size() > _settings.get_gradient_num_results()) {
 		_bestGrids.erase(std::prev(_bestGrids.end()));
 	}
 }

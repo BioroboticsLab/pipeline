@@ -6,6 +6,7 @@
 #include "source/tracking/algorithm/BeesBook/Common/Grid.h"
 
 #include "datastructure/PipelineGrid.h"
+#include "datastructure/settings.h"
 
 namespace pipeline {
 
@@ -43,7 +44,7 @@ class GridFitter {
 public:
 	GridFitter();
 
-	void loadSettings(gridfitter_settings_t&& settings);
+	void loadSettings(settings::gridfitter_settings_t&& settings);
 
 	std::vector<Tag> process(std::vector<Tag>&& taglist);
 
@@ -69,7 +70,7 @@ private:
 		                const cv::Mat& roi,
 		                const cv::Mat& binarizedRoi,
 						const cv::Mat& edgeRoi,
-		                const gridfitter_settings_t& settings);
+		                settings::gridfitter_settings_t& settings);
 
 		void optimize();
 
@@ -77,7 +78,7 @@ private:
 
 	private:
 		const candidate_set& _initialCandidates;
-		const gridfitter_settings_t& _settings;
+		settings::gridfitter_settings_t& _settings;
 		const cv::Mat& _roi;
 		const cv::Mat& _binarizedRoi;
 		const cv::Mat& _edgeRoi;
@@ -98,13 +99,13 @@ private:
 		void storeConfig(const double error, const PipelineGrid::gridconfig_t &config);
 	};
 
-    gridfitter_settings_t _settings;
+	settings::gridfitter_settings_t _settings;
 
-    std::vector<PipelineGrid> fitGrid(const Tag &tag, TagCandidate const& candidate) const;
-    candidate_set getInitialCandidates(cv::Mat const& binarizedROI, const cv::Mat& edgeROI, const Ellipse& ellipse_orig, cv::Mat const& roi) const;
-    static double evaluateCandidate (PipelineGrid& grid, const cv::Mat& roi, const cv::Mat& binarizedROI, const cv::Mat& edgeROI, const gridfitter_settings_t& settings);
+    std::vector<PipelineGrid> fitGrid(const Tag &tag, TagCandidate const& candidate);
+    candidate_set getInitialCandidates(cv::Mat const& binarizedROI, const cv::Mat& edgeROI, const Ellipse& ellipse_orig, cv::Mat const& roi);
+    static double evaluateCandidate (PipelineGrid& grid, const cv::Mat& roi, const cv::Mat& binarizedROI, const cv::Mat& edgeROI, settings::gridfitter_settings_t& settings);
 
     cv::Mat calculateHistogram(const cv::Mat& roi, const Ellipse& ellipse_orig) const;
-    void visualizeDebug(const std::multiset<candidate_t>& bestGrids, const cv::Size2i roiSize, const Tag& tag, const cv::Mat& binarizedROI, std::string winName) const;
+    void visualizeDebug(const std::multiset<candidate_t>& bestGrids, const cv::Size2i roiSize, const Tag& tag, const cv::Mat& binarizedROI, std::string winName);
 };
 }
