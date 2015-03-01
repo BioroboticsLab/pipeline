@@ -115,7 +115,7 @@ private:
 		candidate_set const& getBestGrids() const { return _bestGrids; }
 
 	private:
-
+		const candidate_set& _initialCandidates;
 		settings::gridfitter_settings_t& _settings;
 
 
