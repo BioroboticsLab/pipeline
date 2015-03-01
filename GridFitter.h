@@ -115,6 +115,9 @@ private:
 		candidate_set const& getBestGrids() const { return _bestGrids; }
 
 	private:
+		const candidate_set& _initialCandidates;
+
+
 
 		settings::gridfitter_settings_t& _settings;
 
@@ -126,6 +129,7 @@ private:
 		const cv::Mat& _binarizedRoi;
 		// edge image of region of interest
 		const cv::Mat& _edgeRoi;
+
 
 		// contains the settings.maxResults (or less) best grid candiates.
 		// candiates should only be inserted using the storeConfig() method.

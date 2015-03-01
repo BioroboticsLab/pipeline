@@ -48,11 +48,11 @@ public:
 
 	}
 
-	setting_entry(std::string name, unsigned int member) :
-			setting_name(name), field(member) {
-		type = setting_entry_type::U_INT;
-
-	}
+	//setting_entry(std::string name, unsigned int member) :
+	//		setting_name(name), field(member) {
+	//	type = setting_entry_type::U_INT;
+//
+//	}
 
 	setting_entry(std::string name, double member) :
 			setting_name(name), field(member) {
