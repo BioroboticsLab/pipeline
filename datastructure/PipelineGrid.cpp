@@ -190,18 +190,29 @@ PipelineGrid::coordinates_t PipelineGrid::calculatePolygonCoordinates(const size
 {
 	coordinates_t coordinates;
 
+	// for each polygon, we speed up the calulation by iterating over the
+	// bounding box of the polygon instead of the bounding box of the grid
 	cv::Rect box = getPolygonBoundingBox(idx);
 
+	// we actually have to draw the polygons in order to be able to extract the
+	// coordinates. because the coordinates are internally centered at [0, 0],
+	// we have to shift them initially.
+	// this is unnecessary overhead and will be removed as soon as Tobi's
+	// functions for polygon rasterization are finished.
     std::vector<cv::Point> shiftedPoints;
     shiftedPoints.reserve(_coordinates2D[idx].size());
     for (const cv::Point2i& origPoint : _coordinates2D[idx]) {
         shiftedPoints.push_back(origPoint - _boundingBox.tl() - box.tl());
     }
 
+	// draw polygon and edges on internal id image representation (see comment
+	// in header for _idImage
     cv::Mat roi = _idImage(box);
     cv::fillConvexPoly(roi, shiftedPoints, idx, 8);
     CvHelper::drawPolyline(roi, shiftedPoints, CONTOUR_OFFSET + idx, false, cv::Point(), 3);
 
+	// iterate over roi and extract edge coordinates and store them in the
+	// associated vector
 	const cv::Point offset = box.tl() + _boundingBox.tl() + _center;
 	const int nRows = roi.rows;
 	const int nCols = roi.cols;
@@ -213,7 +224,11 @@ PipelineGrid::coordinates_t PipelineGrid::calculatePolygonCoordinates(const size
 		}
 	}
 
-
+	// when calculating the coordinates of the outer ring polygon, we have to
+	// make sure that a) the outer ring is drawn first and b) the other area
+	// are drawn before extracting the outer ring coordinates (because initially
+	// the outer ring polygon also contains all or the coordinates that actually
+	// belong to one of the other areas.
     if (idx == INDEX_OUTER_WHITE_RING) {
         _innerWhiteRingCoordinates = calculatePolygonCoordinates(INDEX_INNER_WHITE_SEMICIRCLE);
         _innerBlackRingCoordinates = calculatePolygonCoordinates(INDEX_INNER_BLACK_SEMICIRCLE);
