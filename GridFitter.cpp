@@ -31,6 +31,8 @@ void GridFitter::loadSettings(settings::gridfitter_settings_t &&settings)
 std::vector<Tag> GridFitter::process(std::vector<Tag> &&taglist)
 {
 #ifdef DEBUG_GRIDFITTER
+	// run GridFitter in a single thread when debugging is enabled to get
+	// better and more consistent stack traces etc.
 	for (Tag& tag : taglist) {
 		tag.setValid(false);
 		for (TagCandidate& candidate : tag.getCandidates()) {
@@ -40,6 +42,8 @@ std::vector<Tag> GridFitter::process(std::vector<Tag> &&taglist)
 		}
 	}
 #else
+	// otherwise, use double the number of available cores of thread to process
+	// the tag candidates
     static const size_t numThreads = std::thread::hardware_concurrency() ?
                 std::thread::hardware_concurrency() * 2 : 1;
     ThreadPool pool(numThreads);
@@ -57,6 +61,7 @@ std::vector<Tag> GridFitter::process(std::vector<Tag> &&taglist)
 		}));
 	}
 
+	// wait for all threads to finish
     for (auto && result : results) result.get();
 #endif
 
@@ -168,9 +173,14 @@ GridFitter::candidate_set GridFitter::getInitialCandidates(const cv::Mat &binari
 	static const auto initial_position_offsets = util::linspace<int>(-4, 4, 9);
 
     // initial search for gradiant descent candidates in ellipse parameter space
+	// note that the position offsets have to be evaluated in the inner loop
+	// because shifting a known grid configuration is much faster than
+	// recalculating all coordinates.
     candidate_set gridCandidates;
     for (const double rotation : initial_rotations) {
+		// get the best candidates for the current rotation
         candidate_set candidatesForRotation;
+		// estimate grid parameters from ellipse -> two possible candidates
         const std::array<PipelineGrid::gridconfig_t, 2> configCandidates =
                 Util::gridCandidatesFromEllipse(ellipse_orig, rotation);
         for (PipelineGrid::gridconfig_t const& config : configCandidates) {
@@ -183,6 +193,7 @@ GridFitter::candidate_set GridFitter::getInitialCandidates(const cv::Mat &binari
                 }
             }
         }
+		// for each rotation, insert the best candiate into gridCandidates
         gridCandidates.insert(*candidatesForRotation.begin());
     }
 
@@ -206,9 +217,11 @@ std::vector<PipelineGrid> GridFitter::fitGrid(const Tag& tag, const TagCandidate
 
     const cv::Mat& edgeROI = tag.getCannySubImage();
 
-	// initial search parameter space
+	// get initial candidates using brute force search over small number of
+	// rotations and position offsets
 	candidate_set gridCandidates = getInitialCandidates(binarizedROI, edgeROI, ellipse_orig, roi);
 
+	// optimize best candidates using gradient descent
 	GradientDescent optimizer(gridCandidates, roi, binarizedROI, edgeROI, _settings);
 	optimizer.optimize();
 
@@ -222,6 +235,7 @@ std::vector<PipelineGrid> GridFitter::fitGrid(const Tag& tag, const TagCandidate
     visualizeDebug(bestGrids, roiSize, tag, binarizedROI, "best fit");
 #endif
 
+	// return the settings.numResults best candidates
     std::vector<PipelineGrid> results;
     {
         const size_t to = std::min(_settings.get_gradient_num_results(), bestGrids.size());
@@ -245,20 +259,22 @@ double GridFitter::evaluateCandidate(PipelineGrid& grid, cv::Mat const& roi, cv:
     // bounding box of grid candidate
     const cv::Rect boundingBox = grid.getBoundingBox();
 
+	// return max error if either width or height is zero
     if (!boundingBox.area()) return std::numeric_limits<double>::max();
+	// also return max error if grid bounding box is not within roi
     if (boundingBox.x < 0 || boundingBox.y < 0) return std::numeric_limits<double>::max();
     if (boundingBox.x + boundingBox.width >= roi.rows ||
         boundingBox.y + boundingBox.height >= roi.cols) return std::numeric_limits<double>::max();
 
-    // define region of interest based on bounding box of grid candidate
+    // define region of interest based on bounding box of grid candidate.
     // from now on, we do all calculations on this roi to speed up all
     // computations that have to iterate over the (sub)image
     cv::Mat subROI;
     subROI = roi(boundingBox);
 
-    // region of interest of binarized image
+    // region of interest of binarized and edge image
     cv::Mat subBinarized = binarizedROI(boundingBox);
-    cv::Mat subEdges = edgeROI(boundingBox);
+    cv::Mat subEdges     = edgeROI(boundingBox);
 
     // get coordinates of current grid configuration
     const PipelineGrid::coordinates_t& outerRingCoordinates  = grid.getOuterRingCoordinates();
@@ -268,7 +284,7 @@ double GridFitter::evaluateCandidate(PipelineGrid& grid, cv::Mat const& roi, cv:
     // compare outer circle
     size_t outerCircleError = 0;
     for (const cv::Point2i coords : outerRingCoordinates.areaCoordinates) {
-        const uint8_t value      = subBinarized.at<uint8_t>(coords - boundingBox.tl());
+        const uint8_t value = subBinarized.at<uint8_t>(coords - boundingBox.tl());
         // no branching => better performance
         outerCircleError += 255 - value;
     }
@@ -301,6 +317,10 @@ double GridFitter::evaluateCandidate(PipelineGrid& grid, cv::Mat const& roi, cv:
     if (innerBlackCoordinates.areaCoordinates.size())
         error += settings.get_err_func_alpha_inner() * (innerBlackError / innerBlackCoordinates.areaCoordinates.size()) / 255;
 
+	// at the moment, there is no datastructure containg only the coordinates
+	// between the two inner semicircles. they can be calculated by doing a
+	// set intersection of the coordinates of the two semicircles, but this is
+	// very slow.
     // TODO: more efficient implementation for this!
 //    auto vectorCmp = [&](const cv::Point2i& first, const cv::Point2i second) {
 //        if (first.x != second.x) return first.x < second.x;
@@ -351,9 +371,6 @@ double GridFitter::evaluateCandidate(PipelineGrid& grid, cv::Mat const& roi, cv:
         }
     }
 
-    // TODO
-//    error += 10 * std::abs(boundingBox.width - boundingBox.height);
-
 	return error;
 }
 
@@ -369,6 +386,7 @@ void GridFitter::GradientDescent::optimize()
 {
     const size_t num = std::min(_settings.get_gradient_num_initial(), _initialCandidates.size());
     candidate_set::iterator candidate_it = _initialCandidates.begin();
+	// iterate over the settings.numInitial best initial candidates
     for (size_t idx = 0; idx < num; ++idx) {
         candidate_t candidate = *candidate_it;
         const PipelineGrid::gridconfig_t& initial_config = candidate.config;
@@ -376,10 +394,12 @@ void GridFitter::GradientDescent::optimize()
         size_t iteration = 0;
         PipelineGrid grid(initial_config);
         PipelineGrid::gridconfig_t config = initial_config;
-        grid  = PipelineGrid(initial_config);
         double error = evaluateCandidate(grid, _roi, _binarizedRoi, _edgeRoi, _settings);
         storeConfig(error, config);
+
+		// gradient descent
         while ((error > _settings.get_gradient_error_threshold()) && (iteration < _settings.get_gradient_max_iterations())) {
+
             double const initerror = error;
 
 			std::tie(error, config) = step(config, error, SCALE);
@@ -390,8 +410,12 @@ void GridFitter::GradientDescent::optimize()
 			std::tie(error, config) = step(config, error, ANGLE_Z);
 
             ++iteration;
+			// abort gradient descent if error measurement did not improve by
+			// a significant amount during the last six steps
 			if (std::abs(initerror - error) < 0.01) break;
 
+			// instead of continuing the next iteration with the result of the
+			// last step, use the best currently found config from now on.
 			if (!_bestGrids.empty()) {
 				error  = _bestGrids.begin()->error;
 				config = _bestGrids.begin()->config;
@@ -403,6 +427,14 @@ void GridFitter::GradientDescent::optimize()
 
 std::pair<double, PipelineGrid::gridconfig_t> GridFitter::GradientDescent::step(PipelineGrid::gridconfig_t const& config, double error, const GridFitter::GradientDescent::StepParameter param)
 {
+	// when adjusting one of the position parameters, we can not adjust the step
+	// size based on the difference between of the errors and the learning rate
+	// (because the coordinates are discrete values).
+	// instead, in each step we only change the position by either 1 or -1.
+	// furthermore, if the error does not improve after a position change,
+	// instead of just applying the reverse direction, we check if the error
+	// acutally improves when going in the reverse direction.
+
 	static const std::array<int, 2> directions {-1, 1};
 
 	const double alpha     = _settings.get_alpha();
@@ -412,6 +444,7 @@ std::pair<double, PipelineGrid::gridconfig_t> GridFitter::GradientDescent::step(
 
 	for (int direction : directions) {
 		PipelineGrid::gridconfig_t newConfig(config);
+		// adjust parameter
 		switch (param) {
 		case SCALE:
 			newConfig.radius = newConfig.radius + direction * eps_scale;
@@ -440,6 +473,7 @@ std::pair<double, PipelineGrid::gridconfig_t> GridFitter::GradientDescent::step(
 		PipelineGrid newGrid(newConfig);
 		double newError = evaluateCandidate(newGrid, _roi, _binarizedRoi, _edgeRoi, _settings);
 
+		// adjust parameter based on learning rate and new error
 		if (param != POSX && param != POSY) {
 			switch (param) {
 			case SCALE:
