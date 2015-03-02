@@ -11,6 +11,7 @@
 #include <opencv2/opencv.hpp> // cv::Mat, cv::Scalar, cv::Point, CV_MAT_DEPTH, CV_8U, ...
 #include <string>             // std::string, std::to_string
 #include <functional>         // std::reverence_wrapper
+#include <stdexcept>          // std::invalid_argument
 
 namespace heyho {
 
@@ -39,24 +40,16 @@ namespace heyho {
 	/**
 	 * Stores a reference to a cv::Mat and a pixel.
 	 *
-	 * operator()(cv::Points) sets the matrix' pixel to the stores value.
+	 * operator()(cv::Points) sets the matrix' pixel to the stored value.
 	 *
 	 */
 	template<typename pixel_t>
 	class pixel_setter
 	{
 	public:
-		explicit pixel_setter(cv::Mat &img, const pixel_t &color)
-			: m_img(img)
-			, m_color(color)
-		{}
-		explicit pixel_setter(cv::Mat &img, const cv::Scalar &color)
-			: pixel_setter(img, scalar2pixel<pixel_t>(color))
-		{}
-
-		void operator()(cv::Point p) {
-			m_img.get().at<pixel_t>(p) = m_color;
-		}
+		explicit pixel_setter(cv::Mat &img, const pixel_t &color);
+		explicit pixel_setter(cv::Mat &img, const cv::Scalar &color);
+		void operator()(cv::Point p);
 	private:
 		std::reference_wrapper<cv::Mat> m_img;
 		pixel_t m_color;

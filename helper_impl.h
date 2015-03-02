@@ -23,6 +23,29 @@ namespace heyho {
 		return result;
 	}
 
+
+	template<typename pixel_t>
+	inline pixel_setter<pixel_t>::pixel_setter(cv::Mat &img, const pixel_t &color)
+		: m_img(img)
+		, m_color(color)
+	{
+		constexpr int img_type = cv::DataType<pixel_t>::type;
+		if (img.type() != img_type) {
+			throw std::invalid_argument("invalid image pixel type");
+		}
+	}
+
+	template<typename pixel_t>
+	inline pixel_setter<pixel_t>::pixel_setter(cv::Mat &img, const cv::Scalar &color)
+		: pixel_setter(img, scalar2pixel<pixel_t>(color))
+	{}
+
+	template<typename pixel_t>
+	inline void pixel_setter<pixel_t>::operator()(cv::Point p) {
+		m_img.get().at<pixel_t>(p) = m_color;
+	}
+
+
 }
 
 #endif /* HELPER_IMPL_H_ */
