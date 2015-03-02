@@ -77,6 +77,10 @@ namespace heyho {
 			//===============
 			compare(line_iterator({-5,-5}, {-3,-3}, 8), {{-5,-5},{-4,-4},{-3,-3}});
 			compare(line_iterator({-1,1000}, {-1,1000}, 8), {{-1,1000}});
+
+			// single point
+			//=============
+			compare(line_iterator({-5,-5}, {-5,-5}, 8), {{-5,-5}});
 		}
 	}
 
