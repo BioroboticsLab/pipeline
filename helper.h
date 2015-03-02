@@ -8,43 +8,26 @@
 #ifndef HELPER_H_
 #define HELPER_H_
 
-#include <string>
-#include <opencv2/opencv.hpp>
+#include <opencv2/opencv.hpp> // cv::Point, CV_MAT_DEPTH, CV_8U, ...
+#include <string>             // std::string, std::to_string
 
-static std::string img_type_to_str(int type) {
-	const int depth = CV_MAT_DEPTH(type);
-	const int cn = CV_MAT_CN(type);
-	std::string result = "CV_";
+namespace heyho {
 
-	switch (depth) {
-		case CV_8U:
-			result += "8U";
-			break;
-		case CV_8S:
-			result += "8S";
-			break;
-		case CV_16U:
-			result += "16U";
-			break;
-		case CV_16S:
-			result += "16S";
-			break;
-		case CV_32S:
-			result += "32S";
-			break;
-		case CV_32F:
-			result += "32F";
-			break;
-		case CV_64F:
-			result += "64F";
-			break;
-		default:
-			result += "UNKOWN";
-	}
-	result += "C" + std::to_string(cn);
-	return result;
+	/**
+	 * converts an opencv image type to the name of the corresponding macro i.e. "CV_\d[UFS]C\d"
+	 */
+	std::string img_type_to_str(int type);
+
+	/**
+	 * compares cv::Points based on their y coordinate
+	 */
+	struct cv_point_less_y {
+		bool operator()(const cv::Point &lhs, const cv::Point &rhs) const {
+			return lhs.y < rhs.y;
+		}
+	};
+
 }
-
 
 
 #endif /* HELPER_H_ */
