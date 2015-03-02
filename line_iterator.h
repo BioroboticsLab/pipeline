@@ -9,7 +9,7 @@
 #define LINE_ITERATOR_H_
 
 #include <opencv2/opencv.hpp> // cv::Point, cv::LineIterator, cv::Size, cv::Rect
-#include <exception>          // std::runtime_error
+#include <stdexcept>          // std::runtime_error
 
 namespace heyho {
 

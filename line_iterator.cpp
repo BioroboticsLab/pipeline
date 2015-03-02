@@ -9,7 +9,7 @@
 #include <vector>         // std::vector
 #include <iostream>       // std::cout
 #include <algorithm>      // std::equal
-#include <exception>      // std::runtime_error
+#include <stdexcept>      // std::runtime_error
 
 namespace heyho {
 
