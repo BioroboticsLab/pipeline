@@ -10,13 +10,13 @@
 #include "util/ThreadPool.h"
 
 namespace {
-/*inline double pointDistance(double px, double py, double qx, double qy) {
+inline double pointDistance(double px, double py, double qx, double qy) {
 	return (sqrt((qy - py) * (qy - py) + (qx - px) * (qx - px)));
 }
 
 inline double pointDistanceNoSqrt(double px, double py, double qx, double qy) {
 	return (((qy - py) * (qy - py) + (qx - px) * (qx - px)));
-}*/
+}
 
 struct compareVote {
 	inline bool operator()(pipeline::Ellipse const& a,
@@ -37,15 +37,6 @@ Recognizer::Recognizer() {
 }
 
 
-cv::Mat Recognizer::_contrastStretching(const cv::Mat& image){
-	cv::Mat block = image.clone();
-//cv::normalize(image, block, 0, 255, CV_MINMAX);
-	if(image.channels() > 1){
-		cv::cvtColor(block, block, CV_BGR2GRAY);
-	}
-	cv::equalizeHist(block,block);
-return block;
-}
 
 void Recognizer::loadSettings(settings::recognizer_settings_t &&settings) {
 	_settings = std::move(settings);
@@ -60,16 +51,26 @@ Recognizer::Recognizer(std::string configFile) {
 /**
  * @param tag for which ellipses should be detected
  */
-void Recognizer::detectXieEllipse(Tag &tag) {
-	const double recognizer_max_minor = _settings.get_max_minor_axis();
-	const double recognizer_max_major = _settings.get_max_major_axis();
-	const double recognizer_min_major = _settings.get_min_major_axis();
-	const double recognizer_min_minor = _settings.get_min_minor_axis();
+
+void Recognizer::detectEllipse(Tag &tag) {
 
 	const cv::Mat& subImage = tag.getOrigSubImage();
 	const cv::Mat cannyImage = computeCannyEdgeMap(subImage);
 
 	tag.setCannySubImage(cannyImage);
+
+#ifdef DEBUG_RECOGNIZER
+	//cv::destroyAllWindows();
+
+	cv::namedWindow("Canny",cv::WINDOW_NORMAL);
+		cv::imshow("Canny", cannyImage);
+		cv::waitKey(0);
+
+		cv::namedWindow("Original", cv::WINDOW_NORMAL);
+		cv::imshow("Original", subImage);
+		cv::waitKey(0);
+#endif
+
 
 #ifdef DEBUG_RECOGNIZER
 	//cv::destroyAllWindows();
@@ -113,10 +114,7 @@ void Recognizer::detectXieEllipse(Tag &tag) {
 												  }
 
 			}
-			//if(merged_contour_points.size() > 0){
-			//cv::convexHull(merged_contour_points,hulls[contours.size()]);
-			//minEllipse[contours.size()] = fitEllipse(hulls[contours.size()]);
-			//}
+
 
 			/// Draw  ellipses of the contours
 			cv::Mat drawing;
@@ -167,11 +165,86 @@ void Recognizer::detectXieEllipse(Tag &tag) {
 			cv::waitKey();
 			std::vector<cv::Vec3f> circles;
 #endif
-			//HoughCircles( cannyImage, circles, CV_HOUGH_GRADIENT, 1, cannyImage.rows/8, 200, 100, 0, 0 );
+
+
+
+			 const size_t num = std::min<size_t>(3, candidates.size());
+#ifdef DEBUG_RECOGNIZER
+
+	for (size_t i = 0; i < candidates.size(); ++i) {
+		Ellipse const& ell = candidates[i];
+		if ((i >= num) || (ell.getVote() < _settings.get_threshold_vote())) {
+
+			visualizeEllipse(tag, ell, "ignored_ellipse ");
+		}
+	}
+
+#endif
+	// remove remaining candidates
+	candidates.erase(candidates.begin() + num, candidates.end());
+	// remove all candidates with vote < RECOGNIZER_THRESHOLD_VOTE
+	candidates.erase(
+			std::remove_if(candidates.begin(), candidates.end(),
+					[&](Ellipse& ell) {return ell.getVote() < _settings.get_threshold_vote();}),
+			candidates.end());
+	// add remaining candidates to tag
+	for (Ellipse const& ell : candidates) {
+#ifdef DEBUG_RECOGNIZER
+
+		std::cout << "Add Ellipse With Vote " << ell.getVote() << std::endl;
+
+		visualizeEllipse(tag, ell, "added_ellipse");
+
+#endif
+		tag.addCandidate(TagCandidate(ell));
+	}
+	if (tag.getCandidates().empty()) {
+		detectXieEllipse(tag);//tag.setValid(false);
+	}
+#ifdef PipelineStandalone
+	if (config::DEBUG_MODE_RECOGNIZER_IMAGE) {
+		cv::destroyAllWindows();
+	}
+	if (config::DEBUG_MODE_RECOGNIZER) {
+		std::cout << "Found " << tag.getCandidates().size()
+		<< " ellipse candidates for Tag " << tag.getId() << std::endl;
+	}
+#endif
+}
+
+void Recognizer::detectXieEllipse(Tag &tag) {
+	const double recognizer_max_minor = _settings.get_max_minor_axis();
+	const double recognizer_max_major = _settings.get_max_major_axis();
+	const double recognizer_min_major = _settings.get_min_major_axis();
+	const double recognizer_min_minor = _settings.get_min_minor_axis();
+
+	const cv::Mat& subImage = tag.getOrigSubImage();
+	cv::Mat cannyImage;
+	if(tag.getCannySubImage().empty()){
+	 cannyImage = computeCannyEdgeMap(subImage);
+
+	tag.setCannySubImage(cannyImage);
+	}else{
+		cannyImage = tag.getCannySubImage();
+	}
+
+#ifdef DEBUG_RECOGNIZER
+	//cv::destroyAllWindows();
+
+	cv::namedWindow("Canny",cv::WINDOW_NORMAL);
+		cv::imshow("Canny", cannyImage);
+		cv::waitKey(0);
+
+		cv::namedWindow("Original", cv::WINDOW_NORMAL);
+		cv::imshow("Original", subImage);
+		cv::waitKey(0);
+#endif
+
+
 
 
 	//edge_pixel array, all edge pixels are stored in this array
-	/*std::vector<cv::Point2i> ep;
+	std::vector<cv::Point2i> ep;
 	ep.reserve(cv::countNonZero(cannyImage) + 1);
 
 	std::vector<Ellipse> candidates;
@@ -311,15 +384,15 @@ void Recognizer::detectXieEllipse(Tag &tag) {
 			}
 		}
 	}
-
-
+foundEllipse:
+	 const size_t num = std::min<size_t>(3, candidates.size());
 	// sort the candidates, so that the num-best candidates are at the
 	// beginning of the list
 	std::partial_sort(candidates.begin(), candidates.begin() + num,
 			candidates.end(), compareVote { });
-			*/
 
-			 const size_t num = std::min<size_t>(3, candidates.size());
+
+
 #ifdef DEBUG_RECOGNIZER
 
 	for (size_t i = 0; i < candidates.size(); ++i) {
@@ -424,34 +497,38 @@ cv::Mat Recognizer::computeCannyEdgeMap(cv::Mat const& grayImage) {
 
 
 	double average_old = -1, average_old_2 =-1;
-	double min_mean = 12;
-	double max_mean = 15;
+	double min_mean = 10;
+	double max_mean = 12;
 
 		canny:
 		cv::Canny(localGrayImage, cannyEdgeMap,low, high);
 
 		cv::Scalar mean = cv::mean(cannyEdgeMap);
 		double average_value = mean.val[0];
-		std::cout << "canny mean " << mean.val[0] << " "<< std::endl;
+		//std::cout << "canny mean " << mean.val[0] << " "<< std::endl;
 
 
 		if (average_old_2 != average_value ||  average_old == average_old_2 ) {
 
 			if (average_value < min_mean) {
+				if(low > 0)
 				low-=5;
+				if(high > 0)
 				high-=5;
 				average_old_2 = average_old;
 				average_old = average_value;
 
-					std::cout << "new values " << high << " " <<low << std::endl;
+					//std::cout << "new values " << high << " " <<low << std::endl;
 
 				goto canny;
 			} else if (average_value > max_mean) {
+				if(low < 255)
 				low+= 5;
+				if(high < 255)
 				high+=5;
 				average_old_2 = average_old;
 				average_old = average_value;
-				std::cout << "new values " << high << " " <<low << std::endl;
+				//std::cout << "new values " << high << " " <<low << std::endl;
 				goto canny;
 			}
 		}
@@ -460,6 +537,8 @@ cv::Mat Recognizer::computeCannyEdgeMap(cv::Mat const& grayImage) {
 
 	return cannyEdgeMap;
 }
+
+
 
 std::vector<Tag> Recognizer::process(std::vector<Tag>&& taglist) {
 	//static const size_t numThreads =
@@ -472,38 +551,13 @@ std::vector<Tag> Recognizer::process(std::vector<Tag>&& taglist) {
 		/*results.emplace_back(pool.enqueue([&] {
 
 		}));*/
-		detectXieEllipse(tag);
+		detectEllipse(tag);
 	}
 	for (auto && result : results)
 		result.get();
 	return std::move(taglist);
 }
 
-#ifdef PipelineStandalone
-void Recognizer::loadConfigVars(std::string filename) {
-	boost::property_tree::ptree pt;
-	boost::property_tree::ini_parser::read_ini(filename, pt);
-
-	_settings.max_major_axis =
-	pt.get<int>(config::APPlICATION_ENVIROMENT + ".max_major_axis");
-	_settings.min_major_axis =
-	pt.get<int>(config::APPlICATION_ENVIROMENT + ".min_major_axis");
-	_settings.max_minor_axis =
-	pt.get<int>(config::APPlICATION_ENVIROMENT + ".max_minor_axis");
-	_settings.min_minor_axis =
-	pt.get<int>(config::APPlICATION_ENVIROMENT + ".min_minor_axis");
-	_settings.threshold_edge_pixels =
-	pt.get<int>(config::APPlICATION_ENVIROMENT + ".threshold_edge_pixels");
-	_settings.threshold_vote =
-	pt.get<int>(config::APPlICATION_ENVIROMENT + ".threshold_vote");
-	_settings.threshold_best_vote =
-	pt.get<int>(config::APPlICATION_ENVIROMENT + ".threshold_best_vote");
-	_settings.canny_threshold_high =
-	pt.get<int>(config::APPlICATION_ENVIROMENT + ".canny_threshold_low");
-	_settings.canny_threshold_low =
-	pt.get<int>(config::APPlICATION_ENVIROMENT + ".canny_threshold_high");
-}
-#endif
 
 }
 /* namespace decoder */

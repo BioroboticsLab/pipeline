@@ -30,7 +30,9 @@ private:
 
     void detectXieEllipse(Tag &tag);
 
-   cv::Mat _contrastStretching(const cv::Mat& image);
+    void detectEllipse(Tag &tag);
+
+
 #ifdef PipelineStandalone
     void loadConfigVars(std::string filename);
     void visualizeEllipse(Ellipse const& ell, std::string const& title);
