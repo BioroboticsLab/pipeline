@@ -63,10 +63,13 @@ namespace heyho {
 		 */
 		cv::Point operator*() const;
 
+		int connectivity() const;
+
 	private:
+		int m_connectivity;
 		cv::LineIterator m_it;
 		size_t m_remaining_points;
-		const cv::Point m_offset;
+		cv::Point m_offset;
 	};
 
 	namespace tests {

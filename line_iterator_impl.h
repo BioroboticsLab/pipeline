@@ -11,16 +11,21 @@
 namespace heyho {
 
 	inline line_iterator::line_iterator(cv::Point p1, cv::Point p2, int connectivity, cv::Size size, cv::Point offset)
+		: m_connectivity(connectivity)
 		/*
 		 * The cv::lineIterator requires a cv::Mat to get the image
 		 * dimensions (i.e. valid coordinates) and does all calculations
 		 * on the matrix' data pointer, step size etc.
 		 * Thus a dummy matrix is used.
 		 */
-		: m_it(cv::Mat(size, CV_8UC1, nullptr), p1, p2, connectivity, false)
+		, m_it(cv::Mat(size, CV_8UC1, nullptr), p1, p2, m_connectivity, false)
 		, m_remaining_points(static_cast<size_t>(m_it.count))
 		, m_offset(offset)
-	{}
+	{
+		if (m_connectivity != 4 && m_connectivity != 8) {
+			throw std::invalid_argument("invalid connectivity");
+		}
+	}
 
 
 	inline line_iterator::line_iterator(cv::Point p1, cv::Point p2, int connectivity, cv::Size size)
@@ -66,6 +71,10 @@ namespace heyho {
 			throw std::runtime_error("dereferencing invalid iterator");
 		}
 		return m_offset + m_it.pos();
+	}
+
+	inline int line_iterator::connectivity() const {
+		return m_connectivity;
 	}
 
 }
