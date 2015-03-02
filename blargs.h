@@ -9,40 +9,13 @@
 #define BLARGS_H_
 
 #include "line_iterator.h"    // heyho::line_iterator
+#include "helper.h"
 #include <opencv2/opencv.hpp> // cv::Point, cv::LineIterator, cv::Mat, cv::InputOutputArray, cv::OutputArray, cv::Scalar
 #include <utility>            // std::move
-#include <functional>         // std::reverence_wrapper
 #include <stdexcept>          // std::invalid_argument
 #include <algorithm>          // std::min, std::max, std::swap
 
 namespace heyho {
-
-
-
-template<typename pixel_t>
-inline pixel_t scalar2pixel(const cv::Scalar &color);
-
-
-template<typename pixel_t>
-class pixel_setter
-{
-private:
-	std::reference_wrapper<cv::Mat> m_img;
-	pixel_t m_color;
-
-public:
-	explicit pixel_setter(cv::Mat &img, const pixel_t &color)
-		: m_img(img)
-		, m_color(color)
-	{}
-	explicit pixel_setter(cv::Mat &img, const cv::Scalar &color)
-		: pixel_setter(img, scalar2pixel<pixel_t>(color))
-	{}
-
-	void operator()(cv::Point p) {
-		m_img.get().at<pixel_t>(p) = m_color;
-	}
-};
 
 
 template<typename F>

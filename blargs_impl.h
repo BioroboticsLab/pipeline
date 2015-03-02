@@ -10,23 +10,6 @@
 
 namespace heyho {
 
-/**
- * converts cv::Scalar into pixel.
- */
-template<typename pixel_t>
-inline pixel_t scalar2pixel(const cv::Scalar &color) {
-	constexpr int img_type = cv::DataType<pixel_t>::type;
-	double buf[4];
-	cv::scalarToRawData(color, buf, img_type, 0);
-	pixel_t result;
-	uchar *pixel_p = reinterpret_cast<uchar*>(&result);
-	for (size_t i = 0; i < sizeof result; ++i) {
-		pixel_p[i] = reinterpret_cast<const uchar*>(buf)[i];
-	}
-	return result;
-}
-
-
 template<typename F>
 inline F hline(cv::Size size, int x1, int x2, int y, F f)
 {
