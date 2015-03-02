@@ -48,11 +48,11 @@ public:
 
 	}
 
-	//setting_entry(std::string name, unsigned int member) :
-	//		setting_name(name), field(member) {
-	//	type = setting_entry_type::U_INT;
-//
-//	}
+    setting_entry(std::string name, unsigned int member) :
+            setting_name(name), field(member) {
+        type = setting_entry_type::U_INT;
+
+    }
 
 	setting_entry(std::string name, double member) :
 			setting_name(name), field(member) {
@@ -323,7 +323,7 @@ public:
 				Preprocessor::Params::OPT_USE_EQUALIZE_HISTOGRAM);
 	}
 	unsigned int get_opt_frame_size() {
-		return this->_getValue<unsigned int>(
+        return this->_getValue<unsigned int>(
 				Preprocessor::Params::OPT_FRAME_SIZE);
 	}
 
@@ -405,7 +405,7 @@ public:
 						Preprocessor::Defaults::OPT_USE_EQUALIZE_HISTOGRAM));
 		_addEntry(
 				setting_entry(Preprocessor::Params::OPT_FRAME_SIZE,
-						Preprocessor::Defaults::OPT_FRAME_SIZE));
+                        Preprocessor::Defaults::OPT_FRAME_SIZE));
 		_addEntry(
 				setting_entry(Preprocessor::Params::OPT_AVERAGE_CONTRAST_VALUE,
 						Preprocessor::Defaults::OPT_AVERAGE_CONTRAST_VALUE));
@@ -417,12 +417,12 @@ public:
 				setting_entry(Preprocessor::Params::COMB_ENABLED,
 						Preprocessor::Defaults::COMB_ENABLED));
 		_addEntry(
-				setting_entry(Preprocessor::Params::COMB_MIN_SIZE,
-						Preprocessor::Defaults::COMB_MIN_SIZE));
+                setting_entry(Preprocessor::Params::COMB_MIN_SIZE,
+                        Preprocessor::Defaults::COMB_MIN_SIZE));
 
 		_addEntry(
 				setting_entry(Preprocessor::Params::COMB_MAX_SIZE,
-						Preprocessor::Defaults::COMB_MAX_SIZE));
+                        Preprocessor::Defaults::COMB_MAX_SIZE));
 
 		_addEntry(
 				setting_entry(Preprocessor::Params::COMB_THRESHOLD,
@@ -430,15 +430,15 @@ public:
 
 		_addEntry(
 				setting_entry(Preprocessor::Params::COMB_DIFF_SIZE,
-						Preprocessor::Defaults::COMB_DIFF_SIZE));
+                        Preprocessor::Defaults::COMB_DIFF_SIZE));
 
 		_addEntry(
 				setting_entry(Preprocessor::Params::COMB_LINE_WIDTH,
-						Preprocessor::Defaults::COMB_LINE_WIDTH));
+                        Preprocessor::Defaults::COMB_LINE_WIDTH));
 
 		_addEntry(
 				setting_entry(Preprocessor::Params::COMB_LINE_COLOR,
-						Preprocessor::Defaults::COMB_LINE_COLOR));
+                        Preprocessor::Defaults::COMB_LINE_COLOR));
 
 		/*
 		 * honey detection
@@ -452,7 +452,7 @@ public:
 						Preprocessor::Defaults::HONEY_STD_DEV));
 		_addEntry(
 				setting_entry(Preprocessor::Params::HONEY_FRAME_SIZE,
-						Preprocessor::Defaults::HONEY_FRAME_SIZE));
+                        Preprocessor::Defaults::HONEY_FRAME_SIZE));
 		_addEntry(
 				setting_entry(Preprocessor::Params::HONEY_AVERAGE_VALUE,
 						Preprocessor::Defaults::HONEY_AVERAGE_VALUE));
@@ -533,19 +533,19 @@ public:
 						Localizer::Defaults::BINARY_THRESHOLD));
 		_addEntry(
 				setting_entry(Localizer::Params::FIRST_DILATION_NUM_ITERATIONS,
-						Localizer::Defaults::FIRST_DILATION_NUM_ITERATIONS));
+                        Localizer::Defaults::FIRST_DILATION_NUM_ITERATIONS));
 		_addEntry(
 				setting_entry(Localizer::Params::FIRST_DILATION_SIZE,
-						Localizer::Defaults::FIRST_DILATION_SIZE));
+                        Localizer::Defaults::FIRST_DILATION_SIZE));
 		_addEntry(
 				setting_entry(Localizer::Params::EROSION_SIZE,
-						Localizer::Defaults::EROSION_SIZE));
+                        Localizer::Defaults::EROSION_SIZE));
 		_addEntry(
 				setting_entry(Localizer::Params::SECOND_DILATION_SIZE,
-						Localizer::Defaults::SECOND_DILATION_SIZE));
+                        Localizer::Defaults::SECOND_DILATION_SIZE));
 		_addEntry(
 				setting_entry(Localizer::Params::MAX_TAG_SIZE,
-						Localizer::Defaults::MAX_TAG_SIZE));
+                        Localizer::Defaults::MAX_TAG_SIZE));
 		_addEntry(
 				setting_entry(Localizer::Params::MIN_BOUNDING_BOX_SIZE,
 						Localizer::Defaults::MIN_BOUNDING_BOX_SIZE));
