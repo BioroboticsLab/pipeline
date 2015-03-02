@@ -12,7 +12,7 @@
 #include <opencv2/opencv.hpp> // cv::Point, cv::LineIterator, cv::Mat, cv::InputOutputArray, cv::OutputArray, cv::Scalar
 #include <utility>            // std::move
 #include <functional>         // std::reverence_wrapper
-#include <exception>          // std::invalid_argument
+#include <stdexcept>          // std::invalid_argument
 #include <algorithm>          // std::min, std::max, std::swap
 
 namespace heyho {
