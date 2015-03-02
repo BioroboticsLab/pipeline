@@ -8,13 +8,15 @@
 #ifndef BLARGS_H_
 #define BLARGS_H_
 
+#include "line_iterator.h"    // heyho::line_iterator
 #include <opencv2/opencv.hpp> // cv::Point, cv::LineIterator, cv::Mat, cv::InputOutputArray, cv::OutputArray, cv::Scalar
 #include <utility>            // std::move
 #include <functional>         // std::reverence_wrapper
 #include <exception>          // std::invalid_argument
-#include <algorithm>          // std::min, std::max
+#include <algorithm>          // std::min, std::max, std::swap
 
 namespace heyho {
+
 
 
 template<typename pixel_t>

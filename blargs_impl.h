@@ -45,19 +45,14 @@ inline F hline(cv::Size size, int x1, int x2, int y, F f)
 template<typename F>
 inline F line(cv::Size size, cv::Point pt1, cv::Point pt2, F f, int connectivity)
 {
-	/*
-	 *  The cv::lineIterator requires a cv::Mat to get the image
-	 * dimensions (i.e. valid coordinates) and does all calculations
-	 * on the matrix' data pointer, step size etc.
-	 * Thus this dummy matrix is used.
-	 * Technically this is undefined behavior but it's probably ok, since
-	 * the (invalid) pointers are never dereferenced.
-	 */
-	const cv::Mat dummy_img(size, CV_8UC1, nullptr);
-	cv::LineIterator iterator(dummy_img, pt1, pt2, connectivity, true);
-	const int count = iterator.count;
-	for (int i = 0; i < count; ++i, ++iterator ) {
-		f(iterator.pos());
+	// simulate cv::LineIterator's leftToRight parameter:
+	//   If leftToRight=true, then the iteration is always done
+	//   from the left-most point to the right most point.
+	if (pt2.x < pt1.x) {
+		std::swap(pt1, pt2);
+	}
+	for (heyho::line_iterator it(pt1, pt2, connectivity, size); !it.end(); ++it) {
+		f(*it);
 	}
 	return std::move(f);
 }
