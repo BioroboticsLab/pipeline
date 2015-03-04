@@ -45,6 +45,11 @@ namespace heyho {
 			std::cout << "line iterator tests ... ";
 			std::cout.flush();
 
+			// empty iterator
+			//===============
+			// 0°
+			compare(line_iterator{}, {});
+
 			// no clipping (line inside image)
 			//================================
 			// 0°

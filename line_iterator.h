@@ -42,6 +42,11 @@ namespace heyho {
 		explicit line_iterator(cv::Point p1, cv::Point p2, int connectivity);
 
 		/**
+		 * empty line iterator.
+		 */
+		explicit line_iterator();
+
+		/**
 		 * Shifts iterator to the next pixel.
 		 */
 		line_iterator& operator++();
@@ -64,6 +69,10 @@ namespace heyho {
 		cv::Point operator*() const;
 
 		int connectivity() const;
+
+		std::size_t size() const;
+
+		std::size_t remaining_points() const;
 
 	private:
 		int m_connectivity;

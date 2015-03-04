@@ -50,6 +50,12 @@ namespace heyho {
 		: line_iterator(p1, p2, connectivity, cv::Rect(p1, p2) + cv::Size(1,1))
 	{}
 
+	inline line_iterator::line_iterator()
+		: line_iterator({0,0}, {0,0}, 8)
+	{
+		++*this;
+	}
+
 	inline line_iterator& line_iterator::operator++() {
 		if (! this->end()) {
 			--m_remaining_points;
@@ -75,6 +81,14 @@ namespace heyho {
 
 	inline int line_iterator::connectivity() const {
 		return m_connectivity;
+	}
+
+	inline std::size_t line_iterator::size() const {
+		return static_cast<size_t>(m_it.count);
+	}
+
+	inline std::size_t line_iterator::remaining_points() const {
+		return m_remaining_points;
 	}
 
 }
