@@ -4,6 +4,7 @@
 	<comment></comment>
 	<projects>
 		<project>OpenCV-RELEASE@build_eclipse</project>
+		<project>OpenCV-RELEASE@opencv-eclipse</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
