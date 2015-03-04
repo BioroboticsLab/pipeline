@@ -8,7 +8,7 @@
 #ifndef HELPER_H_
 #define HELPER_H_
 
-#include <opencv2/opencv.hpp> // cv::Mat, cv::Scalar, cv::Point, CV_MAT_DEPTH, CV_8U, ...
+#include <opencv2/opencv.hpp> // cv::Mat, cv::Scalar, cv::Point, cv::saturate_cast, CV_MAT_DEPTH, CV_8U, ...
 #include <string>             // std::string, std::to_string
 #include <functional>         // std::reverence_wrapper
 #include <stdexcept>          // std::invalid_argument
