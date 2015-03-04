@@ -13,7 +13,7 @@
 #include "ring_iterator.h"          // ring_iterator_tests
 #include "line_iterator.h"          // line_iterator_tests
 #include "poly_line_iterator.h"     // poly_line_iterator_tests
-#include "fill_convex_poly_tests.h" //
+#include "fill_convex_poly_tests.h" // compare_convex_poly
 
 
 
@@ -26,6 +26,7 @@ int main() {
 		heyho::tests::line_iterator_tests();
 		heyho::tests::ring_iterator_tests();
 		heyho::tests::poly_line_iterator_tests();
+		heyho::tests::compare_convex_poly();
 	}
 
 	if (false or true)
