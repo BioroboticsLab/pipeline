@@ -1,12 +1,12 @@
 /*
- * blargs_impl.h
+ * fill_convex_poly_cv_impl.h
  *
  *  Created on: Feb 23, 2015
  *      Author: tobias
  */
 
-#ifndef BLARGS_IMPL_H_
-#define BLARGS_IMPL_H_
+#ifndef FILL_CONVEX_POLY_CV_IMPL_H_
+#define FILL_CONVEX_POLY_CV_IMPL_H_
 
 namespace heyho {
 
@@ -218,4 +218,4 @@ namespace heyho {
 }
 
 
-#endif /* BLARGS_IMPL_H_ */
+#endif /* FILL_CONVEX_POLY_CV_IMPL_H_ */

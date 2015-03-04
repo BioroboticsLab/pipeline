@@ -1,12 +1,12 @@
 /*
- * blargs.h
+ * fill_convex_poly_cv.h
  *
  *  Created on: Feb 20, 2015
  *      Author: tobias
  */
 
-#ifndef BLARGS_H_
-#define BLARGS_H_
+#ifndef FILL_CONVEX_POLY_CV_H_
+#define FILL_CONVEX_POLY_CV_H_
 
 #include "lines.h"            // heyho::hline, heyho::line
 #include "helper.h"           // heyho::scalar2pixel
@@ -30,6 +30,6 @@ namespace heyho {
 
 }
 
-#include "blargs_impl.h"
+#include "fill_convex_poly_cv_impl.h"
 
-#endif /* BLARGS_H_ */
+#endif /* FILL_CONVEX_POLY_CV_H_ */
