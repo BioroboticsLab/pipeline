@@ -8,6 +8,7 @@
 #include "ring_iterator.h"
 #include <vector>          // std::vector
 #include <stdexcept>       // std::runtime_error
+#include <iostream>        // std::cout
 
 namespace heyho {
 
@@ -32,6 +33,9 @@ namespace heyho {
 				}
 				catch (const std::invalid_argument&) {}
 			}
+
+			std::cout << "ring iterator tests ... ";
+			std::cout.flush();
 
 			// forward
 			{
@@ -118,6 +122,7 @@ namespace heyho {
 					my_assert( it.end() && !it.last() );
 				}
 			} // END reversed
+			std::cout << "passend :)\n";
 		} // END ring_iterator_tests();
 
 	} // END namespace tests

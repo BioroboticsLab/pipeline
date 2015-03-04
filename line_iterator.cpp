@@ -42,6 +42,9 @@ namespace heyho {
 				}
 			};
 
+			std::cout << "line iterator tests ... ";
+			std::cout.flush();
+
 			// no clipping (line inside image)
 			//================================
 			// 0°
@@ -81,6 +84,8 @@ namespace heyho {
 			// single point
 			//=============
 			compare(line_iterator({-5,-5}, {-5,-5}, 8), {{-5,-5}});
+
+			std::cout << "passend :)\n";
 		}
 	}
 
