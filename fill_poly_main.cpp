@@ -14,6 +14,7 @@
 #include "line_iterator.h"          // line_iterator_tests
 #include "poly_line_iterator.h"     // poly_line_iterator_tests
 #include "fill_convex_poly_tests.h" // compare_convex_poly
+#include "poly_line_vertical_iterator.h"
 #include <opencv2/opencv.hpp>
 
 
@@ -23,7 +24,7 @@
 int main() {
 
 	// test cv::fillConvexPoly with invalid inputs
-	if (false or true)
+	if (false)
 	{
 		// all points in clockwise order
 		const std::vector<cv::Point> top   {{10,10}, {50,50}, {90,10},          {90,90},          {10,90}         };
@@ -45,12 +46,12 @@ int main() {
 		cv::fillConvexPoly(img_bottom, bottom, cv::Scalar(255), 8, 0);
 		cv::namedWindow( "bottom", cv::WINDOW_AUTOSIZE);
 		cv::imshow( "bottom", img_bottom);
-		
+
 		cv::Mat img_left(100, 100, CV_8UC1, cv::Scalar(0));
 		cv::fillConvexPoly(img_left, left, cv::Scalar(255), 8, 0);
 		cv::namedWindow( "left", cv::WINDOW_AUTOSIZE);
 		cv::imshow( "left", img_left);
-		
+
 		cv::waitKey();
 	}
 
@@ -59,6 +60,8 @@ int main() {
 		heyho::tests::line_iterator_tests();
 		heyho::tests::ring_iterator_tests();
 		heyho::tests::poly_line_iterator_tests();
+		heyho::tests::poly_line_vertical_iterator_tests();
+
 		heyho::tests::compare_convex_poly();
 	}
 
