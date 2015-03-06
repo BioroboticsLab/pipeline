@@ -1,12 +1,12 @@
 /*
- * line_iterator_impl.h
+ * line_iterator_cv_impl.h
  *
  *  Created on: Mar 2, 2015
  *      Author: tobias
  */
 
-#ifndef LINE_ITERATOR_IMPL_H_
-#define LINE_ITERATOR_IMPL_H_
+#ifndef LINE_ITERATOR_CV_IMPL_H_
+#define LINE_ITERATOR_CV_IMPL_H_
 
 namespace heyho {
 
@@ -93,4 +93,4 @@ namespace heyho {
 
 }
 
-#endif /* LINE_ITERATOR_IMPL_H_ */
+#endif /* LINE_ITERATOR_CV_IMPL_H_ */

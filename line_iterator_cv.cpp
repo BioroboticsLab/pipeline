@@ -1,15 +1,15 @@
 /*
- * line_iterator.cpp
+ * line_iterator_cv.cpp
  *
  *  Created on: Mar 2, 2015
  *      Author: tobias
  */
 
-#include "line_iterator.h"
 #include <vector>         // std::vector
 #include <iostream>       // std::cout
 #include <algorithm>      // std::equal
 #include <stdexcept>      // std::runtime_error
+#include "line_iterator_cv.h"
 
 namespace heyho {
 

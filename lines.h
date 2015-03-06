@@ -8,11 +8,11 @@
 #ifndef LINES_H_
 #define LINES_H_
 
-#include "line_iterator.h"    // heyho::line_iterator
 #include "helper.h"           // heyho::pixel_setter
 #include <opencv2/opencv.hpp> // cv::Point, cv::Mat
 #include <utility>            // std::move
 #include <algorithm>          // std::min, std::max, std::swap
+#include "line_iterator_cv.h"    // heyho::line_iterator
 
 namespace heyho {
 

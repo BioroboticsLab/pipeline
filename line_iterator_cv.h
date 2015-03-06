@@ -1,12 +1,12 @@
 /*
- * line_iterator.h
+ * line_iterator_cv.h
  *
  *  Created on: Mar 2, 2015
  *      Author: tobias
  */
 
-#ifndef LINE_ITERATOR_H_
-#define LINE_ITERATOR_H_
+#ifndef LINE_ITERATOR_CV_H_
+#define LINE_ITERATOR_CV_H_
 
 #include <opencv2/opencv.hpp> // cv::Point, cv::LineIterator, cv::Size, cv::Rect
 #include <stdexcept>          // std::runtime_error
@@ -87,6 +87,6 @@ namespace heyho {
 
 }
 
-#include "line_iterator_impl.h"
+#include "line_iterator_cv_impl.h"
 
-#endif /* LINE_ITERATOR_H_ */
+#endif /* LINE_ITERATOR_CV_H_ */

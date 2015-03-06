@@ -9,9 +9,9 @@
 #define POLY_LINE_ITERATOR_H_
 
 #include "ring_iterator.h"    // heyho::ring_iterator
-#include "line_iterator.h"    // heyho::line_iterator
 #include <opencv2/opencv.hpp> // cv::Point
 #include <type_traits>        // std::is_same
+#include "line_iterator_cv.h" // heyho::line_iterator
 
 namespace heyho {
 
