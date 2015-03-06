@@ -17,11 +17,24 @@ namespace heyho {
 	class poly_line_vertical_iterator
 	{
 	public:
-		using value_type = typename poly_lines_iterator<POINTS_IT>::value_type;
+		class hline {
+			friend class poly_line_vertical_iterator;
+		public:
+			int x_left;
+			int x_right;
+			int y;
+			cv::Point left() const;
+			cv::Point right() const;
+		private:
+			hline(cv::Point p);
+			hline(const hline&);
 
-		explicit poly_line_vertical_iterator(POINTS_IT points_it, int connectivity, bool leftmost);
+		};
 
-		value_type operator*() const;
+		explicit poly_line_vertical_iterator(POINTS_IT points_it, int connectivity);
+
+		const hline& operator*() const;
+		const hline* operator->() const;
 
 		poly_line_vertical_iterator& operator++();
 
@@ -31,10 +44,8 @@ namespace heyho {
 		void set_to_left_right_most_in_line();
 
 		poly_lines_iterator<POINTS_IT> m_poly_line_points;
-		value_type m_current_point;
+		hline m_current_point;
 		bool m_end;
-		bool m_leftmost;
-
 	};
 
 	namespace tests {

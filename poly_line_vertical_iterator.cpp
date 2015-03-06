@@ -25,10 +25,10 @@ namespace heyho {
 				using ring = ring_iterator<BDIT>;
 				using poly_v_line = poly_line_vertical_iterator<ring>;
 
-				poly_v_line pl(ring(poly_points.cbegin(), poly_points.cend(), poly_points.cbegin(), poly_points.cend() - 1, false), 8, leftmost);
+				poly_v_line pl(ring(poly_points.cbegin(), poly_points.cend(), poly_points.cbegin(), poly_points.cend() - 1, false), 8);
 				std::vector<cv::Point> pl_points;
 				for (; !pl.end(); ++pl) {
-					pl_points.emplace_back(*pl);
+					pl_points.emplace_back(leftmost ? pl->left() : pl->right());
 				}
 				return pl_points;
 			};
