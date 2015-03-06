@@ -82,7 +82,7 @@ namespace heyho {
 	};
 
 	namespace tests {
-		void line_iterator_tests();
+		void line_iterator_cv_tests();
 	}
 
 }

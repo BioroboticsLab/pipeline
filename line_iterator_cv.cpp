@@ -15,7 +15,7 @@ namespace heyho {
 
 	namespace tests {
 
-		void line_iterator_tests() {
+		void line_iterator_cv_tests() {
 
 			const auto it_2_vec = [](line_iterator_cv it) {
 				std::vector<cv::Point> result;
@@ -42,7 +42,7 @@ namespace heyho {
 				}
 			};
 
-			std::cout << "line iterator tests ... ";
+			std::cout << "line iterator cv tests ... ";
 			std::cout.flush();
 
 			// empty iterator
