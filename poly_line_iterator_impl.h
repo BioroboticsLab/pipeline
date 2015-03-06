@@ -44,7 +44,7 @@ namespace heyho {
 				const auto prev_line_point = *m_points;
 				++m_points;
 				if (!m_points.end()) {
-					m_current_line = line_iterator(prev_line_point, *m_points, m_current_line.connectivity());
+					m_current_line = line_iterator_cv(prev_line_point, *m_points, m_current_line.connectivity());
 					// this isn't the first line --> skipt it's first pixel == previous line's last pixel
 					++m_current_line;
 				}
@@ -54,11 +54,11 @@ namespace heyho {
 	}
 
 	template<typename POINTS_IT>
-	inline heyho::line_iterator poly_line_iterator<POINTS_IT>::make_line_it(POINTS_IT &it, int connectivity) {
+	inline heyho::line_iterator_cv poly_line_iterator<POINTS_IT>::make_line_it(POINTS_IT &it, int connectivity) {
 		const auto p1 = *it;
 		++it;
 		const auto p2 = it.end() ? p1 : *it;
-		return heyho::line_iterator(p1, p2, connectivity);
+		return heyho::line_iterator_cv(p1, p2, connectivity);
 	}
 
 }

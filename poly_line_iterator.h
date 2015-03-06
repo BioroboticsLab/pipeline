@@ -40,10 +40,10 @@ namespace heyho {
 		poly_line_iterator& operator++();
 
 	private:
-		static heyho::line_iterator make_line_it(POINTS_IT &it, int connectivity);
+		static heyho::line_iterator_cv make_line_it(POINTS_IT &it, int connectivity);
 
 		POINTS_IT m_points;
-		heyho::line_iterator m_current_line;
+		heyho::line_iterator_cv m_current_line;
 	};
 
 	namespace tests {

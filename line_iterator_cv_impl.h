@@ -10,7 +10,7 @@
 
 namespace heyho {
 
-	inline line_iterator::line_iterator(cv::Point p1, cv::Point p2, int connectivity, cv::Size size, cv::Point offset)
+	inline line_iterator_cv::line_iterator_cv(cv::Point p1, cv::Point p2, int connectivity, cv::Size size, cv::Point offset)
 		: m_connectivity(connectivity)
 		/*
 		 * The cv::lineIterator requires a cv::Mat to get the image
@@ -28,35 +28,35 @@ namespace heyho {
 	}
 
 
-	inline line_iterator::line_iterator(cv::Point p1, cv::Point p2, int connectivity, cv::Size size)
+	inline line_iterator_cv::line_iterator_cv(cv::Point p1, cv::Point p2, int connectivity, cv::Size size)
 		/*
 		 * forward everything to private "main" constructor
 		 */
-		: line_iterator(p1, p2, connectivity, size, {0, 0})
+		: line_iterator_cv(p1, p2, connectivity, size, {0, 0})
 	{}
 
 
-	inline line_iterator::line_iterator(cv::Point p1, cv::Point p2, int connectivity, cv::Rect boundaries)
+	inline line_iterator_cv::line_iterator_cv(cv::Point p1, cv::Point p2, int connectivity, cv::Rect boundaries)
 		/*
 		 * shift points by the bounding box' upper left corner, set offset
 		 */
-		: line_iterator(p1 - boundaries.tl(), p2 - boundaries.tl(), connectivity, boundaries.size(), boundaries.tl())
+		: line_iterator_cv(p1 - boundaries.tl(), p2 - boundaries.tl(), connectivity, boundaries.size(), boundaries.tl())
 	{}
 
-	inline line_iterator::line_iterator(cv::Point p1, cv::Point p2, int connectivity)
+	inline line_iterator_cv::line_iterator_cv(cv::Point p1, cv::Point p2, int connectivity)
 		/*
 		 * use bounding box that contains both points --> no clippnig
 		 */
-		: line_iterator(p1, p2, connectivity, cv::Rect(p1, p2) + cv::Size(1,1))
+		: line_iterator_cv(p1, p2, connectivity, cv::Rect(p1, p2) + cv::Size(1,1))
 	{}
 
-	inline line_iterator::line_iterator()
-		: line_iterator({0,0}, {0,0}, 8)
+	inline line_iterator_cv::line_iterator_cv()
+		: line_iterator_cv({0,0}, {0,0}, 8)
 	{
 		++*this;
 	}
 
-	inline line_iterator& line_iterator::operator++() {
+	inline line_iterator_cv& line_iterator_cv::operator++() {
 		if (! this->end()) {
 			--m_remaining_points;
 			++m_it;
@@ -64,30 +64,30 @@ namespace heyho {
 		return *this;
 	}
 
-	inline bool line_iterator::end() const {
+	inline bool line_iterator_cv::end() const {
 		return m_remaining_points == 0;
 	}
 
-	inline bool line_iterator::last() const {
+	inline bool line_iterator_cv::last() const {
 		return m_remaining_points == 1;
 	}
 
-	inline cv::Point line_iterator::operator*() const {
+	inline cv::Point line_iterator_cv::operator*() const {
 		if (this->end()) {
 			throw std::runtime_error("dereferencing invalid iterator");
 		}
 		return m_offset + m_it.pos();
 	}
 
-	inline int line_iterator::connectivity() const {
+	inline int line_iterator_cv::connectivity() const {
 		return m_connectivity;
 	}
 
-	inline std::size_t line_iterator::size() const {
+	inline std::size_t line_iterator_cv::size() const {
 		return static_cast<size_t>(m_it.count);
 	}
 
-	inline std::size_t line_iterator::remaining_points() const {
+	inline std::size_t line_iterator_cv::remaining_points() const {
 		return m_remaining_points;
 	}
 

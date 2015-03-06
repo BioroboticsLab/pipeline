@@ -13,10 +13,10 @@
 
 namespace heyho {
 
-	class line_iterator {
+	class line_iterator_cv {
 
 	private:
-		explicit line_iterator(cv::Point p1, cv::Point p2, int connectivity, cv::Size size, cv::Point offset);
+		explicit line_iterator_cv(cv::Point p1, cv::Point p2, int connectivity, cv::Size size, cv::Point offset);
 
 	public:
 
@@ -25,31 +25,31 @@ namespace heyho {
 		 * The line will be clipped on the image boundaries ( i.e. (0,0),(size.width,size.height) ).
 		 * The line is 8-connected or 4-connected.
 		 */
-		explicit line_iterator(cv::Point p1, cv::Point p2, int connectivity, cv::Size size);
+		explicit line_iterator_cv(cv::Point p1, cv::Point p2, int connectivity, cv::Size size);
 
 		/**
 		 * Iterator for the line connecting p1 and p2.
 		 * The line will be clipped on the image boundaries.
 		 * The line is 8-connected or 4-connected.
 		 */
-		explicit line_iterator(cv::Point p1, cv::Point p2, int connectivity, cv::Rect boundaries);
+		explicit line_iterator_cv(cv::Point p1, cv::Point p2, int connectivity, cv::Rect boundaries);
 
 		/**
 		 * Iterator for the line connecting p1 and p2.
 		 * The line will not be clipped.
 		 * The line is 8-connected or 4-connected.
 		 */
-		explicit line_iterator(cv::Point p1, cv::Point p2, int connectivity);
+		explicit line_iterator_cv(cv::Point p1, cv::Point p2, int connectivity);
 
 		/**
 		 * empty line iterator.
 		 */
-		explicit line_iterator();
+		explicit line_iterator_cv();
 
 		/**
 		 * Shifts iterator to the next pixel.
 		 */
-		line_iterator& operator++();
+		line_iterator_cv& operator++();
 
 		/**
 		 * True <=> the iterator points behind the line's last pixel.
