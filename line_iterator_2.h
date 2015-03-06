@@ -14,8 +14,8 @@ namespace heyho {
 
 	class line_iterator_2 {
 	public:
-		line_iterator_2( const cv::Mat& img, cv::Point pt1, cv::Point pt2,
-		                 int connectivity=8, bool leftToRight=false );
+		line_iterator_2(cv::Size size, cv::Point pt1, cv::Point pt2,
+		                int connectivity=8, bool leftToRight=false);
 
 		uchar* operator *();
 
@@ -23,24 +23,34 @@ namespace heyho {
 
 		cv::Point pos() const;
 
+		int get_count() const {
+			return count;
+		}
+
 	private:
 		uchar* ptr;
-		const uchar* ptr0;
-		int step, elemSize;
+		const uchar* const ptr0;
+		const int step;
+		int elemSize;
 		int err, count;
 		int minusDelta, plusDelta;
 		int minusStep, plusStep;
+
+		static constexpr int img_elemSize = 1;
 	};
 
-	line_iterator_2::line_iterator_2(const cv::Mat& img, cv::Point pt1, cv::Point pt2,
-	                           int connectivity, bool left_to_right)
+	inline line_iterator_2::line_iterator_2(cv::Size size, cv::Point pt1, cv::Point pt2,
+	                                 int connectivity, bool left_to_right)
+		: ptr0(nullptr)
+		, step(size.width)
 	{
 		count = -1;
 
 		CV_Assert( connectivity == 8 || connectivity == 4 );
 
-		int bt_pix0 = static_cast<int>(img.elemSize()), bt_pix = bt_pix0;
-		size_t istep = img.step;
+		int bt_pix0 = img_elemSize;
+		int bt_pix = bt_pix0;
+		size_t istep = static_cast<size_t>(step);
 
 		int dx = pt2.x - pt1.x;
 		int dy = pt2.y - pt1.y;
@@ -59,7 +69,7 @@ namespace heyho {
 			bt_pix = (bt_pix ^ s) - s;
 		}
 
-		ptr = static_cast<uchar*>(img.data + pt1.y * istep + pt1.x * bt_pix0);
+		ptr = static_cast<uchar*>(static_cast<uchar*>(nullptr) + pt1.y * istep + pt1.x * bt_pix0);
 
 		s = dy < 0 ? -1 : 0;
 		dy = (dy ^ s) - s;
@@ -99,12 +109,9 @@ namespace heyho {
 			count = dx + dy + 1;
 		}
 
-		this->ptr0 = img.data;
-		this->step = static_cast<int>(img.step);
 		this->elemSize = bt_pix0;
 	}
 
-	inline uchar* line_iterator_2::operator *() { return ptr; }
 	inline line_iterator_2& line_iterator_2::operator ++()
 	{
 		int mask = err < 0 ? -1 : 0;
@@ -119,6 +126,12 @@ namespace heyho {
 		p.y = static_cast<int>((ptr - ptr0)/step);
 		p.x = static_cast<int>(((ptr - ptr0) - p.y*step)/elemSize);
 		return p;
+	}
+
+	namespace tests {
+
+		void line_iterator_2_tests();
+
 	}
 
 

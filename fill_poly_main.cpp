@@ -11,14 +11,14 @@
 
 #include "fill_convex_poly_cv.h"    // fill_convex_poly
 #include "ring_iterator.h"          // ring_iterator_tests
-#include "line_iterator.h"          // line_iterator_tests
 #include "poly_line_iterator.h"     // poly_line_iterator_tests
 #include "fill_convex_poly_tests.h" // compare_convex_poly
 #include "poly_line_vertical_iterator.h"
 #include "fill_convex_poly.h"
 #include <opencv2/opencv.hpp>
 #include <map>
-
+#include "line_iterator_2.h"
+#include "line_iterator_cv.h"          // line_iterator_tests
 
 
 
@@ -64,7 +64,8 @@ int main() {
 
 	// tests
 	{
-		heyho::tests::line_iterator_tests();
+		heyho::tests::line_iterator_cv_tests();
+		heyho::tests::line_iterator_2_tests();
 		heyho::tests::ring_iterator_tests();
 		heyho::tests::poly_line_iterator_tests();
 		heyho::tests::poly_line_vertical_iterator_tests();
