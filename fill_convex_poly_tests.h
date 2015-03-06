@@ -15,7 +15,8 @@
 #include <iomanip>               // std::setw
 #include <vector>                // std::vector
 #include <stdexcept>             // std::runtime_error
-#include "fill_convex_poly_cv.h" // heyho::fill_convex_poly
+#include "fill_convex_poly_cv.h" // heyho::fill_convex_poly_cv
+#include "fill_convex_poly.h"    // heyho::fill_convex_poly
 #include "helper.h"              // heyho::img_type_2_str
 
 namespace heyho {
@@ -137,7 +138,7 @@ namespace heyho {
 
 
 		/**
-		 * benchmarks cv::fillConvexPoly & heyho::fill_convex_poly
+		 * benchmarks cv::fillConvexPoly & heyho::fill_convex_poly_cv & heyho::fill_convex_poly
 		 */
 		struct benchmark {
 
@@ -158,17 +159,24 @@ namespace heyho {
 
 				std::cout << "img type: " << heyho::img_type_to_str(img_type) << " line type: " << line_type << '\n';
 				{
-					std::cout << "    opencv: ";
+					std::cout << "    opencv:    ";
 					timer t;
 					for (size_t i = 0; i < times; ++i) {
 						cv::fillConvexPoly(img, points, default_color<img_type>(), line_type, shift);
 					}
 				}
 				{
-					std::cout << "    heyho:  ";
+					std::cout << "    heyho_cv:  ";
 					timer t;
 					for (size_t i = 0; i < times; ++i) {
 						heyho::fill_convex_poly_cv<pixel_t>(img, points, default_color<img_type>(), line_type);
+					}
+				}
+				{
+					std::cout << "    heyho:     ";
+					timer t;
+					for (size_t i = 0; i < times; ++i) {
+						heyho::fill_convex_poly<pixel_t>(img, points, default_color<img_type>(), line_type);
 					}
 				}
 				return true;
