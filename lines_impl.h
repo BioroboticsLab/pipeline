@@ -11,15 +11,20 @@
 namespace heyho {
 
 	template<typename F>
-	inline F hline(cv::Size size, int x1, int x2, int y, F f)
+	inline F hline(int x_left, int x_right, int y, F f)
 	{
-		if (y >= 0 && y < size.height) {
-			x1 = std::max(x1, 0);
-			x2 = std::min(x2, size.width - 1);
-			cv::Point p(x1, y);
-			for(; p.x <= x2; ++p.x) {
-				f(p);
-			}
+		for(; x_left <= x_right; ++x_left) {
+			f(cv::Point(x_left, y));
+		}
+		return std::move(f);
+	}
+
+	template<typename F>
+	inline F hline(cv::Size size, int x_left, int x_right, int y, F f)
+	{
+		if (y >= 0 && y < size.height)
+		{
+			return hline(std::max(x_left, 0), std::min(x_right, size.width - 1), y, std::move(f));
 		}
 		return std::move(f);
 	}

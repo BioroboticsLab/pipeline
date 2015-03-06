@@ -17,7 +17,10 @@
 namespace heyho {
 
 	template<typename F>
-	inline F hline(cv::Size size, int x1, int x2, int y, F f);
+	inline F hline(int x_left, int x_right, int y, F f);
+
+	template<typename F>
+	inline F hline(cv::Size size, int x_left, int x_right, int y, F f);
 
 	template<typename F>
 	inline F line(cv::Size size, cv::Point pt1, cv::Point pt2, F f, int connectivity = 8, bool left_to_right = false);
