@@ -27,6 +27,7 @@ int main() {
 	if (false)
 	{
 		// all points in clockwise order
+		//                                   top-left          top-right         bottom-right      bottom-left
 		const std::vector<cv::Point> top   {{10,10}, {50,50}, {90,10},          {90,90},          {10,90}         };
 		const std::vector<cv::Point> right {{10,10},          {90,10}, {50,50}, {90,90},          {10,90}         };
 		const std::vector<cv::Point> bottom{{10,10},          {90,10},          {90,90}, {50,50}, {10,90}         };
@@ -38,7 +39,7 @@ int main() {
 		cv::imshow( "top", img_top);
 
 		cv::Mat img_right(100, 100, CV_8UC1, cv::Scalar(0));
-		cv::fillConvexPoly(img_right, left, cv::Scalar(255), 8, 0);
+		cv::fillConvexPoly(img_right, right, cv::Scalar(255), 8, 0);
 		cv::namedWindow( "right", cv::WINDOW_AUTOSIZE);
 		cv::imshow( "right", img_right);
 
