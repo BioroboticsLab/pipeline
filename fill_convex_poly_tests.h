@@ -95,7 +95,7 @@ namespace heyho {
 				cv::fillConvexPoly(img1, points, default_color<img_type>(), line_type, shift);
 
 				cv::Mat img2(dim, dim, img_type, white<img_type>());
-				heyho::fill_convex_poly<pixel_t>(img2, points, default_color<img_type>(), line_type);
+				heyho::fill_convex_poly_cv<pixel_t>(img2, points, default_color<img_type>(), line_type);
 
 
 				const bool equal =  0 == std::memcmp(img1.datastart, img2.datastart, img1.dataend - img1.datastart);
@@ -151,7 +151,7 @@ namespace heyho {
 					std::cout << "    heyho:  ";
 					timer t;
 					for (size_t i = 0; i < times; ++i) {
-						heyho::fill_convex_poly<pixel_t>(img, points, default_color<img_type>(), line_type);
+						heyho::fill_convex_poly_cv<pixel_t>(img, points, default_color<img_type>(), line_type);
 					}
 				}
 				return true;

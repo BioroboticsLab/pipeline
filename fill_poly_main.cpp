@@ -72,7 +72,7 @@ int main() {
 		{
 			const std::vector<heyho::tests::fill_convex_poly_f> fill_functions {
 				&heyho::tests::cv_fill_confex_poly,
-				static_cast<heyho::tests::fill_convex_poly_f>(&heyho::fill_convex_poly<uint8_t>)
+				static_cast<heyho::tests::fill_convex_poly_f>(&heyho::fill_convex_poly_cv<uint8_t>)
 			};
 			heyho::tests::benchmark_fill_convex_poly_functions(fill_functions, 400, 5000);
 			std::cout << '\n';

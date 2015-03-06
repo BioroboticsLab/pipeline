@@ -11,7 +11,7 @@
 namespace heyho {
 
 	template<typename F>
-	F convex_poly(cv::Size size, const cv::Point* pts, int npts, F f, int line_type)
+	F convex_poly_cv(cv::Size size, const cv::Point* pts, int npts, F f, int line_type)
 	{
 
 		if (line_type != 4 && line_type != 8) {
@@ -147,11 +147,11 @@ namespace heyho {
 
 
 	template<typename pixel_t>
-	void fill_convex_poly(cv::InputOutputArray _img, cv::InputArray _points, const cv::Scalar& color, int line_type) {
+	void fill_convex_poly_cv(cv::InputOutputArray _img, cv::InputArray _points, const cv::Scalar& color, int line_type) {
 		cv::Mat img = _img.getMat();
 		const cv::Mat points = _points.getMat();
 		CV_Assert(points.checkVector(2, CV_32S) >= 0);
-		heyho::fill_convex_poly<pixel_t>(
+		heyho::fill_convex_poly_cv<pixel_t>(
 				img,
 				reinterpret_cast<const cv::Point*>(points.data),
 				points.rows * points.cols * points.channels() / 2,
@@ -162,7 +162,7 @@ namespace heyho {
 
 
 	template<typename pixel_t>
-	void fill_convex_poly(cv::Mat& img, const cv::Point* pts, int npts, const cv::Scalar& color, int line_type)
+	void fill_convex_poly_cv(cv::Mat& img, const cv::Point* pts, int npts, const cv::Scalar& color, int line_type)
 	{
 		if( !pts || npts <= 0 )
 			return;
@@ -170,12 +170,12 @@ namespace heyho {
 		if( line_type == CV_AA && img.depth() != CV_8U )
 			line_type = 8;
 
-		heyho::fill_convex_poly(img, pts, npts, scalar2pixel<pixel_t>(color), line_type);
+		heyho::fill_convex_poly_cv(img, pts, npts, scalar2pixel<pixel_t>(color), line_type);
 	}
 
 
 	template<typename pixel_t>
-	void fill_convex_poly(cv::Mat& img, const cv::Point* v, int npts, const pixel_t &color, int line_type)
+	void fill_convex_poly_cv(cv::Mat& img, const cv::Point* v, int npts, const pixel_t &color, int line_type)
 	{
 		/*
 		 * INFO: cv::Mat image type
@@ -212,7 +212,7 @@ namespace heyho {
 			throw std::invalid_argument("invalid image pixel size");
 		}
 
-		heyho::convex_poly(img.size(), v, npts, pixel_setter<pixel_t>{img, color}, line_type);
+		heyho::convex_poly_cv(img.size(), v, npts, pixel_setter<pixel_t>{img, color}, line_type);
 	}
 
 }
