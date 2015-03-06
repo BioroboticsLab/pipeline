@@ -122,7 +122,7 @@ namespace heyho {
 					my_assert( it.end() && !it.last() );
 				}
 			} // END reversed
-			std::cout << "passend :)\n";
+			std::cout << "passed :)\n";
 		} // END ring_iterator_tests();
 
 	} // END namespace tests

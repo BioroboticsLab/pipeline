@@ -90,7 +90,7 @@ namespace heyho {
 			//=============
 			compare(line_iterator({-5,-5}, {-5,-5}, 8), {{-5,-5}});
 
-			std::cout << "passend :)\n";
+			std::cout << "passed :)\n";
 		}
 	}
 
