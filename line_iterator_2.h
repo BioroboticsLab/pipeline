@@ -39,19 +39,6 @@ namespace heyho {
 
 		CV_Assert( connectivity == 8 || connectivity == 4 );
 
-		if( static_cast<unsigned>(pt1.x) >= static_cast<unsigned>(img.cols) ||
-			static_cast<unsigned>(pt2.x) >= static_cast<unsigned>(img.cols) ||
-			static_cast<unsigned>(pt1.y) >= static_cast<unsigned>(img.rows) ||
-			static_cast<unsigned>(pt2.y) >= static_cast<unsigned>(img.rows) )
-		{
-			if( !cv::clipLine( img.size(), pt1, pt2 ) )
-			{
-				ptr = img.data;
-				err = plusDelta = minusDelta = plusStep = minusStep = count = 0;
-				return;
-			}
-		}
-
 		int bt_pix0 = static_cast<int>(img.elemSize()), bt_pix = bt_pix0;
 		size_t istep = img.step;
 
