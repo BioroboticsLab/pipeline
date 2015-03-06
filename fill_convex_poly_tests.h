@@ -79,22 +79,39 @@ namespace heyho {
 
 			const cv::Size axes;
 			const int angle;
+			const int dim_x;
+			const int dim_y;
+			const cv::Point center;
+
+			compare(cv::Size axes, int angle)
+				: axes(axes)
+				, angle(angle)
+				, dim_x(2 * std::max(axes.width, axes.height) + 10)
+				, dim_y(dim_x)
+				, center(dim_x / 2, dim_y / 2)
+			{}
+
+			compare(cv::Size axes, int angle, int dim_x, int dim_y, cv::Point center)
+				: axes(axes)
+				, angle(angle)
+				, dim_x(dim_x)
+				, dim_y(dim_y)
+				, center(center)
+			{}
 
 			template<typename pixel_t, int line_type>
 			bool operator()() const
 			{
 				constexpr int img_type = cv::DataType<pixel_t>::type;
 				constexpr int shift = 0;
-				const int dim = 2 * std::max(axes.width, axes.height) + 10;
-				const cv::Point center(dim / 2, dim / 2);
 				std::vector<cv::Point> points;
 				cv::ellipse2Poly(center, axes, angle, 0, 360, 1, points);
 
 
-				cv::Mat img1(dim, dim, img_type, white<img_type>());
+				cv::Mat img1(dim_y, dim_x, img_type, white<img_type>());
 				cv::fillConvexPoly(img1, points, default_color<img_type>(), line_type, shift);
 
-				cv::Mat img2(dim, dim, img_type, white<img_type>());
+				cv::Mat img2(dim_y, dim_x, img_type, white<img_type>());
 				heyho::fill_convex_poly_cv<pixel_t>(img2, points, default_color<img_type>(), line_type);
 
 
