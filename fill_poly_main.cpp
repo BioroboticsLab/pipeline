@@ -15,45 +15,51 @@
 #include "poly_line_iterator.h"     // poly_line_iterator_tests
 #include "fill_convex_poly_tests.h" // compare_convex_poly
 #include "poly_line_vertical_iterator.h"
+#include "fill_convex_poly.h"
 #include <opencv2/opencv.hpp>
-
+#include <map>
 
 
 
 
 int main() {
 
-	// test cv::fillConvexPoly with invalid inputs
-	if (false)
 	{
+
+		std::map<const std::string, std::vector<cv::Point>> m;
+
 		// all points in clockwise order
 		//                                   top-left          top-right         bottom-right      bottom-left
-		const std::vector<cv::Point> top   {{10,10}, {50,50}, {90,10},          {90,90},          {10,90}         };
-		const std::vector<cv::Point> right {{10,10},          {90,10}, {50,50}, {90,90},          {10,90}         };
-		const std::vector<cv::Point> bottom{{10,10},          {90,10},          {90,90}, {50,50}, {10,90}         };
-		const std::vector<cv::Point> left  {{10,10},          {90,10},          {90,90},          {10,90}, {50,50}};
+		m["top"]    = std::vector<cv::Point>{{10,10}, {50,50}, {90,10},          {90,90},          {10,90}         };
+		m["right"]  = std::vector<cv::Point>{{10,10},          {90,10}, {50,50}, {90,90},          {10,90}         };
+		m["bottom"] = std::vector<cv::Point>{{10,10},          {90,10},          {90,90}, {50,50}, {10,90}         };
+		m["left"]   = std::vector<cv::Point>{{10,10},          {90,10},          {90,90},          {10,90}, {50,50}};
 
-		cv::Mat img_top(100, 100, CV_8UC1, cv::Scalar(0));
-		cv::fillConvexPoly(img_top, top, cv::Scalar(255), 8, 0);
-		cv::namedWindow( "top", cv::WINDOW_AUTOSIZE);
-		cv::imshow( "top", img_top);
+		// test heyho::fillConvexPoly
+		if (true and false)
+		{
+			for (const auto &key_val : m) {
+				cv::Mat img(100, 100, CV_8UC1, cv::Scalar(0));
+				heyho::fill_convex_poly<uchar>(img, key_val.second, cv::Scalar(255), 8);
+				const auto name = "heyho: " + key_val.first;
+				cv::namedWindow(name, cv::WINDOW_AUTOSIZE);
+				cv::imshow(name, img);
+			}
+			cv::waitKey();
+		}
 
-		cv::Mat img_right(100, 100, CV_8UC1, cv::Scalar(0));
-		cv::fillConvexPoly(img_right, right, cv::Scalar(255), 8, 0);
-		cv::namedWindow( "right", cv::WINDOW_AUTOSIZE);
-		cv::imshow( "right", img_right);
-
-		cv::Mat img_bottom(100, 100, CV_8UC1, cv::Scalar(0));
-		cv::fillConvexPoly(img_bottom, bottom, cv::Scalar(255), 8, 0);
-		cv::namedWindow( "bottom", cv::WINDOW_AUTOSIZE);
-		cv::imshow( "bottom", img_bottom);
-
-		cv::Mat img_left(100, 100, CV_8UC1, cv::Scalar(0));
-		cv::fillConvexPoly(img_left, left, cv::Scalar(255), 8, 0);
-		cv::namedWindow( "left", cv::WINDOW_AUTOSIZE);
-		cv::imshow( "left", img_left);
-
-		cv::waitKey();
+		// test cv::fillConvexPoly with invalid inputs
+		if (false)
+		{
+			for (const auto &key_val : m) {
+				cv::Mat img(100, 100, CV_8UC1, cv::Scalar(0));
+				cv::fillConvexPoly(img, key_val.second, cv::Scalar(255), 8, 0);
+				const auto name = "cv: " + key_val.first;
+				cv::namedWindow(name, cv::WINDOW_AUTOSIZE);
+				cv::imshow(name, img);
+			}
+			cv::waitKey();
+		}
 	}
 
 	// tests
@@ -72,7 +78,8 @@ int main() {
 		{
 			const std::vector<heyho::tests::fill_convex_poly_f> fill_functions {
 				&heyho::tests::cv_fill_confex_poly,
-				static_cast<heyho::tests::fill_convex_poly_f>(&heyho::fill_convex_poly_cv<uint8_t>)
+				static_cast<heyho::tests::fill_convex_poly_f>(&heyho::fill_convex_poly_cv<uint8_t>),
+				static_cast<heyho::tests::fill_convex_poly_f>(&heyho::fill_convex_poly<uint8_t>)
 			};
 			heyho::tests::benchmark_fill_convex_poly_functions(fill_functions, 400, 5000);
 			std::cout << '\n';
