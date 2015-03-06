@@ -13,6 +13,12 @@
 
 namespace heyho {
 
+	/**
+	 * - iterates over the pixels of the lines connecting the iterator's points.
+	 * - the y-values are assumed to be non-decreasing
+	 *   - thus pixels with invalid y-coordinates are skipped until the next valid pixel is reached
+	 * - groups of consecutive pixels with the same y-coordinate are merged into an object containing the leftmost and rightmost x-value
+	 */
 	template<typename POINTS_IT>
 	class poly_line_vertical_iterator
 	{

@@ -97,8 +97,10 @@ namespace heyho {
 			}
 
 			// the next point is in an invalid line
+			// -> skip until the next point is in the right line again
+			// i.e. same or next
 			else {
-				throw int(45);
+				++m_poly_line_points;
 			}
 		}
 	}
