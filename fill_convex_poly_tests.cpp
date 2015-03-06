@@ -37,16 +37,43 @@ namespace heyho {
 
 		void compare_convex_poly()
 		{
-			std::cout << "FOREACH( cv::fillConvexPoly == heyho::fill_convex_poly ) ... ";
-			std::cout.flush();
-			for (int a = 0; a < 45; a += 5) {
-				for (int a1 = 25; a1 < 50; ++a1) {
-					for (int a2 = a1; a2 < 50; ++a2) {
-						foreach()(compare{{a1, a2}, a});
+			{
+				std::cout << "FOREACH( cv::fillConvexPoly == heyho::fill_convex_poly ) ... ";
+				std::cout.flush();
+				for (int angle = 0; angle < 45; angle += 5) {
+					for (int axis_minor = 25; axis_minor < 50; ++axis_minor) {
+						for (int axis_major = axis_minor; axis_major < 50; ++axis_major) {
+							foreach()(compare{{axis_minor, axis_major}, angle});
+						}
 					}
 				}
+				std::cout << "passed :)\n";
 			}
-			std::cout << "passed :)\n";
+
+			{
+				std::cout << "FOREACH( cropped cv::fillConvexPoly == cropped heyho::fill_convex_poly ) ... ";
+				std::cout.flush();
+
+				// left
+				foreach()(compare{{100, 10}, 0, 100, 100, {10, 50}});
+
+				// right
+				foreach()(compare{{100, 10}, 0, 100, 100, {90, 50}});
+
+				// top
+				foreach()(compare{{10, 100}, 0, 100, 100, {50, 10}});
+
+				// bottom
+				foreach()(compare{{10, 100}, 0, 100, 100, {50, 90}});
+
+				// all sides
+				foreach()(compare{{150, 150}, 0, 100, 100, {50, 50}});
+
+				// completly outside
+				foreach()(compare{{10, 10}, 0, 100, 100, {500, 500}});
+
+				std::cout << "passed :)\n";
+			}
 		}
 
 	}
