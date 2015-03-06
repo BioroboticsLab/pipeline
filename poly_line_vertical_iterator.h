@@ -49,7 +49,7 @@ namespace heyho {
 	private:
 		void set_to_left_right_most_in_line();
 
-		poly_lines_iterator<POINTS_IT> m_poly_line_points;
+		poly_line_iterator<POINTS_IT> m_poly_line_points;
 		hline m_current_point;
 		bool m_end;
 	};

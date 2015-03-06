@@ -25,19 +25,19 @@ namespace heyho {
 	 *                     POINTS_IT::value_type POINTS_IT::operator*();
 	 */
 	template<typename POINTS_IT>
-	class poly_lines_iterator {
+	class poly_line_iterator {
 	public:
 		using value_type = cv::Point;
 
 		static_assert(std::is_same<typename POINTS_IT::value_type, value_type>::value, "invalid point type");
 
-		explicit poly_lines_iterator(POINTS_IT points_it, int connectivity);
+		explicit poly_line_iterator(POINTS_IT points_it, int connectivity);
 
 		bool end() const;
 
 		value_type operator*() const;
 
-		poly_lines_iterator& operator++();
+		poly_line_iterator& operator++();
 
 	private:
 		static heyho::line_iterator make_line_it(POINTS_IT &it, int connectivity);
