@@ -62,12 +62,12 @@ namespace heyho {
 					const cv::Point p1(25, 25);
 					const cv::Point vec(x,y);
 					compare(
-						line_iterator_2( size, p1, p1 + vec, 8, false),
+						line_iterator_2( size, p1, p1 + vec, 8),
 						line_iterator_cv(      p1, p1 + vec, 8, size)
 					);
 
 					compare(
-						line_iterator_2( size, p1, p1 + vec, 4, false),
+						line_iterator_2( size, p1, p1 + vec, 4),
 						line_iterator_cv(      p1, p1 + vec, 4, size)
 					);
 				}

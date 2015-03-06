@@ -16,7 +16,7 @@ namespace heyho {
 	class line_iterator_2 {
 	public:
 		line_iterator_2(cv::Size size, cv::Point pt1, cv::Point pt2,
-		                int connectivity=8, bool leftToRight=false);
+		                int connectivity = 8);
 
 		uchar* operator *();
 
@@ -43,7 +43,7 @@ namespace heyho {
 	};
 
 	inline line_iterator_2::line_iterator_2(cv::Size size, cv::Point pt1, cv::Point pt2,
-	                                 int connectivity, bool left_to_right)
+	                                 int connectivity)
 		: ptr0(nullptr)
 		, step(size.width)
 	{
@@ -84,26 +84,11 @@ namespace heyho {
 
 		{
 //			const int s = dx < 0 ? -1 : 0;
-			if( left_to_right )
-			{
-//				dx = (dx ^ s) - s;
-//				dy = (dy ^ s) - s;
-//				pt1.x ^= (pt1.x ^ pt2.x) & s;
-//				pt1.y ^= (pt1.y ^ pt2.y) & s;
-				if (dx < 0) {
-					dx = -dx;
-					dy = -dy;
-					pt1 = pt2;
-				}
-			}
-			else
-			{
-//				dx = (dx ^ s) - s;
-//				bt_pix = (bt_pix ^ s) - s;
-				if (dx < 0) {
-					dx = -dx;
-					bt_pix = -bt_pix;
-				}
+//			dx = (dx ^ s) - s;
+//			bt_pix = (bt_pix ^ s) - s;
+			if (dx < 0) {
+				dx = -dx;
+				bt_pix = -bt_pix;
 			}
 		}
 		ptr = static_cast<uchar*>(static_cast<uchar*>(nullptr) + pt1.y * istep + pt1.x);
