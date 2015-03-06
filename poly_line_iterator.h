@@ -16,7 +16,7 @@
 namespace heyho {
 
 	/**
-	 * iterates over the points of the lines connecting the ring_iterator's points
+	 * iterates over the points of the lines connecting the iterator's points
 	 *
 	 * @tparam POINTS_IT required operations:
 	 *                     POINTS_IT& POINTS_IT::operator++()
