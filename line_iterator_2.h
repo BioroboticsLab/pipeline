@@ -38,6 +38,9 @@ namespace heyho {
 		int plusDelta;
 		int minusStep;
 		int plusStep;
+		cv::Point m_current_point;
+		cv::Point m_plus_step;
+		cv::Point m_minus_step;
 
 		static constexpr int img_elemSize = 1;
 	};
@@ -46,6 +49,9 @@ namespace heyho {
 	                                 int connectivity)
 		: ptr0(nullptr)
 		, step(size.width)
+		, m_current_point(pt1)
+		, m_plus_step()
+		, m_minus_step()
 	{
 		/*
 		 * BIT BULLSHIT
@@ -72,15 +78,17 @@ namespace heyho {
 		 *   s =  0 --> x ^= 0; y ^= 0; x ^= 0 --> no swap
 		 *   s = -1 --> x ^= y = x ^ y; y ^= x = y ^ x ^ y = x; x ^= y = x ^ y ^ x = y --> swap
 		 */
-		count = -1;
 
 		CV_Assert( connectivity == 8 || connectivity == 4 );
 
-		int bt_pix = img_elemSize;
-		size_t istep = static_cast<size_t>(step);
+		int bt_pix = img_elemSize;                   // pixel-increment == x-increment
+		size_t istep = static_cast<size_t>(step);    // line-increment  == y-increment
+
+		cv::Point bt_pix_step(1,1);
 
 		int dx = pt2.x - pt1.x;
 		int dy = pt2.y - pt1.y;
+
 
 		{
 //			const int s = dx < 0 ? -1 : 0;
@@ -88,7 +96,8 @@ namespace heyho {
 //			bt_pix = (bt_pix ^ s) - s;
 			if (dx < 0) {
 				dx = -dx;
-				bt_pix = -bt_pix;
+				bt_pix = -bt_pix;                // change sign of x-increment
+				bt_pix_step.x = -bt_pix_step.x;  // ....
 			}
 		}
 		ptr = static_cast<uchar*>(static_cast<uchar*>(nullptr) + pt1.y * istep + pt1.x);
@@ -99,9 +108,11 @@ namespace heyho {
 //			istep = (istep ^ s) - s;
 			if (dy < 0) {
 				dy = -dy;
-				istep = -istep;
+				istep = -istep;                 // change sign of y-increment
+				bt_pix_step.y = -bt_pix_step.y; // ....
 			}
 		}
+
 
 		{
 //			const int s = dy > dx ? -1 : 0;
@@ -114,35 +125,49 @@ namespace heyho {
 //			istep ^= bt_pix & s;
 //			bt_pix ^= static_cast<int>(istep) & s;
 			if (dy > dx) {
+				// bt    is x
+				// istep is y
 				std::swap(dx, dy);
-				const int tmp = static_cast<int>(istep);
-				istep = bt_pix;
-				bt_pix = tmp;
+
+				const int tmp = static_cast<int>(istep);  // swap x- & y-increment
+				istep = bt_pix;                           //
+				bt_pix = tmp;                             //
+				//std::swap(bt_pix_step.x, bt_pix_step.y);  //
+
+				m_minus_step = cv::Point(0,             bt_pix_step.y);
+				m_plus_step  = cv::Point(bt_pix_step.x, 0            );
+
+			}
+			else {
+				m_minus_step = cv::Point(bt_pix_step.x, 0            );
+				m_plus_step  = cv::Point(0,             bt_pix_step.y);
 
 			}
 		}
-
-		if( connectivity == 8 )
 		{
 			assert( dx >= 0 && dy >= 0 );
-
-			err = dx - (dy + dy);
-			plusDelta = dx + dx;
-			minusDelta = -(dy + dy);
+			minusStep = bt_pix;
 			plusStep = static_cast<int>(istep);
-			minusStep = bt_pix;
-			count = dx + 1;
-		}
-		else /* connectivity == 4 */
-		{
-			assert( dx >= 0 && dy >= 0 );
-
-			err = 0;
-			plusDelta = (dx + dx) + (dy + dy);
 			minusDelta = -(dy + dy);
-			plusStep = static_cast<int>(istep) - bt_pix;
-			minusStep = bt_pix;
-			count = dx + dy + 1;
+
+			if( connectivity == 8 )
+			{
+				err = dx - (dy + dy);
+				plusDelta = dx + dx;
+
+				count = dx + 1;
+			}
+			else /* connectivity == 4 */
+			{
+				err = 0;
+				plusDelta = (dx + dx) + (dy + dy);
+
+
+				plusStep -= minusStep;
+				m_plus_step -= m_minus_step;
+
+				count = dx + dy + 1;
+			}
 		}
 	}
 
@@ -154,10 +179,12 @@ namespace heyho {
 		if (err < 0) {
 			err += minusDelta + plusDelta;
 			ptr += minusStep +  plusStep;
+			m_current_point += m_minus_step + m_plus_step;
 		}
 		else {
 			err += minusDelta;
 			ptr += minusStep;
+			m_current_point += m_minus_step;
 		}
 		return *this;
 	}
@@ -167,7 +194,8 @@ namespace heyho {
 		cv::Point p;
 		p.y = static_cast<int>((ptr - ptr0)/step);
 		p.x = static_cast<int>((ptr - ptr0) - p.y*step);
-		return p;
+		return m_current_point;
+		//return p;
 	}
 
 	namespace tests {
