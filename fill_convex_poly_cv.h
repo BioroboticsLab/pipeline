@@ -17,15 +17,15 @@
 
 namespace heyho {
 
-	template<typename F>
+	template<typename F, typename LINE_IT = line_iterator_cv>
 	F convex_poly_cv(cv::Size size, const cv::Point* v, int npts, F f, int line_type = 8);
 
 
-	template<typename pixel_t>
+	template<typename pixel_t, typename LINE_IT = line_iterator_cv>
 	void fill_convex_poly_cv(cv::InputOutputArray _img, cv::InputArray _points,         const cv::Scalar& color, int line_type = 8);
-	template<typename pixel_t>
+	template<typename pixel_t, typename LINE_IT = line_iterator_cv>
 	void fill_convex_poly_cv(cv::Mat& img,              const cv::Point* pts, int npts, const cv::Scalar& color, int line_type = 8);
-	template<typename pixel_t>
+	template<typename pixel_t, typename LINE_IT = line_iterator_cv>
 	void fill_convex_poly_cv(cv::Mat& img,              const cv::Point* pts, int npts, const pixel_t &color,    int line_type = 8);
 
 }
