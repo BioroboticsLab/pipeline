@@ -17,7 +17,8 @@
 #include "fill_convex_poly.h"
 #include <opencv2/opencv.hpp>
 #include <map>
-#include "line_iterator_2.h"
+
+#include "line_iterator.h"
 #include "line_iterator_cv.h"          // line_iterator_tests
 
 

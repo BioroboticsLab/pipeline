@@ -1,16 +1,16 @@
 /*
- * line_iterator_2.cpp
+ * line_iterator.cpp
  *
  *  Created on: Mar 6, 2015
  *      Author: tobias
  */
 
-#include "line_iterator_2.h"
 #include "line_iterator_cv.h"
 #include <vector>         // std::vector
 #include <iostream>       // std::cout
 #include <algorithm>      // std::equal
 #include <stdexcept>      // std::runtime_error
+#include "line_iterator.h"
 
 
 namespace heyho {

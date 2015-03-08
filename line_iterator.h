@@ -1,17 +1,16 @@
 /*
- * line_iterator_2.h
+ * line_iterator.h
  *
  *  Created on: Mar 6, 2015
  *      Author: tobias
  */
 
-#ifndef LINE_ITERATOR_2_H_
-#define LINE_ITERATOR_2_H_
+#ifndef LINE_ITERATOR_H_
+#define LINE_ITERATOR_H_
 
-#include <opencv2/opencv.hpp>
-#include <algorithm>
-#include "helper.h" // heyho::abs
-#include <stdexcept> // std::invalid_argument, std::runtime_error
+#include <opencv2/opencv.hpp> // cv::Point
+#include "helper.h"           // heyho::abs
+#include <stdexcept>          // std::invalid_argument, std::runtime_error
 
 namespace heyho {
 
@@ -138,4 +137,4 @@ namespace heyho {
 
 
 
-#endif /* LINE_ITERATOR_2_H_ */
+#endif /* LINE_ITERATOR_H_ */
