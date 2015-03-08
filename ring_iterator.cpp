@@ -16,7 +16,7 @@ namespace heyho {
 
 		void ring_iterator_tests() {
 
-			using ring_it_t = heyho::ring_iterator<std::vector<int>::const_iterator>;
+			using ring_it_t = heyho::ring_iterator_bd<std::vector<int>::const_iterator>;
 
 			const auto my_assert = [](bool b) {
 				if (!b) {

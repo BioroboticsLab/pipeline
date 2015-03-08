@@ -11,7 +11,7 @@
 namespace heyho {
 
 	template<typename BDIT>
-	inline ring_iterator<BDIT>::ring_iterator(BDIT range_first, BDIT range_last, BDIT first_element, BDIT last_element, bool reverse_direction)
+	inline ring_iterator_bd<BDIT>::ring_iterator_bd(BDIT range_first, BDIT range_last, BDIT first_element, BDIT last_element, bool reverse_direction)
 		: m_range_first(range_first)
 		, m_range_last(range_last)
 		, m_first_element(first_element)
@@ -25,7 +25,7 @@ namespace heyho {
 	}
 
 	template<typename BDIT>
-	inline const typename ring_iterator<BDIT>::value_type& ring_iterator<BDIT>::operator*() const {
+	inline const typename ring_iterator_bd<BDIT>::value_type& ring_iterator_bd<BDIT>::operator*() const {
 		if (this->end()) {
 			throw std::runtime_error("dereferencing invalid iterator");
 		}
@@ -33,17 +33,17 @@ namespace heyho {
 	}
 
 	template<typename BDIT>
-	inline bool ring_iterator<BDIT>::last() const {
+	inline bool ring_iterator_bd<BDIT>::last() const {
 		return m_current == m_last_element;
 	}
 
 	template<typename BDIT>
-	inline bool ring_iterator<BDIT>::end() const {
+	inline bool ring_iterator_bd<BDIT>::end() const {
 		return m_current == m_range_last;
 	}
 
 	template<typename BDIT>
-	inline ring_iterator<BDIT>& ring_iterator<BDIT>::operator++()
+	inline ring_iterator_bd<BDIT>& ring_iterator_bd<BDIT>::operator++()
 	{
 		if (! this->end()) {
 			// last element --> invalidate this
@@ -64,7 +64,7 @@ namespace heyho {
 	}
 
 	template<typename BDIT>
-	inline void ring_iterator<BDIT>::move_left() {
+	inline void ring_iterator_bd<BDIT>::move_left() {
 		if (m_current == m_range_first) {
 			m_current = m_range_last;
 		}
@@ -72,7 +72,7 @@ namespace heyho {
 	}
 
 	template<typename BDIT>
-	inline void  ring_iterator<BDIT>::move_right() {
+	inline void  ring_iterator_bd<BDIT>::move_right() {
 		++m_current;
 		if (m_current == m_range_last) {
 			m_current = m_range_first;

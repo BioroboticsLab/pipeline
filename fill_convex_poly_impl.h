@@ -13,7 +13,7 @@ namespace heyho {
 	template<typename IT, typename F>
 	F convex_poly(cv::Size size, IT begin, IT end, F f, int connectivity)
 	{
-		using ring_it_t  = ring_iterator<IT>;
+		using ring_it_t  = ring_iterator_bd<IT>;
 		using pixel_it_t = poly_line_vertical_iterator<ring_it_t>;
 
 		const auto min_max_y_it = std::minmax_element(begin, end, cv_point_less_y{});

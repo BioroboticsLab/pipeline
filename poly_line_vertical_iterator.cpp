@@ -22,7 +22,7 @@ namespace heyho {
 			 */
 			const auto line_2_points = [](std::vector<cv::Point> poly_points, bool leftmost) {
 				using BDIT = std::vector<cv::Point>::const_iterator;
-				using ring = ring_iterator<BDIT>;
+				using ring = ring_iterator_bd<BDIT>;
 				using poly_v_line = poly_line_vertical_iterator<ring>;
 
 				poly_v_line pl(ring(poly_points.cbegin(), poly_points.cend(), poly_points.cbegin(), poly_points.cend() - 1, false), 8);

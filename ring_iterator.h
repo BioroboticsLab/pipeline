@@ -24,11 +24,11 @@ namespace heyho {
 	 * @tparam BDIT bidirectional iterator type
 	 */
 	template<typename BDIT>
-	class ring_iterator {
+	class ring_iterator_bd {
 	public:
 		using value_type = typename std::iterator_traits<BDIT>::value_type;
 
-		explicit ring_iterator(BDIT range_first, BDIT range_last, BDIT first_element, BDIT last_element, bool reverse_direction);
+		explicit ring_iterator_bd(BDIT range_first, BDIT range_last, BDIT first_element, BDIT last_element, bool reverse_direction);
 
 		const value_type& operator*() const;
 
@@ -36,7 +36,7 @@ namespace heyho {
 
 		bool end() const;
 
-		ring_iterator& operator++();
+		ring_iterator_bd& operator++();
 
 	private:
 
