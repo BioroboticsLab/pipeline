@@ -17,7 +17,7 @@ namespace heyho {
 
 	namespace tests {
 
-		void line_iterator_2_tests() {
+		void line_iterator_tests() {
 			const auto it_cv_2_vec = [](line_iterator_cv it) {
 				std::vector<cv::Point> result;
 				for (; !it.end(); ++it) {
@@ -26,7 +26,7 @@ namespace heyho {
 				return result;
 			};
 
-			const auto it_2_2_vec = [](line_iterator_2 it) {
+			const auto it_2_2_vec = [](line_iterator it) {
 				std::vector<cv::Point> result;
 				for (; !it.end(); ++it) {
 					result.emplace_back(it.pos());
@@ -34,7 +34,7 @@ namespace heyho {
 				return result;
 			};
 
-			const auto compare = [&it_cv_2_vec, &it_2_2_vec](line_iterator_2 it, line_iterator_cv expected) {
+			const auto compare = [&it_cv_2_vec, &it_2_2_vec](line_iterator it, line_iterator_cv expected) {
 				const auto pts_got = it_2_2_vec(it);
 				const auto pts_expected = it_cv_2_vec(expected);
 				if (pts_got.size() != pts_expected.size() || !std::equal(pts_got.cbegin(), pts_got.cend(), pts_expected.cbegin())) {
@@ -52,7 +52,7 @@ namespace heyho {
 				}
 			};
 
-			std::cout << "line iterator 2 tests ... ";
+			std::cout << "line iterator tests ... ";
 			std::cout.flush();
 
 			// test every line :)
@@ -62,12 +62,12 @@ namespace heyho {
 					const cv::Point p1(25, 25);
 					const cv::Point vec(x,y);
 					compare(
-						line_iterator_2( size, p1, p1 + vec, 8),
+						line_iterator( size, p1, p1 + vec, 8),
 						line_iterator_cv(      p1, p1 + vec, 8, size)
 					);
 
 					compare(
-						line_iterator_2( size, p1, p1 + vec, 4),
+						line_iterator( size, p1, p1 + vec, 4),
 						line_iterator_cv(      p1, p1 + vec, 4, size)
 					);
 				}

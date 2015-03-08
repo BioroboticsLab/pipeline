@@ -66,7 +66,7 @@ int main() {
 	// tests
 	{
 		heyho::tests::line_iterator_cv_tests();
-		heyho::tests::line_iterator_2_tests();
+		heyho::tests::line_iterator_tests();
 		heyho::tests::ring_iterator_tests();
 		heyho::tests::poly_line_iterator_tests();
 		heyho::tests::poly_line_vertical_iterator_tests();
