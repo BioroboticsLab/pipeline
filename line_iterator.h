@@ -14,6 +14,16 @@
 
 namespace heyho {
 
+/**
+ * TODO TODO
+ *
+ * size check
+ *
+ * templ line tests ---> test both
+ *
+ *
+ */
+
 	class line_iterator {
 	public:
 		line_iterator(cv::Point pt1, cv::Point pt2, int connectivity = 8, cv::Size size = cv::Size(0,0));
