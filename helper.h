@@ -12,6 +12,7 @@
 #include <string>             // std::string, std::to_string
 #include <functional>         // std::reverence_wrapper
 #include <stdexcept>          // std::invalid_argument
+#include <cmath>              // std::abs
 
 namespace heyho {
 
@@ -54,6 +55,11 @@ namespace heyho {
 		std::reference_wrapper<cv::Mat> m_img;
 		pixel_t m_color;
 	};
+
+	template<typename T>
+	cv::Point_<T> abs(const cv::Point_<T> &p) {
+		return {std::abs(p.x), std::abs(p.y)};
+	}
 
 }
 
