@@ -16,9 +16,9 @@ namespace heyho {
 
 	class line_iterator {
 	public:
-		line_iterator(cv::Point pt1, cv::Point pt2, int connectivity = 8);
+		line_iterator(cv::Point pt1, cv::Point pt2, int connectivity = 8, cv::Size size = cv::Size(0,0));
 
-		uchar* operator *();
+		cv::Point operator*() const;
 
 		line_iterator& operator ++();
 
@@ -38,7 +38,7 @@ namespace heyho {
 		int       m_slow_step_err_inc;
 	};
 
-	inline line_iterator::line_iterator(cv::Point pt1, cv::Point pt2, int connectivity)
+	inline line_iterator::line_iterator(cv::Point pt1, cv::Point pt2, int connectivity, cv::Size)
 		: m_current_point(pt1)
 		, m_remaining_points(1)
 	{
@@ -123,6 +123,10 @@ namespace heyho {
 			throw std::runtime_error("dereferencing an invalid pointer");
 		}
 		return m_current_point;
+	}
+
+	inline cv::Point line_iterator::operator*() const {
+		return this->pos();
 	}
 
 	namespace tests {
