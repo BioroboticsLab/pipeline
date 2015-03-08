@@ -30,14 +30,14 @@ namespace heyho {
 	}
 
 
-	template<typename F>
+	template<typename F, typename LINE_IT>
 	inline F line(cv::Size size, cv::Point pt1, cv::Point pt2, F f, int connectivity, bool left_to_right)
 	{
 		if (left_to_right && pt1.x > pt2.x) {
 			using std::swap;
 			swap(pt1, pt2);
 		}
-		for (heyho::line_iterator_cv it(pt1, pt2, connectivity, size); !it.end(); ++it) {
+		for (LINE_IT it(pt1, pt2, connectivity, size); !it.end(); ++it) {
 			f(*it);
 		}
 		return std::move(f);
