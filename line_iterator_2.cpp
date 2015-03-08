@@ -28,7 +28,7 @@ namespace heyho {
 
 			const auto it_2_2_vec = [](line_iterator_2 it) {
 				std::vector<cv::Point> result;
-				for (int i = 0; i < it.get_count(); ++i, ++it) {
+				for (; !it.end(); ++it) {
 					result.emplace_back(it.pos());
 				}
 				return result;

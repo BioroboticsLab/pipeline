@@ -10,6 +10,8 @@
 
 #include <opencv2/opencv.hpp>
 #include <algorithm>
+#include "helper.h" // heyho::abs
+#include <stdexcept> // std::invalid_argument, std::runtime_error
 
 namespace heyho {
 
@@ -24,178 +26,105 @@ namespace heyho {
 
 		cv::Point pos() const;
 
-		int get_count() const {
-			return count;
+		bool end() const {
+			return m_remaining_points == 0;
 		}
 
 	private:
-		uchar* ptr;
-		const uchar* const ptr0;
-		const int step;
-		int err;
-		int count;
-		int minusDelta;
-		int plusDelta;
-		int minusStep;
-		int plusStep;
 		cv::Point m_current_point;
-		cv::Point m_plus_step;
-		cv::Point m_minus_step;
-
-		static constexpr int img_elemSize = 1;
+		size_t    m_remaining_points;
+		int       m_error;
+		cv::Point m_fast_step;
+		cv::Point m_slow_step;
+		int       m_fast_step_err_inc;
+		int       m_slow_step_err_inc;
 	};
 
-	inline line_iterator_2::line_iterator_2(cv::Size size, cv::Point pt1, cv::Point pt2,
-	                                 int connectivity)
-		: ptr0(nullptr)
-		, step(size.width)
-		, m_current_point(pt1)
-		, m_plus_step()
-		, m_minus_step()
+	inline line_iterator_2::line_iterator_2(cv::Size, cv::Point pt1, cv::Point pt2, int connectivity)
+		: m_current_point(pt1)
+		, m_remaining_points(1)
 	{
+		if (connectivity != 8 && connectivity != 4) {
+			throw std::invalid_argument("invalid connectivity");
+		}
+
+		const cv::Point delta     = pt2 - pt1;
+		const cv::Point abs_delta = heyho::abs(delta);
+
+		const cv::Point step_x(delta.x < 0 ? -1 : 1, 0                   );
+		const cv::Point step_y(0                   , delta.y < 0 ? -1 : 1);
+
 		/*
-		 * BIT BULLSHIT
-		 * ------------
-		 * const int s = COND ? -1 : 0;
+		 * The general bresenham algorithm requires 0 <= slope <= 1.
+		 * ( -1 <= slope <= 0 is handled by switching the increment(s)'s sign(s) @see: step_{x,y} )
 		 *
-		 * NEGATE iff COND is true
-		 * ------------------------
-		 * x = (x ^ s) - 1;
-		 *   s =  0 --> (x ^  0) -   0 = x
-		 *   s = -1 --> (x ^ -1) -(-1) = ~x + 1 = -x
+		 * This can be generalized by simply switching x and y if 1 < slope < infinity.
 		 *
-		 * ASSIGNMENT iff COND is true
-		 * ----------------------------
-		 * x ^= (x ^ y) & s;
-		 *   s =  0 --> x ^= 0     = x
-		 *   s = -1 --> x ^= x ^ y = y
+		 * In order to avoid confusion, movements along the x- and y-axis are referred to
+		 * as "fast" and "slow" depending on the the slope:
+		 *    - For a small  slope line x is in/decremented in every step and y only if a certain error is reached.
+		 *    - For a large  slope line y is changed in every step.
+		 * This directions is referred to as "fast".
 		 *
-		 * SWAP iff COND is true
-		 * ---------------------
-		 * x ^= y & s;
-		 * y ^= x & s;
-		 * x ^= y & s;
-		 *   s =  0 --> x ^= 0; y ^= 0; x ^= 0 --> no swap
-		 *   s = -1 --> x ^= y = x ^ y; y ^= x = y ^ x ^ y = x; x ^= y = x ^ y ^ x = y --> swap
 		 */
+		const bool small_slope = abs_delta.x >= abs_delta.y;
 
-		CV_Assert( connectivity == 8 || connectivity == 4 );
+		const int fast_step_abs_delta = small_slope ? abs_delta.x : abs_delta.y;
+		const int slow_step_abs_delta = small_slope ? abs_delta.y : abs_delta.x;
 
-		int bt_pix = img_elemSize;                   // pixel-increment == x-increment
-		size_t istep = static_cast<size_t>(step);    // line-increment  == y-increment
+		const cv::Point &fast_step    = small_slope ? step_x : step_y;
+		const cv::Point &slow_step    = small_slope ? step_y : step_x;
 
-		cv::Point bt_pix_step(1,1);
-
-		int dx = pt2.x - pt1.x;
-		int dy = pt2.y - pt1.y;
-
-
+		if (connectivity == 8)
 		{
-//			const int s = dx < 0 ? -1 : 0;
-//			dx = (dx ^ s) - s;
-//			bt_pix = (bt_pix ^ s) - s;
-			if (dx < 0) {
-				dx = -dx;
-				bt_pix = -bt_pix;                // change sign of x-increment
-				bt_pix_step.x = -bt_pix_step.x;  // ....
-			}
+			m_error = fast_step_abs_delta - 2 * slow_step_abs_delta;
+
+			m_remaining_points += static_cast<size_t>(fast_step_abs_delta);
+
+			m_fast_step = fast_step;
+			m_slow_step = slow_step;
+
+			m_fast_step_err_inc = -2 * slow_step_abs_delta;
+			m_slow_step_err_inc =  2 * fast_step_abs_delta;
 		}
-		ptr = static_cast<uchar*>(static_cast<uchar*>(nullptr) + pt1.y * istep + pt1.x);
-
+		else /* connectivity == 4 */
 		{
-//			const int s = dy < 0 ? -1 : 0;
-//			dy = (dy ^ s) - s;
-//			istep = (istep ^ s) - s;
-			if (dy < 0) {
-				dy = -dy;
-				istep = -istep;                 // change sign of y-increment
-				bt_pix_step.y = -bt_pix_step.y; // ....
-			}
-		}
+			m_error = 0;
 
+			m_remaining_points += static_cast<size_t>(fast_step_abs_delta + slow_step_abs_delta);
 
-		{
-//			const int s = dy > dx ? -1 : 0;
-//			/* conditional swaps */
-//			dx ^= dy & s;
-//			dy ^= dx & s;
-//			dx ^= dy & s;
-//
-//			bt_pix ^= static_cast<int>(istep) & s;
-//			istep ^= bt_pix & s;
-//			bt_pix ^= static_cast<int>(istep) & s;
-			if (dy > dx) {
-				// bt    is x
-				// istep is y
-				std::swap(dx, dy);
+			m_fast_step = fast_step;
+			m_slow_step = slow_step - fast_step;
 
-				const int tmp = static_cast<int>(istep);  // swap x- & y-increment
-				istep = bt_pix;                           //
-				bt_pix = tmp;                             //
-				//std::swap(bt_pix_step.x, bt_pix_step.y);  //
-
-				m_minus_step = cv::Point(0,             bt_pix_step.y);
-				m_plus_step  = cv::Point(bt_pix_step.x, 0            );
-
-			}
-			else {
-				m_minus_step = cv::Point(bt_pix_step.x, 0            );
-				m_plus_step  = cv::Point(0,             bt_pix_step.y);
-
-			}
-		}
-		{
-			assert( dx >= 0 && dy >= 0 );
-			minusStep = bt_pix;
-			plusStep = static_cast<int>(istep);
-			minusDelta = -(dy + dy);
-
-			if( connectivity == 8 )
-			{
-				err = dx - (dy + dy);
-				plusDelta = dx + dx;
-
-				count = dx + 1;
-			}
-			else /* connectivity == 4 */
-			{
-				err = 0;
-				plusDelta = (dx + dx) + (dy + dy);
-
-
-				plusStep -= minusStep;
-				m_plus_step -= m_minus_step;
-
-				count = dx + dy + 1;
-			}
+			m_fast_step_err_inc = -2 *  slow_step_abs_delta;
+			m_slow_step_err_inc =  2 * (fast_step_abs_delta + slow_step_abs_delta);
 		}
 	}
 
 	inline line_iterator_2& line_iterator_2::operator ++()
 	{
-//		const int mask = err < 0 ? -1 : 0;
-//		err += minusDelta + (plusDelta & mask);
-//		ptr += minusStep + (plusStep & mask);
-		if (err < 0) {
-			err += minusDelta + plusDelta;
-			ptr += minusStep +  plusStep;
-			m_current_point += m_minus_step + m_plus_step;
-		}
-		else {
-			err += minusDelta;
-			ptr += minusStep;
-			m_current_point += m_minus_step;
+		if (!this->end())
+		{
+			--m_remaining_points;
+
+			if (m_error < 0) {
+				m_error         += m_fast_step_err_inc + m_slow_step_err_inc;
+				m_current_point += m_fast_step         + m_slow_step;
+			}
+			else {
+				m_error         += m_fast_step_err_inc;
+				m_current_point += m_fast_step;
+			}
 		}
 		return *this;
 	}
 
 	inline cv::Point line_iterator_2::pos() const
 	{
-		cv::Point p;
-		p.y = static_cast<int>((ptr - ptr0)/step);
-		p.x = static_cast<int>((ptr - ptr0) - p.y*step);
+		if (this->end() ) {
+			throw std::runtime_error("dereferencing an invalid pointer");
+		}
 		return m_current_point;
-		//return p;
 	}
 
 	namespace tests {
