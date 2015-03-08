@@ -56,6 +56,30 @@ namespace heyho {
 		pixel_t m_color;
 	};
 
+	template<typename pixel_t>
+	class pixel_counter
+	{
+	public:
+		struct pixel_count {
+
+			size_t m_zero;
+			size_t m_non_zero;
+
+			size_t zero() const;
+			size_t non_zero() const;
+			size_t all() const;
+		};
+
+		explicit pixel_counter(const cv::Mat &img, const pixel_t &zero);
+		explicit pixel_counter(const cv::Mat &img, const cv::Scalar &zero);
+		void operator()(cv::Point p);
+		const pixel_count& count() const;
+	private:
+		std::reference_wrapper<const cv::Mat> m_img;
+		pixel_t                               m_zero;
+		pixel_count                           m_count;
+	};
+
 	template<typename T>
 	cv::Point_<T> abs(const cv::Point_<T> &p) {
 		return {std::abs(p.x), std::abs(p.y)};
