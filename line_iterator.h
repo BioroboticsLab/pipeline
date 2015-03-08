@@ -16,8 +16,7 @@ namespace heyho {
 
 	class line_iterator {
 	public:
-		line_iterator(cv::Size size, cv::Point pt1, cv::Point pt2,
-		                int connectivity = 8);
+		line_iterator(cv::Point pt1, cv::Point pt2, int connectivity = 8);
 
 		uchar* operator *();
 
@@ -39,7 +38,7 @@ namespace heyho {
 		int       m_slow_step_err_inc;
 	};
 
-	inline line_iterator::line_iterator(cv::Size, cv::Point pt1, cv::Point pt2, int connectivity)
+	inline line_iterator::line_iterator(cv::Point pt1, cv::Point pt2, int connectivity)
 		: m_current_point(pt1)
 		, m_remaining_points(1)
 	{
