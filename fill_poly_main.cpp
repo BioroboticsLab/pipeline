@@ -79,11 +79,20 @@ int main() {
 		if (false or true)
 		{
 			const std::vector<heyho::tests::fill_convex_poly_f> fill_functions {
-				&heyho::tests::cv_fill_confex_poly,
+				&heyho::tests::cv_fill_convex_poly,
 				static_cast<heyho::tests::fill_convex_poly_f>(&heyho::fill_convex_poly_cv<uint8_t>),
 				static_cast<heyho::tests::fill_convex_poly_f>(&heyho::fill_convex_poly<uint8_t>)
 			};
 			heyho::tests::benchmark_fill_convex_poly_functions(fill_functions, 400, 5000);
+			std::cout << '\n';
+
+
+			const std::vector<heyho::tests::count_convex_poly_f> count_functions {
+				&heyho::tests::cv_count_convex_poly,
+				&heyho::tests::heyho_count_convex_poly_cv,
+				&heyho::tests::heyho_count_convex_poly
+			};
+			heyho::tests::benchmark_count_convex_poly_functions(count_functions, 400, 5000);
 			std::cout << '\n';
 		}
 

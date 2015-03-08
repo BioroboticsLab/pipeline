@@ -222,15 +222,38 @@ namespace heyho {
 		};
 
 		using fill_convex_poly_f = void (*) (cv::InputOutputArray img, cv::InputArray points, const cv::Scalar& color, int line_type);
+		using count_convex_poly_f = std::pair<size_t, size_t> (*) (const cv::Mat &img, const std::vector<cv::Point> &points, int line_type);
 
-		inline void cv_fill_confex_poly(cv::InputOutputArray img, cv::InputArray points, const cv::Scalar& color, int line_type) {
+		inline void cv_fill_convex_poly(cv::InputOutputArray img, cv::InputArray points, const cv::Scalar& color, int line_type) {
 			cv::fillConvexPoly(img, points, color, line_type);
+		}
+
+		inline std::pair<size_t, size_t> cv_count_convex_poly(const cv::Mat &img, const std::vector<cv::Point> &points, int line_type) {
+			cv::Mat poly_img(img.size(), img.type(), cv::Scalar(0));
+			cv::fillConvexPoly(poly_img, points, cv::Scalar(255), line_type);
+			const size_t all = static_cast<size_t>(cv::countNonZero(poly_img));
+			poly_img &= img;
+			const size_t non_zero = static_cast<size_t>(cv::countNonZero(poly_img));
+			const size_t zero = all - non_zero;
+			return {zero, non_zero};
+		}
+
+		inline std::pair<size_t, size_t> heyho_count_convex_poly_cv(const cv::Mat &img, const std::vector<cv::Point> &points, int line_type) {
+			const auto counts = heyho::convex_poly_cv(img.size(), &points[0], static_cast<int>(points.size()), pixel_counter<uchar>{img, 0}, line_type).count();
+			return {counts.zero(), counts.non_zero()};
+		}
+
+		inline std::pair<size_t, size_t> heyho_count_convex_poly(const cv::Mat &img, const std::vector<cv::Point> &points, int line_type) {
+			const auto counts = heyho::convex_poly(img.size(), points.cbegin(), points.cend(), pixel_counter<uchar>{img, 0}, line_type).count();
+			return {counts.zero(), counts.non_zero()};
 		}
 
 		/**
 		 * benchmarks multiple fill convex poly functions
 		 */
-		void benchmark_fill_convex_poly_functions(const std::vector<fill_convex_poly_f> &fill_functions, int major, size_t times);
+		void benchmark_fill_convex_poly_functions(const std::vector<fill_convex_poly_f>    &fill_functions, int major, size_t times);
+
+		void benchmark_count_convex_poly_functions(const std::vector<count_convex_poly_f> &count_functions, int major, size_t times);
 
 		void compare_convex_poly();
 

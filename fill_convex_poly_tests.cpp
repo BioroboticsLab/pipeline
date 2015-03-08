@@ -23,7 +23,7 @@ namespace heyho {
 			cv::ellipse2Poly(center, cv::Size(axis_major, axis_minor), 45, 0, 360, 1, poly);
 			cv::Mat img(dim_y, dim_x, img_type, white<img_type>());
 
-			std::cout << "benchmark multiple functions (" << heyho::img_type_to_str(img.type()) << ") :\n";
+			std::cout << "benchmark multiple fill functions (" << heyho::img_type_to_str(img.type()) << ") :\n";
 
 			for (size_t i = 0; i < fill_functions.size(); ++i) {
 				std::cout << "  function "<< std::setw(2) << i << ": ";
@@ -31,6 +31,38 @@ namespace heyho {
 				timer t;
 				for (size_t j = 0; j < times; ++j) {
 					fill_functions[i](img, poly, default_color<img_type>(), 4);
+				}
+			}
+		}
+
+		void benchmark_count_convex_poly_functions(const std::vector<count_convex_poly_f> &count_functions, int major, size_t times)
+		{
+			constexpr int img_type = CV_8UC1;
+			const int axis_major = major;
+			const int axis_minor = axis_major / 2;
+			const int dim_y = 2 * std::max(axis_major, axis_minor) + 10;
+			const int dim_x = dim_y;
+			const cv::Point center(dim_x/2, dim_y/2);
+			std::vector<cv::Point> poly;
+			cv::ellipse2Poly(center, cv::Size(axis_major, axis_minor), 45, 0, 360, 1, poly);
+
+			cv::Mat img(dim_y, dim_x, img_type);
+			{
+				uchar val = 0;
+				for(auto ptr = img.datastart; ptr < img.dataend; ++ptr) {
+					*ptr = val;
+					++val;
+				}
+			}
+
+			std::cout << "benchmark multiple count functions (" << heyho::img_type_to_str(img.type()) << ") :\n";
+
+			for (size_t i = 0; i < count_functions.size(); ++i) {
+				std::cout << "  function "<< std::setw(2) << i << ": ";
+				std::cout.flush();
+				timer t;
+				for (size_t j = 0; j < times; ++j) {
+					count_functions[i](img, poly, 4);
 				}
 			}
 		}
