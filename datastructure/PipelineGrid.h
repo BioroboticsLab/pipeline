@@ -80,6 +80,8 @@ public:
 
 	cv::Rect getBoundingBox() const { return Grid::getBoundingBox(); }
 
+	idarray_t const& getIdArray() const { return Grid::getIdArray(); }
+
     double compare(const PipelineGrid &to) const;
 
 private:
