@@ -15,6 +15,8 @@
 #include <iomanip>               // std::setw
 #include <vector>                // std::vector
 #include <stdexcept>             // std::runtime_error
+#include <utility>               // std::pair
+#include <string>                // std::string
 #include "fill_convex_poly_cv.h" // heyho::fill_convex_poly_cv
 #include "fill_convex_poly.h"    // heyho::fill_convex_poly
 #include "helper.h"              // heyho::img_type_2_str
@@ -251,9 +253,9 @@ namespace heyho {
 		/**
 		 * benchmarks multiple fill convex poly functions
 		 */
-		void benchmark_fill_convex_poly_functions(const std::vector<fill_convex_poly_f>    &fill_functions, int major, size_t times);
+		void benchmark_fill_convex_poly_functions( const std::vector<std::pair<std::string, fill_convex_poly_f>>   &fill_functions, int major, size_t times);
 
-		void benchmark_count_convex_poly_functions(const std::vector<count_convex_poly_f> &count_functions, int major, size_t times);
+		void benchmark_count_convex_poly_functions(const std::vector<std::pair<std::string, count_convex_poly_f>> &count_functions, int major, size_t times);
 
 		void compare_convex_poly();
 

@@ -11,7 +11,7 @@ namespace heyho {
 
 	namespace tests {
 
-		void benchmark_fill_convex_poly_functions(const std::vector<fill_convex_poly_f> &fill_functions, int major, size_t times)
+		void benchmark_fill_convex_poly_functions(const std::vector<std::pair<std::string, fill_convex_poly_f>> &fill_functions, int major, size_t times)
 		{
 			constexpr int img_type = CV_8UC1;
 			const int axis_major = major;
@@ -25,17 +25,17 @@ namespace heyho {
 
 			std::cout << "benchmark multiple fill functions (" << heyho::img_type_to_str(img.type()) << ") :\n";
 
-			for (size_t i = 0; i < fill_functions.size(); ++i) {
-				std::cout << "  function "<< std::setw(2) << i << ": ";
+			for (const auto &name_f : fill_functions) {
+				std::cout << "  " << name_f.first << ": ";
 				std::cout.flush();
 				timer t;
 				for (size_t j = 0; j < times; ++j) {
-					fill_functions[i](img, poly, default_color<img_type>(), 4);
+					name_f.second(img, poly, default_color<img_type>(), 4);
 				}
 			}
 		}
 
-		void benchmark_count_convex_poly_functions(const std::vector<count_convex_poly_f> &count_functions, int major, size_t times)
+		void benchmark_count_convex_poly_functions(const std::vector<std::pair<std::string, count_convex_poly_f>> &count_functions, int major, size_t times)
 		{
 			constexpr int img_type = CV_8UC1;
 			const int axis_major = major;
@@ -57,12 +57,12 @@ namespace heyho {
 
 			std::cout << "benchmark multiple count functions (" << heyho::img_type_to_str(img.type()) << ") :\n";
 
-			for (size_t i = 0; i < count_functions.size(); ++i) {
-				std::cout << "  function "<< std::setw(2) << i << ": ";
+			for (const auto &name_f : count_functions) {
+				std::cout << "  " << name_f.first << ": ";
 				std::cout.flush();
 				timer t;
 				for (size_t j = 0; j < times; ++j) {
-					count_functions[i](img, poly, 4);
+					name_f.second(img, poly, 4);
 				}
 			}
 		}
