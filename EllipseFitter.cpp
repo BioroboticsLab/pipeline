@@ -1,11 +1,11 @@
 /*
- * Recognizer.cpp
+ * EllipseFitter.cpp
  *
  *  Created on: 12.08.2014
  *      Author: mareikeziese
  */
 
-#include "Recognizer.h"
+#include "EllipseFitter.h"
 
 #include "util/ThreadPool.h"
 
@@ -29,19 +29,19 @@ struct compareVote {
 }
 
 namespace pipeline {
-Recognizer::Recognizer() {
+EllipseFitter::EllipseFitter() {
 #ifdef PipelineStandalone
-	this->loadConfigVars(config::DEFAULT_RECOGNIZER_CONFIG);
+	this->loadConfigVars(config::DEFAULT_ELLIPSEFITTER_CONFIG);
 #endif
 }
 
-void Recognizer::loadSettings(settings::recognizer_settings_t &&settings)
+void EllipseFitter::loadSettings(settings::ellipsefitter_settings_t &&settings)
 {
 	_settings = std::move(settings);
 }
 
 #ifdef PipelineStandalone
-Recognizer::Recognizer(std::string configFile) {
+EllipseFitter::EllipseFitter(std::string configFile) {
     this->loadConfigVars(configFile);
 }
 #endif
@@ -49,11 +49,11 @@ Recognizer::Recognizer(std::string configFile) {
 /**
  * @param tag for which ellipses should be detected
  */
-void Recognizer::detectXieEllipse(Tag &tag) {
-	const double recognizer_max_minor = _settings.get_max_minor_axis();
-	const double recognizer_max_major = _settings.get_max_major_axis();
-	const double recognizer_min_major = _settings.get_min_major_axis();
-	const double recognizer_min_minor = _settings.get_min_minor_axis();
+void EllipseFitter::detectXieEllipse(Tag &tag) {
+	const double ellipsefitter_max_minor = _settings.get_max_minor_axis();
+	const double ellipsefitter_max_major = _settings.get_max_major_axis();
+	const double ellipsefitter_min_major = _settings.get_min_major_axis();
+	const double ellipsefitter_min_minor = _settings.get_min_minor_axis();
 
     const cv::Mat& subImage  = tag.getOrigSubImage();
     const cv::Mat cannyImage = computeCannyEdgeMap(subImage);
@@ -91,9 +91,9 @@ void Recognizer::detectXieEllipse(Tag &tag) {
             const double p2xf = static_cast<double>(ep[lc2].x);
             const double p2yf = static_cast<double>(ep[lc2].y);
             if ((lc2 > lc1) && ((p1x != p2x) || (p1y != p2y))) {
-                // the proposed ellipse' length of the major axis lies between this->RECOGNIZER_MIN_MAJOR and this->RECOGNIZER_MAX_MAJOR
+                // the proposed ellipse' length of the major axis lies between this->ELLIPSEFITTER_MIN_MAJOR and this->ELLIPSEFITTER_MAX_MAJOR
                 const double dist = pointDistance(p1xf, p1yf, p2xf, p2yf);
-                if (dist > recognizer_min_major && dist < recognizer_max_major) {
+                if (dist > ellipsefitter_min_major && dist < ellipsefitter_max_major) {
                     // (5) calculate the ellipse' center, half length of the major axis (a) and orientation (alpha) based on p1 and p2
                     const double centerx = (p1xf + p2xf) / 2;
                     const double centery = (p1yf + p2yf) / 2;
@@ -107,7 +107,7 @@ void Recognizer::detectXieEllipse(Tag &tag) {
                         const double pyf = static_cast<double>(ep[lc3].y);
                         if (((px != p2x) || (py != p2y)) && ((px != p1x) || (py != p1y))) {
                             const double d = pointDistance(pxf, pyf, centerx, centery);
-                            if (d <= a && d > recognizer_min_minor / 2.0) {
+                            if (d <= a && d > ellipsefitter_min_minor / 2.0) {
                                 // (7) estimate the half length of the minor axis (b)
                                 const double f      = pointDistanceNoSqrt(pxf, pyf, p2xf, p2yf);
                                 const double costau = (a * a + d * d - f) / (2 * a * d);
@@ -116,7 +116,7 @@ void Recognizer::detectXieEllipse(Tag &tag) {
                                 const double b      = (a * d * sintau) / sqrt(((a * a) - (d * d * costau * costau)));
                                 const double b2     = 2.0 * b;
                                 // (8) increment the accumulator for the minor axis' half length (b) just estimated
-                                if (b2 <= recognizer_max_minor && b2 >= recognizer_min_minor) {
+                                if (b2 <= ellipsefitter_max_minor && b2 >= ellipsefitter_min_minor) {
                                     accu[cvRound(b) - 1] += 1;
                                 }
                             }
@@ -191,13 +191,13 @@ foundEllipse:
     std::partial_sort(candidates.begin(), candidates.begin() + num,
       candidates.end(), compareVote {});
 #ifdef PipelineStandalone
-    if (config::DEBUG_MODE_RECOGNIZER) {
+    if (config::DEBUG_MODE_ELLIPSEFITTER) {
         for (size_t i = 0; i < candidates.size(); ++i) {
             Ellipse const& ell = candidates[i];
 			if ((i >= num) || (ell.getVote() < _settings.threshold_vote)) {
-                if (config::DEBUG_MODE_RECOGNIZER) {
+                if (config::DEBUG_MODE_ELLIPSEFITTER) {
                     std::cout << "Ignore Ellipse With Vote " << ell.getVote() << std::endl;
-                    if (config::DEBUG_MODE_RECOGNIZER_IMAGE) {
+                    if (config::DEBUG_MODE_ELLIPSEFITTER_IMAGE) {
                         visualizeEllipse(tag, ell, "ignored_ellipse");
                     }
                 }
@@ -207,16 +207,16 @@ foundEllipse:
 #endif
     // remove remaining candidates
     candidates.erase(candidates.begin() + num, candidates.end());
-    // remove all candidates with vote < RECOGNIZER_THRESHOLD_VOTE
+    // remove all candidates with vote < ELLIPSEFITTER_THRESHOLD_VOTE
     candidates.erase(std::remove_if(candidates.begin(), candidates.end(),
 	  [&](Ellipse& ell) { return ell.getVote() < _settings.get_threshold_vote(); }),
       candidates.end());
     // add remaining candidates to tag
     for (Ellipse const& ell : candidates) {
 #ifdef PipelineStandalone
-        if (config::DEBUG_MODE_RECOGNIZER) {
+        if (config::DEBUG_MODE_ELLIPSEFITTER) {
             std::cout << "Add Ellipse With Vote " << ell.getVote() << std::endl;
-            if (config::DEBUG_MODE_RECOGNIZER_IMAGE) {
+            if (config::DEBUG_MODE_ELLIPSEFITTER_IMAGE) {
                 visualizeEllipse(tag, ell, "added_ellipse");
             }
         }
@@ -227,17 +227,17 @@ foundEllipse:
         tag.setValid(false);
     }
 #ifdef PipelineStandalone
-    if (config::DEBUG_MODE_RECOGNIZER_IMAGE) {
+    if (config::DEBUG_MODE_ELLIPSEFITTER_IMAGE) {
 		cv::destroyAllWindows();
     }
-    if (config::DEBUG_MODE_RECOGNIZER) {
+    if (config::DEBUG_MODE_ELLIPSEFITTER) {
         std::cout << "Found " << tag.getCandidates().size()
                   << " ellipse candidates for Tag " << tag.getId() << std::endl;
     }
 #endif
 }
 
-void Recognizer::visualizeEllipse(Tag const& tag, Ellipse const& ell, std::string const& title) {
+void EllipseFitter::visualizeEllipse(Tag const& tag, Ellipse const& ell, std::string const& title) {
     cv::Mat subroiTest = tag.getOrigSubImage().clone();
     ellipse(subroiTest, ell.getCen(), ell.getAxis(), ell.getAngle(), 0, 360, cv::Scalar(0, 0, 255));
     std::string text = "Score " + std::to_string(ell.getVote());
@@ -248,7 +248,7 @@ void Recognizer::visualizeEllipse(Tag const& tag, Ellipse const& ell, std::strin
     cv::waitKey();
 }
 
-cv::Mat Recognizer::computeCannyEdgeMap(cv::Mat const& grayImage) {
+cv::Mat EllipseFitter::computeCannyEdgeMap(cv::Mat const& grayImage) {
     cv::Mat localGrayImage = grayImage.clone();
 
     cv::GaussianBlur(localGrayImage, localGrayImage, cv::Size(3, 3), 0, 0,
@@ -259,7 +259,7 @@ cv::Mat Recognizer::computeCannyEdgeMap(cv::Mat const& grayImage) {
 	Canny(localGrayImage, cannyEdgeMap, static_cast<double>(this->_settings.get_canny_threshold_low()),
 			static_cast<double>(this->_settings.get_canny_threshold_high()));
 #ifdef PipelineStandalone
-    if (config::DEBUG_MODE_RECOGNIZER_IMAGE) {
+    if (config::DEBUG_MODE_ELLIPSEFITTER_IMAGE) {
 		cv::namedWindow("Canny", cv::WINDOW_AUTOSIZE);
 		cv::imshow("Canny", cannyEdgeMap);
 		cv::waitKey(0);
@@ -270,7 +270,7 @@ cv::Mat Recognizer::computeCannyEdgeMap(cv::Mat const& grayImage) {
     return cannyEdgeMap;
 }
 
-std::vector<Tag> Recognizer::process(std::vector<Tag>&& taglist) {
+std::vector<Tag> EllipseFitter::process(std::vector<Tag>&& taglist) {
     static const size_t numThreads = std::thread::hardware_concurrency() ?
                 std::thread::hardware_concurrency() * 2 : 1;
     ThreadPool pool(numThreads);
@@ -286,7 +286,7 @@ std::vector<Tag> Recognizer::process(std::vector<Tag>&& taglist) {
 }
 
 #ifdef PipelineStandalone
-void Recognizer::loadConfigVars(std::string filename) {
+void EllipseFitter::loadConfigVars(std::string filename) {
     boost::property_tree::ptree pt;
     boost::property_tree::ini_parser::read_ini(filename, pt);
 

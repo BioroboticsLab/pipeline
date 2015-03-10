@@ -24,9 +24,9 @@
 namespace pipeline {
 
 
-class Recognizer {
+class EllipseFitter {
 private:
-	settings::recognizer_settings_t _settings;
+	settings::ellipsefitter_settings_t _settings;
 
     void detectXieEllipse(Tag &tag);
 
@@ -36,13 +36,13 @@ private:
 #endif
 
 public:
-    Recognizer();
+    EllipseFitter();
 #ifdef PipelineStandalone
-    Recognizer(std::string configFile);
+    EllipseFitter(std::string configFile);
 #endif
-    virtual ~Recognizer() {}
+    virtual ~EllipseFitter() {}
 
-	void loadSettings(settings::recognizer_settings_t &&settings);
+	void loadSettings(settings::ellipsefitter_settings_t &&settings);
 
     std::vector<Tag> process(std::vector<Tag> &&taglist);
     void visualizeEllipse(Tag const& tag , Ellipse const& ell, std::string const& title);

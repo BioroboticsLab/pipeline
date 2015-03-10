@@ -554,14 +554,14 @@ public:
 
 /**************************************
  *
- *         Recognizer Settings
+ *         EllipseFitter Settings
  *
  **************************************/
 
-namespace Recognizer {
+namespace EllipseFitter {
 namespace Params {
-static const std::string BASE = "BEESBOOKPIPELINE.RECOGNIZER.";
-static const std::string BASE_STANDALONE = "RECOGNIZER.";
+static const std::string BASE = "BEESBOOKPIPELINE.ELLIPSEFITTER.";
+static const std::string BASE_STANDALONE = "ELLIPSEFITTER.";
 static const std::string CANNY_THRESHOLD_LOW = "CANNY_THRESHOLD_LOW";
 static const std::string CANNY_THRESHOLD_HIGH = "CANNY_THRESHOLD_HIGH";
 static const std::string CANNY_MEAN_MIN = "CANNY_MEAN_MIN";
@@ -588,85 +588,85 @@ static const int THRESHOLD_VOTE = 1800;
 static const int THRESHOLD_BEST_VOTE = 3000;
 }
 }
-class recognizer_settings_t: public settings_abs {
+class ellipsefitter_settings_t: public settings_abs {
 public:
 	int get_canny_threshold_low() {
-		return this->_getValue<int>(Recognizer::Params::CANNY_THRESHOLD_LOW);
+		return this->_getValue<int>(EllipseFitter::Params::CANNY_THRESHOLD_LOW);
 	}
 	int get_canny_threshold_high() {
-		return this->_getValue<int>(Recognizer::Params::CANNY_THRESHOLD_HIGH);
+		return this->_getValue<int>(EllipseFitter::Params::CANNY_THRESHOLD_HIGH);
 	}
     int get_canny_mean_min() {
-            return this->_getValue<int>(Recognizer::Params::CANNY_MEAN_MIN);
+            return this->_getValue<int>(EllipseFitter::Params::CANNY_MEAN_MIN);
     }
     int get_canny_mean_max() {
-            return this->_getValue<int>(Recognizer::Params::CANNY_MEAN_MAX);
+            return this->_getValue<int>(EllipseFitter::Params::CANNY_MEAN_MAX);
     }
 	int get_min_major_axis() {
-		return this->_getValue<int>(Recognizer::Params::MIN_MAJOR_AXIS);
+		return this->_getValue<int>(EllipseFitter::Params::MIN_MAJOR_AXIS);
 	}
 	int get_max_major_axis() {
-		return this->_getValue<int>(Recognizer::Params::MAX_MAJOR_AXIS);
+		return this->_getValue<int>(EllipseFitter::Params::MAX_MAJOR_AXIS);
 	}
 	int get_min_minor_axis() {
-		return this->_getValue<int>(Recognizer::Params::MIN_MAJOR_AXIS);
+		return this->_getValue<int>(EllipseFitter::Params::MIN_MAJOR_AXIS);
 	}
 	int get_max_minor_axis() {
-		return this->_getValue<int>(Recognizer::Params::MAX_MAJOR_AXIS);
+		return this->_getValue<int>(EllipseFitter::Params::MAX_MAJOR_AXIS);
 	}
 	int get_threshold_edge_pixels() {
-		return this->_getValue<int>(Recognizer::Params::THRESHOLD_EDGE_PIXELS);
+		return this->_getValue<int>(EllipseFitter::Params::THRESHOLD_EDGE_PIXELS);
 	}
 	int get_threshold_vote() {
-		return this->_getValue<int>(Recognizer::Params::THRESHOLD_VOTE);
+		return this->_getValue<int>(EllipseFitter::Params::THRESHOLD_VOTE);
 	}
 	int get_threshold_best_vote() {
-		return this->_getValue<int>(Recognizer::Params::THRESHOLD_BEST_VOTE);
+		return this->_getValue<int>(EllipseFitter::Params::THRESHOLD_BEST_VOTE);
 	}
 
-	recognizer_settings_t() {
+	ellipsefitter_settings_t() {
 
-		_base = Recognizer::Params::BASE_STANDALONE;
-
-		_addEntry(
-				setting_entry(Recognizer::Params::CANNY_THRESHOLD_LOW,
-						Recognizer::Defaults::CANNY_THRESHOLD_LOW));
+		_base = EllipseFitter::Params::BASE_STANDALONE;
 
 		_addEntry(
-				setting_entry(Recognizer::Params::CANNY_THRESHOLD_HIGH,
-						Recognizer::Defaults::CANNY_THRESHOLD_HIGH));
+				setting_entry(EllipseFitter::Params::CANNY_THRESHOLD_LOW,
+						EllipseFitter::Defaults::CANNY_THRESHOLD_LOW));
+
+		_addEntry(
+				setting_entry(EllipseFitter::Params::CANNY_THRESHOLD_HIGH,
+						EllipseFitter::Defaults::CANNY_THRESHOLD_HIGH));
         _addEntry(
-                setting_entry(Recognizer::Params::CANNY_MEAN_MIN,
-                              Recognizer::Defaults::CANNY_MEAN_MIN));
+                setting_entry(EllipseFitter::Params::CANNY_MEAN_MIN,
+                              EllipseFitter::Defaults::CANNY_MEAN_MIN));
         _addEntry(
-                setting_entry(Recognizer::Params::CANNY_MEAN_MAX,
-                              Recognizer::Defaults::CANNY_MEAN_MAX));
+                setting_entry(EllipseFitter::Params::CANNY_MEAN_MAX,
+                              EllipseFitter::Defaults::CANNY_MEAN_MAX));
 
 		_addEntry(
-				setting_entry(Recognizer::Params::MIN_MAJOR_AXIS,
-						Recognizer::Defaults::MIN_MAJOR_AXIS));
+				setting_entry(EllipseFitter::Params::MIN_MAJOR_AXIS,
+						EllipseFitter::Defaults::MIN_MAJOR_AXIS));
 
 		_addEntry(
-				setting_entry(Recognizer::Params::MAX_MAJOR_AXIS,
-						Recognizer::Defaults::MAX_MAJOR_AXIS));
+				setting_entry(EllipseFitter::Params::MAX_MAJOR_AXIS,
+						EllipseFitter::Defaults::MAX_MAJOR_AXIS));
 
 		_addEntry(
-				setting_entry(Recognizer::Params::MIN_MINOR_AXIS,
-						Recognizer::Defaults::MIN_MINOR_AXIS));
+				setting_entry(EllipseFitter::Params::MIN_MINOR_AXIS,
+						EllipseFitter::Defaults::MIN_MINOR_AXIS));
 
 		_addEntry(
-				setting_entry(Recognizer::Params::MAX_MINOR_AXIS,
-						Recognizer::Defaults::MAX_MINOR_AXIS));
+				setting_entry(EllipseFitter::Params::MAX_MINOR_AXIS,
+						EllipseFitter::Defaults::MAX_MINOR_AXIS));
 
 		_addEntry(
-				setting_entry(Recognizer::Params::THRESHOLD_EDGE_PIXELS,
-						Recognizer::Defaults::THRESHOLD_EDGE_PIXELS));
+				setting_entry(EllipseFitter::Params::THRESHOLD_EDGE_PIXELS,
+						EllipseFitter::Defaults::THRESHOLD_EDGE_PIXELS));
 		_addEntry(
-				setting_entry(Recognizer::Params::THRESHOLD_VOTE,
-						Recognizer::Defaults::THRESHOLD_VOTE));
+				setting_entry(EllipseFitter::Params::THRESHOLD_VOTE,
+						EllipseFitter::Defaults::THRESHOLD_VOTE));
 		_addEntry(
-				setting_entry(Recognizer::Params::THRESHOLD_BEST_VOTE,
-						Recognizer::Defaults::THRESHOLD_BEST_VOTE));
+				setting_entry(EllipseFitter::Params::THRESHOLD_BEST_VOTE,
+						EllipseFitter::Defaults::THRESHOLD_BEST_VOTE));
 
 	}
 };
