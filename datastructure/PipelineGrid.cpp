@@ -278,7 +278,7 @@ double PipelineGrid::compare(const PipelineGrid &to) const
 {
     // distance of centers, inversed
     // max score is 1, min 0
-    double d1 = 1 / ( 1 + norm( this->_center - to.getCenter() ));
+    double d1 = 10 / ( 10 + norm( this->_center - to.getCenter() ));
 
     // get rotation matrices of both grids
     const auto R = CvHelper::rotationMatrix(this->_angle_z, this->_angle_y, this->_angle_x);
@@ -289,5 +289,15 @@ double PipelineGrid::compare(const PipelineGrid &to) const
     // divide by 3, thus max is 1, min is -1
     double d2 = cv::sum( R.mul(R2) )[0] / 3;
 
-    return d1 + d2;
+    auto CP = R.mul(R2);
+
+    double cp1 = cv::sum( CP.col(0) )[0];
+    double cp2 = cv::sum( CP.col(1) )[0];
+    double cp3 = cv::sum( CP.col(2) )[0];
+
+//    double cp1 = cv::sum( CP.row(0) )[0];
+//    double cp2 = cv::sum( CP.row(1) )[0];
+//    double cp3 = cv::sum( CP.row(2) )[0];
+
+    return cv::min(d1, cp1*cp2*cp3*cp1*cp2*cp3*cp1*cp2*cp3);
 }
