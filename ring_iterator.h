@@ -14,6 +14,33 @@
 
 namespace heyho {
 
+template<typename FWDIT>
+class ring_iterator {
+public:
+	using value_type = typename std::iterator_traits<FWDIT>::value_type;
+
+	explicit ring_iterator(FWDIT range_first, FWDIT range_last, FWDIT first_element, FWDIT last_element);
+
+	const value_type& operator*() const;
+
+	bool last() const;
+
+	bool end() const;
+
+	ring_iterator& operator++();
+
+protected:
+	const FWDIT m_range_first;
+	const FWDIT m_range_last;
+	const FWDIT m_first_element;
+	const FWDIT m_last_element;
+	FWDIT m_current;
+
+	bool check_end_set_invalid();
+	void move_forward();
+};
+
+
 	/**
 	 * iterates over the elements first_element ... last_element
 	 *
@@ -24,9 +51,9 @@ namespace heyho {
 	 * @tparam BDIT bidirectional iterator type
 	 */
 	template<typename BDIT>
-	class ring_iterator_bd {
+	class ring_iterator_bd : private ring_iterator<BDIT> {
 	public:
-		using value_type = typename std::iterator_traits<BDIT>::value_type;
+		using value_type = typename ring_iterator<BDIT>::value_type;
 
 		explicit ring_iterator_bd(BDIT range_first, BDIT range_last, BDIT first_element, BDIT last_element, bool reverse_direction);
 
@@ -39,17 +66,8 @@ namespace heyho {
 		ring_iterator_bd& operator++();
 
 	private:
-
-		void move_left();
-
-		void move_right();
-
-		const BDIT m_range_first;
-		const BDIT m_range_last;
-		const BDIT m_first_element;
-		const BDIT m_last_element;
+		void move_backward();
 		const bool m_reverse_direction;
-		BDIT m_current;
 	};
 
 	namespace tests {
