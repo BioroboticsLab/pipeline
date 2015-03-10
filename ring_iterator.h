@@ -78,6 +78,7 @@ namespace heyho {
 
 	namespace tests {
 		void ring_iterator_tests();
+		void ring_iterator_bd_tests();
 	}
 
 }
