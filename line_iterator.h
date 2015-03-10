@@ -26,7 +26,31 @@ namespace heyho {
 
 	class line_iterator {
 	public:
-		line_iterator(cv::Point pt1, cv::Point pt2, int connectivity = 8, cv::Size size = cv::Size(0,0));
+		/**
+		 * Iterator for the line connecting p1 and p2.
+		 * The line will be clipped on the image boundaries ( i.e. (0,0),(size.width,size.height) ).
+		 * The line is 8-connected or 4-connected.
+		 */
+		explicit line_iterator(cv::Point p1, cv::Point p2, int connectivity, cv::Size size);
+
+		/**
+		 * Iterator for the line connecting p1 and p2.
+		 * The line will be clipped on the image boundaries.
+		 * The line is 8-connected or 4-connected.
+		 */
+		explicit line_iterator(cv::Point p1, cv::Point p2, int connectivity, cv::Rect boundaries);
+
+		/**
+		 * Iterator for the line connecting p1 and p2.
+		 * The line will not be clipped.
+		 * The line is 8-connected or 4-connected.
+		 */
+		explicit line_iterator(cv::Point p1, cv::Point p2, int connectivity);
+
+		/**
+		 * empty line iterator.
+		 */
+		explicit line_iterator();
 
 		cv::Point operator*() const;
 
@@ -39,6 +63,7 @@ namespace heyho {
 		}
 
 	private:
+		void init(cv::Point pt1, cv::Point pt2, int connectivity);
 		cv::Point m_current_point;
 		size_t    m_remaining_points;
 		int       m_error;
@@ -48,15 +73,48 @@ namespace heyho {
 		int       m_slow_step_err_inc;
 	};
 
-	inline line_iterator::line_iterator(cv::Point pt1, cv::Point pt2, int connectivity, cv::Size)
-		: m_current_point(pt1)
-		, m_remaining_points(1)
+	inline line_iterator::line_iterator()
+		: m_remaining_points(0)
+		, m_error()
+		, m_fast_step_err_inc()
+		, m_slow_step_err_inc()
+	{}
+
+	inline line_iterator::line_iterator(cv::Point p1, cv::Point p2, int connectivity)
+		: line_iterator()
+	{
+		this->init(p1, p2, connectivity);
+	}
+
+	inline line_iterator::line_iterator(cv::Point p1, cv::Point p2, int connectivity, cv::Size size)
+		: line_iterator()
+	{
+		if (cv::clipLine(size, p1, p2)) {
+			this->init(p1, p2, connectivity);
+		}
+	}
+
+	inline line_iterator::line_iterator(cv::Point p1, cv::Point p2, int connectivity, cv::Rect boundaries)
+		: line_iterator()
+	{
+		if (cv::clipLine(boundaries, p1, p2)) {
+			this->init(p1, p2, connectivity);
+		}
+	}
+
+	inline void line_iterator::init(cv::Point p1, cv::Point p2, int connectivity)
 	{
 		if (connectivity != 8 && connectivity != 4) {
 			throw std::invalid_argument("invalid connectivity");
 		}
+		m_current_point    = p1;
+		m_remaining_points = 1;
 
-		const cv::Point delta     = pt2 - pt1;
+		if (p2 == p1) {
+			return;
+		}
+
+		const cv::Point delta     = p2 - p1;
 		const cv::Point abs_delta = heyho::abs(delta);
 
 		const cv::Point step_x(delta.x < 0 ? -1 : 1, 0                   );

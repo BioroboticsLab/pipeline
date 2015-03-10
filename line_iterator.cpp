@@ -54,6 +54,9 @@ namespace heyho {
 				}
 			}
 
+			// line iterator tests : clipped lines etc
+			line_iterator_test_helper<line_iterator>();
+
 			std::cout << "passed :)\n";
 		}
 
