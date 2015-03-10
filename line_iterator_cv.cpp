@@ -67,7 +67,6 @@ namespace heyho {
 			// 180°
 			compare(line_iterator_cv({2,2}, {0,2}, 8, cv::Size(10, 10)), {{2,2},{1,2},{0,2}});
 			// 270°
-			// 0°
 			compare(line_iterator_cv({2,2}, {2,0}, 8, cv::Size(10, 10)), {{2,2},{2,1},{2,0}});
 
 			// clipping
@@ -80,8 +79,10 @@ namespace heyho {
 			compare(line_iterator_cv({2,1}, {2,3}, 8, cv::Rect(cv::Point(1,1), cv::Point(3,3))), {{2,1},{2,2}});
 			// bottom
 			compare(line_iterator_cv({2,0}, {2,2}, 8, cv::Rect(cv::Point(1,1), cv::Point(3,3))), {{2,1},{2,2}});
+			// line completely outside
+			compare(line_iterator_cv({0,0}, {0,5}, 8, cv::Rect(cv::Point(1,1), cv::Point(3,3))), {});
 
-			// no boundariers
+			// no boundaries
 			//===============
 			compare(line_iterator_cv({-5,-5}, {-3,-3}, 8), {{-5,-5},{-4,-4},{-3,-3}});
 			compare(line_iterator_cv({-1,1000}, {-1,1000}, 8), {{-1,1000}});
