@@ -117,7 +117,7 @@ void PipelineGrid::draw(cv::Mat& img, const double transparency)
 	}
 }
 
-void PipelineGrid::drawContours(cv::Mat& img, const double transparency) const
+void PipelineGrid::drawContours(cv::Mat& img, const double transparency, const cv::Scalar color) const
 {
     static const cv::Scalar white(255, 255, 255);
     static const cv::Scalar black(0, 0, 0);
@@ -138,7 +138,7 @@ void PipelineGrid::drawContours(cv::Mat& img, const double transparency) const
                 CvHelper::drawPolyline(subimage_copy, _coordinates2D, i, white, false, subimage_center);
         }
 
-        CvHelper::drawPolyline(subimage_copy, _coordinates2D, INDEX_OUTER_WHITE_RING,       white, false, subimage_center);
+        CvHelper::drawPolyline(subimage_copy, _coordinates2D, INDEX_OUTER_WHITE_RING,       color, false, subimage_center);
         CvHelper::drawPolyline(subimage_copy, _coordinates2D, INDEX_INNER_WHITE_SEMICIRCLE, white,      false, subimage_center);
         CvHelper::drawPolyline(subimage_copy, _coordinates2D, INDEX_INNER_BLACK_SEMICIRCLE, black,      false, subimage_center);
 
