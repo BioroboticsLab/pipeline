@@ -564,6 +564,8 @@ static const std::string BASE = "BEESBOOKPIPELINE.RECOGNIZER.";
 static const std::string BASE_STANDALONE = "RECOGNIZER.";
 static const std::string CANNY_THRESHOLD_LOW = "CANNY_THRESHOLD_LOW";
 static const std::string CANNY_THRESHOLD_HIGH = "CANNY_THRESHOLD_HIGH";
+static const std::string CANNY_MEAN_MIN = "CANNY_MEAN_MIN";
+static const std::string CANNY_MEAN_MAX = "CANNY_MEAN_MAX";
 static const std::string MIN_MAJOR_AXIS = "MIN_MAJOR_AXIS";
 static const std::string MAX_MAJOR_AXIS = "MAX_MAJOR_AXIS";
 static const std::string MIN_MINOR_AXIS = "MIN_MINOR_AXIS";
@@ -575,6 +577,8 @@ static const std::string THRESHOLD_BEST_VOTE = "THRESHOLD_BEST_VOTE";
 namespace Defaults {
 static const int CANNY_THRESHOLD_LOW = 70;
 static const int CANNY_THRESHOLD_HIGH = 90;
+static const int CANNY_MEAN_MIN = 12;
+static const int CANNY_MEAN_MAX = 15;
 static const int MIN_MAJOR_AXIS = 42;
 static const int MAX_MAJOR_AXIS = 54;
 static const int MIN_MINOR_AXIS = 30;
@@ -592,6 +596,12 @@ public:
 	int get_canny_threshold_high() {
 		return this->_getValue<int>(Recognizer::Params::CANNY_THRESHOLD_HIGH);
 	}
+    int get_canny_mean_min() {
+            return this->_getValue<int>(Recognizer::Params::CANNY_MEAN_MIN);
+    }
+    int get_canny_mean_max() {
+            return this->_getValue<int>(Recognizer::Params::CANNY_MEAN_MAX);
+    }
 	int get_min_major_axis() {
 		return this->_getValue<int>(Recognizer::Params::MIN_MAJOR_AXIS);
 	}
@@ -625,6 +635,12 @@ public:
 		_addEntry(
 				setting_entry(Recognizer::Params::CANNY_THRESHOLD_HIGH,
 						Recognizer::Defaults::CANNY_THRESHOLD_HIGH));
+        _addEntry(
+                setting_entry(Recognizer::Params::CANNY_MEAN_MIN,
+                              Recognizer::Defaults::CANNY_MEAN_MIN));
+        _addEntry(
+                setting_entry(Recognizer::Params::CANNY_MEAN_MAX,
+                              Recognizer::Defaults::CANNY_MEAN_MAX));
 
 		_addEntry(
 				setting_entry(Recognizer::Params::MIN_MAJOR_AXIS,
