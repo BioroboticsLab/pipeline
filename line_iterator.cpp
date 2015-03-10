@@ -6,37 +6,18 @@
  */
 
 #include "line_iterator_cv.h"
-#include <vector>         // std::vector
-#include <iostream>       // std::cout
-#include <algorithm>      // std::equal
-#include <stdexcept>      // std::runtime_error
 #include "line_iterator.h"
-
+#include "line_iterator_test_helper.h"
 
 namespace heyho {
 
 	namespace tests {
 
-		void line_iterator_tests() {
-			const auto it_cv_2_vec = [](line_iterator_cv it) {
-				std::vector<cv::Point> result;
-				for (; !it.end(); ++it) {
-					result.emplace_back(*it);
-				}
-				return result;
-			};
-
-			const auto it_2_2_vec = [](line_iterator it) {
-				std::vector<cv::Point> result;
-				for (; !it.end(); ++it) {
-					result.emplace_back(it.pos());
-				}
-				return result;
-			};
-
-			const auto compare = [&it_cv_2_vec, &it_2_2_vec](line_iterator it, line_iterator_cv expected) {
-				const auto pts_got = it_2_2_vec(it);
-				const auto pts_expected = it_cv_2_vec(expected);
+		void line_iterator_tests()
+		{
+			const auto compare = [](line_iterator it, line_iterator_cv expected) {
+				const auto pts_got      = line_it_2_vec(it);
+				const auto pts_expected = line_it_2_vec(expected);
 				if (pts_got.size() != pts_expected.size() || !std::equal(pts_got.cbegin(), pts_got.cend(), pts_expected.cbegin())) {
 					std::cout << "expected:";
 					for (const auto p : pts_expected) {
@@ -55,7 +36,7 @@ namespace heyho {
 			std::cout << "line iterator tests ... ";
 			std::cout.flush();
 
-			// test every line :)
+			// compare line_iterator with line_iterator_cv : test every unclipped line
 			for(int x = -10; x <= 10; ++x) {
 				for (int y = -10; y <= 10; ++y) {
 					const cv::Size size(50,50);
