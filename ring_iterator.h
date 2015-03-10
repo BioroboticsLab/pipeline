@@ -14,31 +14,38 @@
 
 namespace heyho {
 
-template<typename FWDIT>
-class ring_iterator {
-public:
-	using value_type = typename std::iterator_traits<FWDIT>::value_type;
+	/**
+	 * iterates over the elements first_element ... last_element
+	 *
+	 * i.e.: [first_element, first_element + 1, ..., range_last - 1, range_first, ..., last_element]
+	 *
+	 * @tparam FWDIT forward iterator type
+	 */
+	template<typename FWDIT>
+	class ring_iterator {
+	public:
+		using value_type = typename std::iterator_traits<FWDIT>::value_type;
 
-	explicit ring_iterator(FWDIT range_first, FWDIT range_last, FWDIT first_element, FWDIT last_element);
+		explicit ring_iterator(FWDIT range_first, FWDIT range_last, FWDIT first_element, FWDIT last_element);
 
-	const value_type& operator*() const;
+		const value_type& operator*() const;
 
-	bool last() const;
+		bool last() const;
 
-	bool end() const;
+		bool end() const;
 
-	ring_iterator& operator++();
+		ring_iterator& operator++();
 
-protected:
-	const FWDIT m_range_first;
-	const FWDIT m_range_last;
-	const FWDIT m_first_element;
-	const FWDIT m_last_element;
-	FWDIT m_current;
+	protected:
+		const FWDIT m_range_first;
+		const FWDIT m_range_last;
+		const FWDIT m_first_element;
+		const FWDIT m_last_element;
+		FWDIT m_current;
 
-	bool check_end_set_invalid();
-	void move_forward();
-};
+		bool check_end_set_invalid();
+		void move_forward();
+	};
 
 
 	/**
@@ -59,9 +66,8 @@ protected:
 
 		const value_type& operator*() const;
 
-		bool last() const;
-
-		bool end() const;
+		using ring_iterator<BDIT>::last;
+		using ring_iterator<BDIT>::end;
 
 		ring_iterator_bd& operator++();
 
