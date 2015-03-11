@@ -41,7 +41,7 @@ int main() {
 		{
 			for (const auto &key_val : m) {
 				cv::Mat img(100, 100, CV_8UC1, cv::Scalar(0));
-				heyho::fill_convex_poly<uchar>(img, key_val.second, cv::Scalar(255), 8);
+				heyho::fill_convex_poly<uchar, heyho::line_iterator_cv>(img, key_val.second, cv::Scalar(255), 8);
 				const auto name = "heyho: " + key_val.first;
 				cv::namedWindow(name, cv::WINDOW_AUTOSIZE);
 				cv::imshow(name, img);
@@ -83,22 +83,28 @@ int main() {
 				{"cv::fillConvexPoly                    ", &heyho::tests::cv_fill_convex_poly},
 				{"heyho::fill_convex_poly_cv<line_it_cv>", static_cast<heyho::tests::fill_convex_poly_f>(&heyho::fill_convex_poly_cv<uint8_t, heyho::line_iterator_cv>)},
 				{"heyho::fill_convex_poly_cv<line_it>   ", static_cast<heyho::tests::fill_convex_poly_f>(&heyho::fill_convex_poly_cv<uint8_t, heyho::line_iterator>)},
-				{"heyho::fill_convex_poly               ", static_cast<heyho::tests::fill_convex_poly_f>(&heyho::fill_convex_poly<uint8_t>)}
+				{"heyho::fill_convex_poly<line_it_cv>   ", static_cast<heyho::tests::fill_convex_poly_f>(&heyho::fill_convex_poly<uint8_t, heyho::line_iterator_cv>)},
+				{"heyho::fill_convex_poly<line_it>      ", static_cast<heyho::tests::fill_convex_poly_f>(&heyho::fill_convex_poly<uint8_t, heyho::line_iterator>)}
 			};
-			heyho::tests::benchmark_fill_convex_poly_functions(fill_functions, 400, 5000);
+			heyho::tests::benchmark_fill_convex_poly_functions(fill_functions,  20, 50000);
 			std::cout << '\n';
-
+			heyho::tests::benchmark_fill_convex_poly_functions(fill_functions, 400,  5000);
+			std::cout << '\n';
 
 			const std::vector<std::pair<std::string, heyho::tests::count_convex_poly_f>> count_functions {
 				{"cv::fillConvexPoly + cv::countNonZero", &heyho::tests::cv_count_convex_poly},
-				{"heyho::convex_poly_cv<line_it_cv>    ", &heyho::tests::heyho_count_convex_poly_cv},
-				{"heyho::convex_poly<line_it_cv>       ", &heyho::tests::heyho_count_convex_poly}
+				{"heyho::convex_poly_cv<line_it_cv>    ", &heyho::tests::heyho_count_convex_poly_cv<heyho::line_iterator_cv>},
+				{"heyho::convex_poly_cv<line_it>       ", &heyho::tests::heyho_count_convex_poly_cv<heyho::line_iterator>},
+				{"heyho::convex_poly<line_it_cv>       ", &heyho::tests::heyho_count_convex_poly<heyho::line_iterator_cv>},
+				{"heyho::convex_poly<line_it>          ", &heyho::tests::heyho_count_convex_poly<heyho::line_iterator>}
 			};
-			heyho::tests::benchmark_count_convex_poly_functions(count_functions, 400, 5000);
+			heyho::tests::benchmark_count_convex_poly_functions(count_functions,  20, 50000);
+			std::cout << '\n';
+			heyho::tests::benchmark_count_convex_poly_functions(count_functions, 400,  5000);
 			std::cout << '\n';
 		}
 
-		if (false or true)
+		if (false)
 		{
 			std::cout << "BENCHMARK\n==================\n";
 			heyho::tests::foreach()(heyho::tests::benchmark{{400, 200}, 45, 500});
