@@ -10,8 +10,8 @@
 
 namespace heyho {
 
-	template<typename FWDIT>
-	inline ring_iterator<FWDIT>::ring_iterator(FWDIT range_first, FWDIT range_last, FWDIT first_element, FWDIT last_element)
+	template<typename IT, bool reverse>
+	inline ring_iterator<IT, reverse>::ring_iterator(IT range_first, IT range_last, IT first_element, IT last_element)
 		: m_range_first(range_first)
 		, m_range_last(range_last)
 		, m_first_element(first_element)
@@ -23,35 +23,35 @@ namespace heyho {
 		}
 	}
 
-	template<typename FWDIT>
-	inline const typename ring_iterator<FWDIT>::value_type& ring_iterator<FWDIT>::operator*() const {
+	template<typename IT, bool reverse>
+	inline const typename ring_iterator<IT, reverse>::value_type& ring_iterator<IT, reverse>::operator*() const {
 		if (this->end()) {
 			throw std::runtime_error("dereferencing invalid iterator");
 		}
 		return *m_current;
 	}
 
-	template<typename FWDIT>
-	inline bool ring_iterator<FWDIT>::last() const {
+	template<typename IT, bool reverse>
+	inline bool ring_iterator<IT, reverse>::last() const {
 		return m_current == m_last_element;
 	}
 
-	template<typename FWDIT>
-	inline bool ring_iterator<FWDIT>::end() const {
+	template<typename IT, bool reverse>
+	inline bool ring_iterator<IT, reverse>::end() const {
 		return m_current == m_range_last;
 	}
 
-	template<typename FWDIT>
-	inline ring_iterator<FWDIT>& ring_iterator<FWDIT>::operator++()
+	template<typename IT, bool reverse>
+	inline ring_iterator<IT, reverse>& ring_iterator<IT, reverse>::operator++()
 	{
 		if (! this->check_end_set_invalid() ) {
-			this->move_forward();
+			this->advance();
 		}
 		return *this;
 	}
 
-	template<typename FWDIT>
-	bool ring_iterator<FWDIT>::check_end_set_invalid() {
+	template<typename IT, bool reverse>
+	inline bool ring_iterator<IT, reverse>::check_end_set_invalid() {
 		if (this->end()) {
 			return true;
 		}
@@ -63,12 +63,30 @@ namespace heyho {
 		return false;
 	}
 
-	template<typename FWDIT>
-	void ring_iterator<FWDIT>::move_forward() {
+	template<typename IT, bool reverse>
+	inline void ring_iterator<IT, reverse>::advance(forward_tag) {
 		++m_current;
 		if (m_current == m_range_last) {
 			m_current = m_range_first;
 		}
+	}
+
+	template<typename IT, bool reverse>
+	inline void ring_iterator<IT, reverse>::advance(backward_tag) {
+		if (m_current == m_range_first) {
+			m_current = m_range_last;
+		}
+		--m_current;
+	}
+
+	template<typename IT, bool reverse>
+	inline void ring_iterator<IT, reverse>::advance() {
+		this->advance(current_direction_tag{});
+	}
+
+	template<typename IT, bool reverse>
+	inline void ring_iterator<IT, reverse>::advance_opposite_direction() {
+		this->advance(opposite_direction_tag{});
 	}
 
 	//////////////////////////////
@@ -90,22 +108,15 @@ namespace heyho {
 	{
 		if (! this->check_end_set_invalid() ) {
 			if (m_reverse_direction) {
-				this->move_backward();
+				this->advance_opposite_direction();
 			}
 			else {
-				this->move_forward();
+				this->advance();
 			}
 		}
 		return *this;
 	}
 
-	template<typename FWDIT>
-	void ring_iterator_bd<FWDIT>::move_backward() {
-		if (this->m_current == this->m_range_first) {
-			this->m_current = this->m_range_last;
-		}
-		--this->m_current;
-	}
 
 }
 

@@ -23,12 +23,13 @@ namespace heyho {
 			}
 		}
 
-
 		void ring_iterator_tests() {
 
-			using ring_it_fwd_t = heyho::ring_iterator<std::vector<int>::const_iterator>;
-			using r_it_it       = std::reverse_iterator<std::vector<int>::const_iterator>;
-			using ring_it_rev_t = heyho::ring_iterator<r_it_it>;
+			using ring_it_t          = heyho::ring_iterator<std::vector<int>::const_iterator, false>;
+			using ring_it_reversed_t = heyho::ring_iterator<std::vector<int>::const_iterator, true>;
+
+			using rev_it_t           = std::reverse_iterator<std::vector<int>::const_iterator>;
+			using ring_it_rev_it_t   = heyho::ring_iterator<rev_it_t, false>;
 
 			std::cout << "ring iterator tests ... ";
 			std::cout.flush();
@@ -40,7 +41,7 @@ namespace heyho {
 				// 0 elements
 				{
 					try {
-						ring_it_fwd_t it_fwd(v.cbegin(), v.cbegin(), v.cbegin(), v.cbegin());
+						ring_it_t it_fwd(v.cbegin(), v.cbegin(), v.cbegin(), v.cbegin());
 						my_assert(false);
 					}
 					catch (const std::invalid_argument&) {}
@@ -48,7 +49,7 @@ namespace heyho {
 
 				// 1 element
 				{
-					ring_it_fwd_t it_fwd(v.cbegin(), v.cend(), v.cbegin(), v.cbegin());
+					ring_it_t it_fwd(v.cbegin(), v.cend(), v.cbegin(), v.cbegin());
 					my_assert( !it_fwd.end() && it_fwd.last() && *it_fwd == 1 );
 					++it_fwd;
 					my_assert( it_fwd.end() && !it_fwd.last() );
@@ -56,7 +57,7 @@ namespace heyho {
 
 				// 2 elements
 				{
-					ring_it_fwd_t it_fwd(v.cbegin(), v.cend(), v.cbegin(), v.cbegin() + 1);
+					ring_it_t it_fwd(v.cbegin(), v.cend(), v.cbegin(), v.cbegin() + 1);
 					my_assert( !it_fwd.end() && !it_fwd.last() && *it_fwd == 1 );
 					++it_fwd;
 					my_assert( !it_fwd.end() && it_fwd.last() && *it_fwd == 2 );
@@ -66,7 +67,7 @@ namespace heyho {
 
 				// 2 elements crossing end
 				{
-					ring_it_fwd_t it_fwd(v.cbegin(), v.cend(), v.cbegin() + 2, v.cbegin());
+					ring_it_t it_fwd(v.cbegin(), v.cend(), v.cbegin() + 2, v.cbegin());
 					my_assert( !it_fwd.end() && !it_fwd.last() && *it_fwd == 3 );
 					++it_fwd;
 					my_assert( !it_fwd.end() && it_fwd.last() && *it_fwd == 1 );
@@ -76,7 +77,7 @@ namespace heyho {
 
 				// 3 elements crossing end
 				{
-					ring_it_fwd_t it_fwd(v.cbegin(), v.cend(), v.cbegin() + 2, v.cbegin() + 1);
+					ring_it_t it_fwd(v.cbegin(), v.cend(), v.cbegin() + 2, v.cbegin() + 1);
 					my_assert( !it_fwd.end() && !it_fwd.last() && *it_fwd == 3 );
 					++it_fwd;
 					my_assert( !it_fwd.end() && !it_fwd.last() && *it_fwd == 1 );
@@ -87,12 +88,12 @@ namespace heyho {
 				}
 			}
 
-			// reversed
+			// reversed using std::reverse iterator
 			{
 				// 0 elements
 				{
 					try {
-						ring_it_rev_t it_rev(r_it_it{v.cbegin()}, r_it_it{v.cbegin()}, r_it_it{(v.cbegin()) + 1}, r_it_it{(v.cbegin()) + 1});
+						ring_it_rev_it_t it_rev(rev_it_t{v.cbegin()}, rev_it_t{v.cbegin()}, rev_it_t{(v.cbegin()) + 1}, rev_it_t{(v.cbegin()) + 1});
 						my_assert(false);
 					}
 					catch (const std::invalid_argument&) {}
@@ -100,7 +101,7 @@ namespace heyho {
 
 				// 1 element
 				{
-					ring_it_rev_t it_rev(r_it_it{v.cend()}, r_it_it{v.cbegin()}, r_it_it{(v.cbegin()) + 1}, r_it_it{(v.cbegin()) + 1});
+					ring_it_rev_it_t it_rev(rev_it_t{v.cend()}, rev_it_t{v.cbegin()}, rev_it_t{(v.cbegin()) + 1}, rev_it_t{(v.cbegin()) + 1});
 					my_assert( !it_rev.end() && it_rev.last() && *it_rev == 1 );
 					++it_rev;
 					my_assert( it_rev.end() && !it_rev.last() );
@@ -108,7 +109,7 @@ namespace heyho {
 
 				// 2 elements
 				{
-					ring_it_rev_t it_rev(r_it_it{v.cend()}, r_it_it{v.cbegin()}, r_it_it{(v.cbegin() + 1) + 1}, r_it_it{(v.cbegin()) + 1});
+					ring_it_rev_it_t it_rev(rev_it_t{v.cend()}, rev_it_t{v.cbegin()}, rev_it_t{(v.cbegin() + 1) + 1}, rev_it_t{(v.cbegin()) + 1});
 					my_assert( !it_rev.end() && !it_rev.last() && *it_rev == 2 );
 					++it_rev;
 					my_assert( !it_rev.end() && it_rev.last() && *it_rev == 1 );
@@ -118,7 +119,7 @@ namespace heyho {
 
 				// 2 elements crossing start
 				{
-					ring_it_rev_t it_rev(r_it_it{v.cend()}, r_it_it{v.cbegin()}, r_it_it{(v.cbegin()) + 1}, r_it_it{(v.cbegin() + 2) + 1});
+					ring_it_rev_it_t it_rev(rev_it_t{v.cend()}, rev_it_t{v.cbegin()}, rev_it_t{(v.cbegin()) + 1}, rev_it_t{(v.cbegin() + 2) + 1});
 					my_assert( !it_rev.end() && !it_rev.last() && *it_rev == 1 );
 					++it_rev;
 					my_assert( !it_rev.end() && it_rev.last() && *it_rev == 3 );
@@ -128,7 +129,7 @@ namespace heyho {
 
 				// 3 elements crossing start
 				{
-					ring_it_rev_t it_rev(r_it_it{v.cend()}, r_it_it{v.cbegin()}, r_it_it{(v.cbegin() + 1) + 1}, r_it_it{(v.cbegin() + 2) + 1});
+					ring_it_rev_it_t it_rev(rev_it_t{v.cend()}, rev_it_t{v.cbegin()}, rev_it_t{(v.cbegin() + 1) + 1}, rev_it_t{(v.cbegin() + 2) + 1});
 					my_assert( !it_rev.end() && !it_rev.last() && *it_rev == 2 );
 					++it_rev;
 					my_assert( !it_rev.end() && !it_rev.last() && *it_rev == 1 );
@@ -137,7 +138,60 @@ namespace heyho {
 					++it_rev;
 					my_assert( it_rev.end() && !it_rev.last() );
 				}
-			} // END reversed
+			} // END reversed (std::reverse iterator)
+
+			// reversed using reverse template param
+			{
+				// 0 elements
+				{
+					try {
+						ring_it_reversed_t it_rev(v.cbegin(), v.cbegin(), v.cbegin(), v.cbegin());
+						my_assert(false);
+					}
+					catch (const std::invalid_argument&) {}
+				}
+
+				// 1 element
+				{
+					ring_it_reversed_t it_rev(v.cbegin(), v.cend(), v.cbegin(), v.cbegin());
+					my_assert( !it_rev.end() && it_rev.last() && *it_rev == 1 );
+					++it_rev;
+					my_assert( it_rev.end() && !it_rev.last() );
+				}
+
+				// 2 elements
+				{
+					ring_it_reversed_t it_rev(v.cbegin(), v.cend(), v.cbegin() + 1, v.cbegin());
+					my_assert( !it_rev.end() && !it_rev.last() && *it_rev == 2 );
+					++it_rev;
+					my_assert( !it_rev.end() && it_rev.last() && *it_rev == 1 );
+					++it_rev;
+					my_assert( it_rev.end() && !it_rev.last() );
+				}
+
+				// 2 elements crossing start
+				{
+					ring_it_reversed_t it_rev(v.cbegin(), v.cend(), v.cbegin(), v.cbegin() + 2);
+					my_assert( !it_rev.end() && !it_rev.last() && *it_rev == 1 );
+					++it_rev;
+					my_assert( !it_rev.end() && it_rev.last() && *it_rev == 3 );
+					++it_rev;
+					my_assert( it_rev.end() && !it_rev.last() );
+				}
+
+				// 3 elements crossing start
+				{
+					ring_it_reversed_t it_rev(v.cbegin(), v.cend(), v.cbegin() + 1, v.cbegin() + 2);
+					my_assert( !it_rev.end() && !it_rev.last() && *it_rev == 2 );
+					++it_rev;
+					my_assert( !it_rev.end() && !it_rev.last() && *it_rev == 1 );
+					++it_rev;
+					my_assert( !it_rev.end() && it_rev.last() && *it_rev == 3 );
+					++it_rev;
+					my_assert( it_rev.end() && !it_rev.last() );
+				}
+			} // END reversed (template param)
+
 			std::cout << "passed :)\n";
 		} // END ring_iterator_tests();
 
