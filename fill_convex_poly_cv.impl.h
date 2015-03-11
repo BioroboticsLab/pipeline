@@ -1,5 +1,5 @@
 /*
- * fill_convex_poly_cv_impl.h
+ * fill_convex_poly_cv.impl.h
  *
  *  Created on: Feb 23, 2015
  *      Author: tobias

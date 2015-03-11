@@ -61,6 +61,6 @@ namespace heyho {
 	}
 }
 
-#include "poly_line_vertical_iterator_impl.h"
+#include "poly_line_vertical_iterator.impl.h"
 
 #endif /* POLY_LINE_VERTICAL_ITERATOR_H_ */

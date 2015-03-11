@@ -47,6 +47,6 @@ namespace heyho {
 
 }
 
-#include "fill_convex_poly_impl.h"
+#include "fill_convex_poly.impl.h"
 
 #endif /* FILL_CONVEX_POLY_H_ */

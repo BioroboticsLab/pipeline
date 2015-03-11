@@ -1,5 +1,5 @@
 /*
- * ring_iterator_impl.h
+ * ring_iterator.impl.h
  *
  *  Created on: Mar 2, 2015
  *      Author: tobias

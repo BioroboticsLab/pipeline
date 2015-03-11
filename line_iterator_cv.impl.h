@@ -1,5 +1,5 @@
 /*
- * line_iterator_cv_impl.h
+ * line_iterator_cv.impl.h
  *
  *  Created on: Mar 2, 2015
  *      Author: tobias

@@ -1,5 +1,5 @@
 /*
- * poly_line_iterator_impl.h
+ * poly_line_iterator.impl.h
  *
  *  Created on: Mar 4, 2015
  *      Author: tobias

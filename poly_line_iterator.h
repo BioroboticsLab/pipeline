@@ -53,6 +53,6 @@ namespace heyho {
 
 }
 
-#include "poly_line_iterator_impl.h"
+#include "poly_line_iterator.impl.h"
 
 #endif /* POLY_LINE_ITERATOR_H_ */

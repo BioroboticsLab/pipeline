@@ -79,6 +79,6 @@ namespace heyho {
 
 }
 
-#include "line_iterator_cv_impl.h"
+#include "line_iterator_cv.impl.h"
 
 #endif /* LINE_ITERATOR_CV_H_ */

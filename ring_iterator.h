@@ -94,6 +94,6 @@ namespace heyho {
 
 }
 
-#include "ring_iterator_impl.h"
+#include "ring_iterator.impl.h"
 
 #endif /* RING_ITERATOR_H_ */

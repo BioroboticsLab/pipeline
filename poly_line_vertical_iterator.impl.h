@@ -1,5 +1,5 @@
 /*
- * poly_line_vertical_iterator_impl.h
+ * poly_line_vertical_iterator.impl.h
  *
  *  Created on: Mar 5, 2015
  *      Author: tobias
