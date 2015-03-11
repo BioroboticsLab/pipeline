@@ -38,11 +38,11 @@ namespace heyho {
 	 *                                pixel in each horizontal line
 	 *
 	 */
-	template<typename IT, typename F>
+	template<typename IT, typename F, typename LINE_IT /* = line_iterator_cv */>
 	F convex_poly(cv::Size size, IT begin, IT end, F f, int connectivity);
 
 
-	template<typename pixel_t>
+	template<typename pixel_t, typename LINE_IT /* = line_iterator_cv */>
 	void fill_convex_poly(cv::InputOutputArray _img, cv::InputArray _points, const cv::Scalar& color, int line_type = 8);
 
 }
