@@ -79,41 +79,38 @@ namespace heyho {
 			int right = 1;
 			do
 			{
-				if( line_type < CV_AA || y < ymax || y == ymin )
+				for(int i = 0; i < 2; ++i )
 				{
-					for(int i = 0; i < 2; ++i )
+					if( y >= edge[i].ye )
 					{
-						if( y >= edge[i].ye )
+						int idx = edge[i].idx;
+						int di  = edge[i].di;
+						int xs = 0;
+						int ty = 0;
+
+						for(;;)
 						{
-							int idx = edge[i].idx;
-							int di  = edge[i].di;
-							int xs = 0;
-							int ty = 0;
-
-							for(;;)
-							{
-								ty = pts[idx].y;
-								if( ty > y || edges == 0 ) {
-									break;
-								}
-								xs = pts[idx].x;
-								idx += di;
-								idx -= ((idx < npts) - 1) & npts;   /* idx -= idx >= npts ? npts : 0 */
-								--edges;
+							ty = pts[idx].y;
+							if( ty > y || edges == 0 ) {
+								break;
 							}
-
-							const int ye = ty;
-							const int xe = pts[idx].x;
-
-							/* no more edges */
-							if( y >= ye )
-								return f;
-
-							edge[i].ye = ye;
-							edge[i].dx = ((xe - xs) * 2 + (ye - y)) / (2 * (ye - y));
-							edge[i].x = xs;
-							edge[i].idx = idx;
+							xs = pts[idx].x;
+							idx += di;
+							idx -= ((idx < npts) - 1) & npts;   /* idx -= idx >= npts ? npts : 0 */
+							--edges;
 						}
+
+						const int ye = ty;
+						const int xe = pts[idx].x;
+
+						/* no more edges */
+						if( y >= ye )
+							return f;
+
+						edge[i].ye = ye;
+						edge[i].dx = ((xe - xs) * 2 + (ye - y)) / (2 * (ye - y));
+						edge[i].x = xs;
+						edge[i].idx = idx;
 					}
 				}
 
