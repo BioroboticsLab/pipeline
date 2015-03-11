@@ -10,28 +10,28 @@
 
 namespace heyho {
 
-	template<typename POINTS_IT>
-	poly_line_vertical_iterator<POINTS_IT>::hline::hline(cv::Point p)
+	template<typename POINTS_IT, typename LINE_IT>
+	poly_line_vertical_iterator<POINTS_IT, LINE_IT>::hline::hline(cv::Point p)
 		: x_left(p.x)
 		, x_right(p.x)
 		, y(p.y)
 	{}
 
-	template<typename POINTS_IT>
-	poly_line_vertical_iterator<POINTS_IT>::hline::hline(const hline&) = default;
+	template<typename POINTS_IT, typename LINE_IT>
+	poly_line_vertical_iterator<POINTS_IT, LINE_IT>::hline::hline(const hline&) = default;
 
-	template<typename POINTS_IT>
-	cv::Point poly_line_vertical_iterator<POINTS_IT>::hline::left() const {
+	template<typename POINTS_IT, typename LINE_IT>
+	cv::Point poly_line_vertical_iterator<POINTS_IT, LINE_IT>::hline::left() const {
 		return {x_left, y};
 	}
 
-	template<typename POINTS_IT>
-	cv::Point poly_line_vertical_iterator<POINTS_IT>::hline::right() const {
+	template<typename POINTS_IT, typename LINE_IT>
+	cv::Point poly_line_vertical_iterator<POINTS_IT, LINE_IT>::hline::right() const {
 		return {x_right, y};
 	}
 
-	template<typename POINTS_IT>
-	poly_line_vertical_iterator<POINTS_IT>::poly_line_vertical_iterator(POINTS_IT points_it, int connectivity)
+	template<typename POINTS_IT, typename LINE_IT>
+	poly_line_vertical_iterator<POINTS_IT, LINE_IT>::poly_line_vertical_iterator(POINTS_IT points_it, int connectivity)
 		: m_poly_line_points(std::move(points_it), connectivity)
 		, m_current_point(*m_poly_line_points)
 		, m_end(false)
@@ -40,21 +40,21 @@ namespace heyho {
 		this->set_to_left_right_most_in_line();
 	}
 
-	template<typename POINTS_IT>
-	const typename poly_line_vertical_iterator<POINTS_IT>::hline& poly_line_vertical_iterator<POINTS_IT>::operator*() const {
+	template<typename POINTS_IT, typename LINE_IT>
+	const typename poly_line_vertical_iterator<POINTS_IT, LINE_IT>::hline& poly_line_vertical_iterator<POINTS_IT, LINE_IT>::operator*() const {
 		if (this->end()) {
 			throw std::runtime_error("dereferencing invalid iterator");
 		}
 		return m_current_point;
 	}
 
-	template<typename POINTS_IT>
-	const typename poly_line_vertical_iterator<POINTS_IT>::hline* poly_line_vertical_iterator<POINTS_IT>::operator->() const {
+	template<typename POINTS_IT, typename LINE_IT>
+	const typename poly_line_vertical_iterator<POINTS_IT, LINE_IT>::hline* poly_line_vertical_iterator<POINTS_IT, LINE_IT>::operator->() const {
 		return &**this;
 	}
 
-	template<typename POINTS_IT>
-	poly_line_vertical_iterator<POINTS_IT>& poly_line_vertical_iterator<POINTS_IT>::operator++() {
+	template<typename POINTS_IT, typename LINE_IT>
+	poly_line_vertical_iterator<POINTS_IT, LINE_IT>& poly_line_vertical_iterator<POINTS_IT, LINE_IT>::operator++() {
 		if (!this->end()) {
 			if (m_poly_line_points.end()) {
 				m_end = true;
@@ -67,13 +67,13 @@ namespace heyho {
 		return *this;
 	}
 
-	template<typename POINTS_IT>
-	bool poly_line_vertical_iterator<POINTS_IT>::end() const {
+	template<typename POINTS_IT, typename LINE_IT>
+	bool poly_line_vertical_iterator<POINTS_IT, LINE_IT>::end() const {
 		return m_end;
 	}
 
-	template<typename POINTS_IT>
-	void poly_line_vertical_iterator<POINTS_IT>::set_to_left_right_most_in_line()
+	template<typename POINTS_IT, typename LINE_IT>
+	void poly_line_vertical_iterator<POINTS_IT, LINE_IT>::set_to_left_right_most_in_line()
 	{
 		while (!m_poly_line_points.end())
 		{

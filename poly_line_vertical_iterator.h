@@ -19,7 +19,7 @@ namespace heyho {
 	 *   - thus pixels with invalid y-coordinates are skipped until the next valid pixel is reached
 	 * - groups of consecutive pixels with the same y-coordinate are merged into an object containing the leftmost and rightmost x-value
 	 */
-	template<typename POINTS_IT>
+	template<typename POINTS_IT, typename LINE_IT = line_iterator_cv>
 	class poly_line_vertical_iterator
 	{
 	public:
@@ -49,7 +49,7 @@ namespace heyho {
 	private:
 		void set_to_left_right_most_in_line();
 
-		poly_line_iterator<POINTS_IT> m_poly_line_points;
+		poly_line_iterator<POINTS_IT, LINE_IT> m_poly_line_points;
 		hline m_current_point;
 		bool m_end;
 	};
