@@ -115,7 +115,7 @@ namespace heyho {
 				cv::fillConvexPoly(img1, points, default_color<img_type>(), line_type, shift);
 
 				cv::Mat img2(dim_y, dim_x, img_type, white<img_type>());
-				heyho::fill_convex_poly_cv<pixel_t>(img2, points, default_color<img_type>(), line_type);
+				heyho::fill_convex_poly_cv<pixel_t, line_iterator_cv>(img2, points, default_color<img_type>(), line_type);
 
 
 				const bool equal =  0 == std::memcmp(img1.datastart, img2.datastart, img1.dataend - img1.datastart);
@@ -171,14 +171,14 @@ namespace heyho {
 					std::cout << "    heyho_cv:  ";
 					timer t;
 					for (size_t i = 0; i < times; ++i) {
-						heyho::fill_convex_poly_cv<pixel_t>(img, points, default_color<img_type>(), line_type);
+						heyho::fill_convex_poly_cv<pixel_t, line_iterator_cv>(img, points, default_color<img_type>(), line_type);
 					}
 				}
 				{
 					std::cout << "    heyho:     ";
 					timer t;
 					for (size_t i = 0; i < times; ++i) {
-						heyho::fill_convex_poly<pixel_t>(img, points, default_color<img_type>(), line_type);
+						heyho::fill_convex_poly<pixel_t, line_iterator_cv>(img, points, default_color<img_type>(), line_type);
 					}
 				}
 				return true;
@@ -240,13 +240,15 @@ namespace heyho {
 			return {zero, non_zero};
 		}
 
+		template<typename LINE_IT>
 		inline std::pair<size_t, size_t> heyho_count_convex_poly_cv(const cv::Mat &img, const std::vector<cv::Point> &points, int line_type) {
-			const auto counts = heyho::convex_poly_cv(img.size(), &points[0], static_cast<int>(points.size()), pixel_counter<uchar>{img, 0}, line_type).count();
+			const auto counts = heyho::convex_poly_cv<pixel_counter<uchar>, LINE_IT>(img.size(), &points[0], static_cast<int>(points.size()), pixel_counter<uchar>{img, 0}, line_type).count();
 			return {counts.zero(), counts.non_zero()};
 		}
 
+		template<typename LINE_IT>
 		inline std::pair<size_t, size_t> heyho_count_convex_poly(const cv::Mat &img, const std::vector<cv::Point> &points, int line_type) {
-			const auto counts = heyho::convex_poly(img.size(), points.cbegin(), points.cend(), pixel_counter<uchar>{img, 0}, line_type).count();
+			const auto counts = heyho::convex_poly<std::vector<cv::Point>::const_iterator, pixel_counter<uchar>, LINE_IT>(img.size(), points.cbegin(), points.cend(), pixel_counter<uchar>{img, 0}, line_type).count();
 			return {counts.zero(), counts.non_zero()};
 		}
 

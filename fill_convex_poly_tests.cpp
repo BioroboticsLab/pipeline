@@ -23,7 +23,7 @@ namespace heyho {
 			cv::ellipse2Poly(center, cv::Size(axis_major, axis_minor), 45, 0, 360, 1, poly);
 			cv::Mat img(dim_y, dim_x, img_type, white<img_type>());
 
-			std::cout << "benchmark multiple fill functions (" << heyho::img_type_to_str(img.type()) << ") :\n";
+			std::cout << "benchmark multiple fill functions (" << dim_x << " x " << dim_y << ", " << heyho::img_type_to_str(img.type()) << "), " << times << " times :\n";
 
 			for (const auto &name_f : fill_functions) {
 				std::cout << "  " << name_f.first << ": ";
@@ -55,7 +55,7 @@ namespace heyho {
 				}
 			}
 
-			std::cout << "benchmark multiple count functions (" << heyho::img_type_to_str(img.type()) << ") :\n";
+			std::cout << "benchmark multiple count functions (" << dim_x << " x " << dim_y << ", " << heyho::img_type_to_str(img.type()) << "), " << times << " times :\n";
 
 			for (const auto &name_f : count_functions) {
 				std::cout << "  " << name_f.first << ": ";
