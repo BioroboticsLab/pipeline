@@ -33,6 +33,11 @@ namespace heyho {
 		if (img.type() != img_type) {
 			throw std::invalid_argument("invalid image pixel type");
 		}
+
+		constexpr int pix_size = sizeof(typename cv::DataType<pixel_t>::value_type);
+		if (pix_size != static_cast<int>(img.elemSize())) {
+			throw std::invalid_argument("invalid image pixel size");
+		}
 	}
 
 	template<typename pixel_t>
