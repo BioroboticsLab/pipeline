@@ -85,6 +85,14 @@ namespace heyho {
 		return {std::abs(p.x), std::abs(p.y)};
 	}
 
+	/**
+	 * extracts cv::Point* and number of Points from a cv::InputArray
+	 *
+	 * @throws std::invalid_argument iff pts doesn't contain cv::Points or it's data isn't continuous
+	 * @return (ptr to first point, number of points)
+	 */
+	std::pair<const cv::Point*, int> cv_point_input_array_to_pointer(cv::InputArray pts);
+
 }
 
 #include "helper.impl.h"

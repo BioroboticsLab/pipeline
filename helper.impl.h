@@ -87,6 +87,16 @@ namespace heyho {
 		return m_count;
 	}
 
+	inline std::pair<const cv::Point*, int> cv_point_input_array_to_pointer(cv::InputArray pts) {
+		const cv::Mat points = pts.getMat();
+		if (! (points.checkVector(2, CV_32S, true) >= 0)) {
+			throw std::invalid_argument("InputArray doesn't point to continuous cv::Point data");
+		}
+		const cv::Point *begin = reinterpret_cast<const cv::Point*>(points.data);
+		const int size = points.rows * points.cols * points.channels() / 2;
+		return {begin, size};
+	}
+
 }
 
 #endif /* HELPER_IMPL_H_ */
