@@ -19,6 +19,21 @@
 namespace heyho {
 
 	/**
+	 * Calls f with every Point of the convex polygon spanned by points exactly one time.
+	 *
+	 * The polygon is cropped by the rectangle cv::Rect(cv::Point(0,0), size).
+	 *
+	 * @param size          cropping dimensions
+	 * @param begin         iterator to the polygon's first point
+	 * @param end           iterator behind the polygon's last point
+	 * @param f             some functor or function
+	 * @param connectivity  line connectivity : 4 or 8
+	 *
+	 * @tparam LINE_IT class that iterates over the pixels connecting to points
+	 *                 (e.g. heyho::line_iterator_cv, heyho::line_iterator)
+	 *
+	 ************************************************
+	 *
 	 * The polygon is rendered linewise from left to right starting at the smallest y-coordinate.
 	 *
 	 * general idea:
@@ -43,13 +58,18 @@ namespace heyho {
 	template<typename F, typename LINE_IT>
 	F convex_poly(cv::Size size, cv::InputArray points, F f, int connectivity = 8);
 
-
+	/**
+	 * @see convex_poly
+	 *
+	 * Sets every pixel inside the polygon to the specified color.
+	 *
+	 */
 	template<typename pixel_t, typename LINE_IT>
 	void fill_convex_poly(cv::InputOutputArray img, cv::InputArray points, const cv::Scalar& color, int line_type = 8);
 	template<typename pixel_t, typename LINE_IT>
 	void fill_convex_poly(cv::Mat &img,             cv::InputArray points, const cv::Scalar& color, int line_type = 8);
 	template<typename pixel_t, typename LINE_IT>
-	void fill_convex_poly(cv::Mat &img,             cv::InputArray points, const pixel_t &color   , int line_type = 8);
+	void fill_convex_poly(cv::Mat &img,             cv::InputArray points, const pixel_t &color,    int line_type = 8);
 
 }
 
