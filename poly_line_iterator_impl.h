@@ -10,27 +10,27 @@
 
 namespace heyho {
 
-	template<typename POINTS_IT>
-	inline poly_line_iterator<POINTS_IT>::poly_line_iterator(POINTS_IT points_it, int connectivity)
+	template<typename POINTS_IT, typename LINE_IT>
+	inline poly_line_iterator<POINTS_IT, LINE_IT>::poly_line_iterator(POINTS_IT points_it, int connectivity)
 		: m_points(std::move(points_it))
 		, m_current_line(make_line_it(m_points, connectivity))
 	{}
 
-	template<typename POINTS_IT>
-	inline bool poly_line_iterator<POINTS_IT>::end() const {
+	template<typename POINTS_IT, typename LINE_IT>
+	inline bool poly_line_iterator<POINTS_IT, LINE_IT>::end() const {
 		return m_points.end() && m_current_line.end();
 	}
 
-	template<typename POINTS_IT>
-	inline typename poly_line_iterator<POINTS_IT>::value_type poly_line_iterator<POINTS_IT>::operator*() const {
+	template<typename POINTS_IT, typename LINE_IT>
+	inline typename poly_line_iterator<POINTS_IT, LINE_IT>::value_type poly_line_iterator<POINTS_IT, LINE_IT>::operator*() const {
 		if (this->end()) {
 			throw std::runtime_error("dereferencing invalid iterator");
 		}
 		return *m_current_line;
 	}
 
-	template<typename POINTS_IT>
-	inline poly_line_iterator<POINTS_IT>& poly_line_iterator<POINTS_IT>::operator++()
+	template<typename POINTS_IT, typename LINE_IT>
+	inline poly_line_iterator<POINTS_IT, LINE_IT>& poly_line_iterator<POINTS_IT, LINE_IT>::operator++()
 	{
 		if (!this->end())
 		{
@@ -53,8 +53,8 @@ namespace heyho {
 		return *this;
 	}
 
-	template<typename POINTS_IT>
-	inline heyho::line_iterator_cv poly_line_iterator<POINTS_IT>::make_line_it(POINTS_IT &it, int connectivity) {
+	template<typename POINTS_IT, typename LINE_IT>
+	inline heyho::line_iterator_cv poly_line_iterator<POINTS_IT, LINE_IT>::make_line_it(POINTS_IT &it, int connectivity) {
 		const auto p1 = *it;
 		++it;
 		const auto p2 = it.end() ? p1 : *it;

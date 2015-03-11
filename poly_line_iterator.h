@@ -24,7 +24,7 @@ namespace heyho {
 	 *                     typename POINTS_IT::value_type
 	 *                     POINTS_IT::value_type POINTS_IT::operator*();
 	 */
-	template<typename POINTS_IT>
+	template<typename POINTS_IT, typename LINE_IT = line_iterator_cv>
 	class poly_line_iterator {
 	public:
 		using value_type = cv::Point;
@@ -43,7 +43,7 @@ namespace heyho {
 		static heyho::line_iterator_cv make_line_it(POINTS_IT &it, int connectivity);
 
 		POINTS_IT m_points;
-		heyho::line_iterator_cv m_current_line;
+		LINE_IT   m_current_line;
 	};
 
 	namespace tests {
