@@ -73,7 +73,7 @@ namespace heyho {
 
 
 		/**
-		 * compares cv::fillConvexPoly & heyho::fill_convex_poly
+		 * compares cv::fillConvexPoly & heyho::fill_convex_poly_cv
 		 *
 		 * - displays diffrences
 		 *
