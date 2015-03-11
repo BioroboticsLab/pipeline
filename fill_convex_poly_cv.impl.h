@@ -147,16 +147,17 @@ namespace heyho {
 
 
 	template<typename pixel_t, typename LINE_IT>
-	void fill_convex_poly_cv(cv::InputOutputArray _img, cv::InputArray _points, const cv::Scalar& color, int line_type) {
-		cv::Mat img = _img.getMat();
-		const cv::Mat points = _points.getMat();
+	void fill_convex_poly_cv(cv::InputOutputArray img, cv::InputArray pts, const cv::Scalar& color, int line_type)
+	{
+		cv::Mat img_mat = img.getMat();
+		const cv::Mat points = pts.getMat();
 		CV_Assert(points.checkVector(2, CV_32S) >= 0);
 		heyho::fill_convex_poly_cv<pixel_t, LINE_IT>(
-				img,
-				reinterpret_cast<const cv::Point*>(points.data),
-				points.rows * points.cols * points.channels() / 2,
-				color,
-				line_type
+			img_mat,
+			reinterpret_cast<const cv::Point*>(points.data),
+			points.rows * points.cols * points.channels() / 2,
+			color,
+			line_type
 		);
 	}
 
@@ -166,9 +167,6 @@ namespace heyho {
 	{
 		if( !pts || npts <= 0 )
 			return;
-
-		if( line_type == CV_AA && img.depth() != CV_8U )
-			line_type = 8;
 
 		heyho::fill_convex_poly_cv<pixel_t, LINE_IT>(img, pts, npts, scalar2pixel<pixel_t>(color), line_type);
 	}
