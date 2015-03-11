@@ -10,7 +10,7 @@
 
 namespace heyho {
 
-	template<typename F, typename LINE_IT = line_iterator_cv>
+	template<typename F, typename LINE_IT>
 	F convex_poly_cv(cv::Size size, const cv::Point* pts, int npts, F f, int line_type)
 	{
 
