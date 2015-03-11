@@ -70,7 +70,7 @@ namespace heyho {
 		void compare_convex_poly()
 		{
 			{
-				std::cout << "FOREACH( cv::fillConvexPoly == heyho::fill_convex_poly ) ... ";
+				std::cout << "FOREACH( cv::fillConvexPoly == heyho::fill_convex_poly_cv ) ... ";
 				std::cout.flush();
 				for (int angle = 0; angle < 45; angle += 5) {
 					for (int axis_minor = 25; axis_minor < 50; ++axis_minor) {
@@ -83,7 +83,7 @@ namespace heyho {
 			}
 
 			{
-				std::cout << "FOREACH( cropped cv::fillConvexPoly == cropped heyho::fill_convex_poly ) ... ";
+				std::cout << "FOREACH( cropped cv::fillConvexPoly == cropped heyho::fill_convex_poly_cv ) ... ";
 				std::cout.flush();
 
 				// left
