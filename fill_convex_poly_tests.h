@@ -242,7 +242,7 @@ namespace heyho {
 
 		template<typename LINE_IT>
 		inline std::pair<size_t, size_t> heyho_count_convex_poly_cv(const cv::Mat &img, const std::vector<cv::Point> &points, int line_type) {
-			const auto counts = heyho::convex_poly_cv<pixel_counter<uchar>, LINE_IT>(img.size(), &points[0], static_cast<int>(points.size()), pixel_counter<uchar>{img, 0}, line_type).count();
+			const auto counts = heyho::convex_poly_cv<pixel_counter<uchar>, LINE_IT>(img.size(), points, pixel_counter<uchar>{img, 0}, line_type).count();
 			return {counts.zero(), counts.non_zero()};
 		}
 

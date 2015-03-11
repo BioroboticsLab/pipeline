@@ -11,8 +11,15 @@
 namespace heyho {
 
 	template<typename F, typename LINE_IT>
-	F convex_poly_cv(cv::Size size, const cv::Point* pts, int npts, F f, int line_type)
+	F convex_poly_cv(const cv::Size size, cv::InputArray points, F f, const int line_type)
 	{
+		const auto ptr_size = cv_point_input_array_to_pointer(points);
+		const cv::Point* const pts = ptr_size.first;
+		const int npts = ptr_size.second;
+
+		if (pts == nullptr || npts <= 0) {
+			return std::move(f);
+		}
 
 		if (line_type != 4 && line_type != 8) {
 			throw std::invalid_argument("invalid line type");
@@ -147,15 +154,15 @@ namespace heyho {
 
 
 	template<typename pixel_t, typename LINE_IT>
-	void fill_convex_poly_cv(cv::InputOutputArray img, cv::InputArray pts, const cv::Scalar& color, int line_type)
+	void fill_convex_poly_cv(cv::InputOutputArray img, cv::InputArray points, const cv::Scalar& color, int line_type)
 	{
+		/*
+		 * cv::InputOutputArray --> cv::Mat; forward everything else
+		 */
 		cv::Mat img_mat = img.getMat();
-		const cv::Mat points = pts.getMat();
-		CV_Assert(points.checkVector(2, CV_32S) >= 0);
 		heyho::fill_convex_poly_cv<pixel_t, LINE_IT>(
 			img_mat,
-			reinterpret_cast<const cv::Point*>(points.data),
-			points.rows * points.cols * points.channels() / 2,
+			points,
 			color,
 			line_type
 		);
@@ -163,54 +170,32 @@ namespace heyho {
 
 
 	template<typename pixel_t, typename LINE_IT>
-	void fill_convex_poly_cv(cv::Mat& img, const cv::Point* pts, int npts, const cv::Scalar& color, int line_type)
+	void fill_convex_poly_cv(cv::Mat& img, cv::InputArray points, const cv::Scalar& color, int line_type)
 	{
-		if( !pts || npts <= 0 )
-			return;
-
-		heyho::fill_convex_poly_cv<pixel_t, LINE_IT>(img, pts, npts, scalar2pixel<pixel_t>(color), line_type);
+		/*
+		 * cv::Scalar --> pixel_t; forward everything else
+		 */
+		heyho::fill_convex_poly_cv<pixel_t, LINE_IT>(
+			img,
+			points,
+			scalar2pixel<pixel_t>(color),
+			line_type
+		);
 	}
 
 
 	template<typename pixel_t, typename LINE_IT>
-	void fill_convex_poly_cv(cv::Mat& img, const cv::Point* v, int npts, const pixel_t &color, int line_type)
+	void fill_convex_poly_cv(cv::Mat& img, cv::InputArray points, const pixel_t &color, int line_type)
 	{
 		/*
-		 * INFO: cv::Mat image type
-		 * ========================
-		 *
-		 * size_t Mat::elemSize()  const --> num_chans * sizeof(T)
-		 * size_t Mat::elemSize1() const -->             sizeof(T)
-		 *
-		 * int Mat::channels() const --> num_chans
-		 *
-		 * int Mat::type() const --> CV_16SC3
-		 *
-		 * int Mat::depth() const --> MACRO / enum fuer {signed, unsigned}{char, short, int} ...
-		 *
-		 *
-		 * CV_MAT_CN(CV_16SC3) --> num_chans
-		 *
+		 * cv::Mat + pixel_t --> pixel_setter; forward everything else
 		 */
-
-		constexpr int img_type = cv::DataType<pixel_t>::type;
-		if (img.type() != img_type) {
-			throw std::invalid_argument("invalid image pixel type");
-		}
-
-		static_assert(
-				sizeof(typename cv::DataType<pixel_t>::value_type)
-				==
-				sizeof(typename cv::DataType<pixel_t>::channel_type) * cv::DataType<pixel_t>::channels
-				, "unexpected pixel size"
+		heyho::convex_poly_cv<pixel_setter<pixel_t>, LINE_IT>(
+			img.size(),
+			points,
+			pixel_setter<pixel_t>{img, color},
+			line_type
 		);
-
-		constexpr int pix_size = sizeof(typename cv::DataType<pixel_t>::value_type);
-		if (pix_size != static_cast<int>(img.elemSize())) {
-			throw std::invalid_argument("invalid image pixel size");
-		}
-
-		heyho::convex_poly_cv<pixel_setter<pixel_t>, LINE_IT>(img.size(), v, npts, pixel_setter<pixel_t>{img, color}, line_type);
 	}
 
 }
