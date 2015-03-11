@@ -57,25 +57,17 @@ namespace heyho {
 		bool end() const;
 
 		/**
-		 * True <=> the current pixel is the line's endpoint
-		 */
-		bool last() const;
-
-		/**
 		 * returns coordinates of the current pixel
 		 *
 		 * @throws std::runtime_error <=> this->end()
 		 */
 		cv::Point operator*() const;
 
-		int connectivity() const;
-
 		std::size_t size() const;
 
 		std::size_t remaining_points() const;
 
 	private:
-		int m_connectivity;
 		cv::LineIterator m_it;
 		size_t m_remaining_points;
 		cv::Point m_offset;
