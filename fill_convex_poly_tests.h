@@ -21,6 +21,7 @@
 #include "fill_convex_poly.h"    // heyho::fill_convex_poly
 #include "helper.h"              // heyho::img_type_2_str
 #include "fill convex_poly_test_colors.h"
+#include "fill_convex_poly_test_functors.h"
 
 namespace heyho {
 
@@ -44,12 +45,16 @@ namespace heyho {
 		};
 
 		/**
-		 * compares cv::fillConvexPoly & heyho::fill_convex_poly_cv
+		 * compares the results of two fill convex poly functions wrapped into functors
+		 * that provide a static paint method
+		 *
+		 * (e.g. cv::fillConvexPoly wrapped in hey::tests::open_cv_fill_poly_f)
 		 *
 		 * - displays diffrences
 		 *
 		 */
-		struct compare {
+		template<typename A, typename B>
+		struct compare_paint {
 
 			const cv::Size axes;
 			const int angle;
@@ -57,7 +62,7 @@ namespace heyho {
 			const int dim_y;
 			const cv::Point center;
 
-			compare(cv::Size axes, int angle)
+			compare_paint(cv::Size axes, int angle)
 				: axes(axes)
 				, angle(angle)
 				, dim_x(2 * std::max(axes.width, axes.height) + 10)
@@ -65,7 +70,7 @@ namespace heyho {
 				, center(dim_x / 2, dim_y / 2)
 			{}
 
-			compare(cv::Size axes, int angle, int dim_x, int dim_y, cv::Point center)
+			compare_paint(cv::Size axes, int angle, int dim_x, int dim_y, cv::Point center)
 				: axes(axes)
 				, angle(angle)
 				, dim_x(dim_x)
@@ -77,26 +82,27 @@ namespace heyho {
 			bool operator()() const
 			{
 				constexpr int img_type = cv::DataType<pixel_t>::type;
-				constexpr int shift = 0;
 				std::vector<cv::Point> points;
 				cv::ellipse2Poly(center, axes, angle, 0, 360, 1, points);
 
 
 				cv::Mat img1(dim_y, dim_x, img_type, white<img_type>());
-				cv::fillConvexPoly(img1, points, default_color<img_type>(), line_type, shift);
+				A::template paint<pixel_t>(img1, points, default_color<img_type>(), line_type);
+
 
 				cv::Mat img2(dim_y, dim_x, img_type, white<img_type>());
-				heyho::fill_convex_poly_cv<pixel_t, line_iterator_cv>(img2, points, default_color<img_type>(), line_type);
+				B::template paint<pixel_t>(img2, points, default_color<img_type>(), line_type);
 
 
 				const bool equal =  0 == std::memcmp(img1.datastart, img2.datastart, img1.dataend - img1.datastart);
 
-				if (! equal) {
-					cv::namedWindow( "opencv", cv::WINDOW_AUTOSIZE);
-					cv::imshow( "opencv", img1);
+				if (! equal)
+				{
+					cv::namedWindow( A::name(), cv::WINDOW_AUTOSIZE);
+					cv::imshow( A::name(), img1);
 
-					cv::namedWindow( "heyho", cv::WINDOW_AUTOSIZE);
-					cv::imshow( "heyho", img2);
+					cv::namedWindow( B::name(), cv::WINDOW_AUTOSIZE);
+					cv::imshow( B::name(), img2);
 
 					const cv::Mat diff = img1 != img2;
 
@@ -194,39 +200,11 @@ namespace heyho {
 
 		};
 
-		using fill_convex_poly_f = void (*) (cv::InputOutputArray img, cv::InputArray points, const cv::Scalar& color, int line_type);
-		using count_convex_poly_f = std::pair<size_t, size_t> (*) (const cv::Mat &img, const std::vector<cv::Point> &points, int line_type);
-
-		inline void cv_fill_convex_poly(cv::InputOutputArray img, cv::InputArray points, const cv::Scalar& color, int line_type) {
-			cv::fillConvexPoly(img, points, color, line_type);
-		}
-
-		inline std::pair<size_t, size_t> cv_count_convex_poly(const cv::Mat &img, const std::vector<cv::Point> &points, int line_type) {
-			cv::Mat poly_img(img.size(), img.type(), cv::Scalar(0));
-			cv::fillConvexPoly(poly_img, points, cv::Scalar(255), line_type);
-			const size_t all = static_cast<size_t>(cv::countNonZero(poly_img));
-			poly_img &= img;
-			const size_t non_zero = static_cast<size_t>(cv::countNonZero(poly_img));
-			const size_t zero = all - non_zero;
-			return {zero, non_zero};
-		}
-
-		template<typename LINE_IT>
-		inline std::pair<size_t, size_t> heyho_count_convex_poly_cv(const cv::Mat &img, const std::vector<cv::Point> &points, int line_type) {
-			const auto counts = heyho::convex_poly_cv<pixel_counter<uchar>, LINE_IT>(img.size(), points, pixel_counter<uchar>{img, 0}, line_type).count();
-			return {counts.zero(), counts.non_zero()};
-		}
-
-		template<typename LINE_IT>
-		inline std::pair<size_t, size_t> heyho_count_convex_poly(const cv::Mat &img, const std::vector<cv::Point> &points, int line_type) {
-			const auto counts = heyho::convex_poly<std::vector<cv::Point>::const_iterator, pixel_counter<uchar>, LINE_IT>(img.size(), points.cbegin(), points.cend(), pixel_counter<uchar>{img, 0}, line_type).count();
-			return {counts.zero(), counts.non_zero()};
-		}
 
 		/**
 		 * benchmarks multiple fill convex poly functions
 		 */
-		void benchmark_fill_convex_poly_functions( const std::vector<std::pair<std::string, fill_convex_poly_f>>   &fill_functions, int major, size_t times);
+		void benchmark_fill_convex_poly_functions( const std::vector<std::pair<std::string, fill_convex_poly_f>>  &fill_functions,  int major, size_t times);
 
 		void benchmark_count_convex_poly_functions(const std::vector<std::pair<std::string, count_convex_poly_f>> &count_functions, int major, size_t times);
 
