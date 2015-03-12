@@ -29,6 +29,15 @@ namespace heyho {
 		return std::move(f);
 	}
 
+	template<typename F>
+	inline F hline(cv::Rect boundaries, int x_left, int x_right, int y, F f) {
+		if (y >= boundaries.tl().y && y < boundaries.br().y)
+		{
+			return hline(std::max(x_left, boundaries.tl().x), std::min(x_right, boundaries.br().x - 1), y, std::move(f));
+		}
+		return std::move(f);
+	}
+
 
 	template<typename F, typename LINE_IT>
 	inline F line(cv::Size size, cv::Point pt1, cv::Point pt2, F f, int connectivity, bool left_to_right)

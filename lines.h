@@ -17,13 +17,16 @@
 namespace heyho {
 
 	template<typename F>
-	inline F hline(int x_left, int x_right, int y, F f);
+	F hline(int x_left, int x_right, int y, F f);
 
 	template<typename F>
-	inline F hline(cv::Size size, int x_left, int x_right, int y, F f);
+	F hline(cv::Size size, int x_left, int x_right, int y, F f);
 
-	template<typename F, typename LINE_IT /* = line_iterator_cv */>
-	inline F line(cv::Size size, cv::Point pt1, cv::Point pt2, F f, int connectivity = 8, bool left_to_right = false);
+	template<typename F>
+	F hline(cv::Rect boundaries, int x_left, int x_right, int y, F f);
+
+	template<typename F, typename LINE_IT>
+	F line(cv::Size size, cv::Point pt1, cv::Point pt2, F f, int connectivity = 8, bool left_to_right = false);
 
 
 	template<typename pixel_t>
@@ -31,7 +34,7 @@ namespace heyho {
 		heyho::hline(img.size(), x1, x2, y, pixel_setter<pixel_t>{img, color});
 	}
 
-	template<typename pixel_t, typename LINE_IT /* = line_iterator_cv */>
+	template<typename pixel_t, typename LINE_IT>
 	inline void draw_line(cv::Mat& img, cv::Point pt1, cv::Point pt2, const pixel_t &color, int connectivity = 8, bool left_to_right = false) {
 		heyho::line<pixel_t, LINE_IT>(img.size(), pt1, pt2, pixel_setter<pixel_t>{img, color}, connectivity, left_to_right);
 	}
