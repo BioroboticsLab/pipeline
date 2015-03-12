@@ -54,9 +54,14 @@ namespace heyho {
 	 *
 	 */
 	template<typename IT, typename F, typename LINE_IT>
-	F convex_poly(cv::Size size, IT begin, IT end,      F f, int connectivity = 8);
+	F convex_poly(cv::Rect boundaries, IT begin, IT end,      F f, int connectivity = 8);
+	template<typename IT, typename F, typename LINE_IT>
+	F convex_poly(cv::Size size,       IT begin, IT end,      F f, int connectivity = 8);
+
 	template<typename F, typename LINE_IT>
-	F convex_poly(cv::Size size, cv::InputArray points, F f, int connectivity = 8);
+	F convex_poly(cv::Rect boundaries, cv::InputArray points, F f, int connectivity = 8);
+	template<typename F, typename LINE_IT>
+	F convex_poly(cv::Size size,       cv::InputArray points, F f, int connectivity = 8);
 
 	/**
 	 * @see convex_poly
