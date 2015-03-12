@@ -20,6 +20,7 @@
 #include "fill_convex_poly_cv.h" // heyho::fill_convex_poly_cv
 #include "fill_convex_poly.h"    // heyho::fill_convex_poly
 #include "helper.h"              // heyho::img_type_2_str
+#include "fill convex_poly_test_colors.h"
 
 namespace heyho {
 
@@ -41,36 +42,6 @@ namespace heyho {
 				std::cout << std::setw(5) << ms.count() << " ms\n";
 			}
 		};
-
-
-		template<int>
-		cv::Scalar white();
-		template<>
-		inline cv::Scalar white<CV_8UC1>() { return {255}; }
-		template<>
-		inline cv::Scalar white<CV_8SC1>() { return {127}; }
-		template<>
-		inline cv::Scalar white<CV_8UC3>() { return {255, 255, 255}; }
-		template<>
-		inline cv::Scalar white<CV_32FC1>() { return {1.0f}; }
-		template<>
-		inline cv::Scalar white<CV_32FC3>() { return {1.0f, 1.0f, 1.0f}; }
-
-
-		template<int>
-		cv::Scalar default_color();
-		template<>
-		inline cv::Scalar default_color<CV_8UC1>() { return {127}; }
-		template<>
-		inline cv::Scalar default_color<CV_8SC1>() { return {-56}; }
-		template<>
-		inline cv::Scalar default_color<CV_8UC3>() { return {127, 255, 5}; }
-		template<>
-		inline cv::Scalar default_color<CV_32FC1>() { return {0.4f}; }
-		template<>
-		inline cv::Scalar default_color<CV_32FC3>() { return {1.0f, 0.0f, 0.2f}; }
-
-
 
 		/**
 		 * compares cv::fillConvexPoly & heyho::fill_convex_poly_cv
