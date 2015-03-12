@@ -47,7 +47,7 @@ namespace heyho {
 
 	template<typename pixel_t>
 	inline void pixel_setter<pixel_t>::operator()(cv::Point p) {
-		m_img.get().at<pixel_t>(p) = m_color;
+		m_img.get().template at<pixel_t>(p) = m_color;
 	}
 
 	template<typename pixel_t>
@@ -79,7 +79,7 @@ namespace heyho {
 
 	template<typename pixel_t>
 	void pixel_counter<pixel_t>::operator()(cv::Point p) {
-		if (m_img.get().at<pixel_t>(p) == m_zero) {
+		if (m_img.get().template at<pixel_t>(p) == m_zero) {
 			++m_count.m_zero;
 		}
 		else {

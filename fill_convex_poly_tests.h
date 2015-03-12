@@ -176,20 +176,20 @@ namespace heyho {
 				using t_32FC1 = float;
 				using t_32FC3 = cv::Vec<float, 3>;
 
-				if (! f.operator()<t_8UC1,  8    >() ) {throw std::runtime_error("");}
-				if (! f.operator()<t_8UC1,  4    >() ) {throw std::runtime_error("");}
+				if (! f.template operator()<t_8UC1,  8    >() ) {throw std::runtime_error("");}
+				if (! f.template operator()<t_8UC1,  4    >() ) {throw std::runtime_error("");}
 
-				if (! f.operator()<t_8SC1,  8    >() ) {throw std::runtime_error("");}
-				if (! f.operator()<t_8SC1,  4    >() ) {throw std::runtime_error("");}
+				if (! f.template operator()<t_8SC1,  8    >() ) {throw std::runtime_error("");}
+				if (! f.template operator()<t_8SC1,  4    >() ) {throw std::runtime_error("");}
 
-				if (! f.operator()<t_8UC3,  8    >() ) {throw std::runtime_error("");}
-				if (! f.operator()<t_8UC3,  4    >() ) {throw std::runtime_error("");}
+				if (! f.template operator()<t_8UC3,  8    >() ) {throw std::runtime_error("");}
+				if (! f.template operator()<t_8UC3,  4    >() ) {throw std::runtime_error("");}
 
-				if (! f.operator()<t_32FC1, 8    >() ) {throw std::runtime_error("");}
-				if (! f.operator()<t_32FC1, 4    >() ) {throw std::runtime_error("");}
+				if (! f.template operator()<t_32FC1, 8    >() ) {throw std::runtime_error("");}
+				if (! f.template operator()<t_32FC1, 4    >() ) {throw std::runtime_error("");}
 
-				if (! f.operator()<t_32FC3, 8    >() ) {throw std::runtime_error("");}
-				if (! f.operator()<t_32FC3, 4    >() ) {throw std::runtime_error("");}
+				if (! f.template operator()<t_32FC3, 8    >() ) {throw std::runtime_error("");}
+				if (! f.template operator()<t_32FC3, 4    >() ) {throw std::runtime_error("");}
 			}
 
 		};
