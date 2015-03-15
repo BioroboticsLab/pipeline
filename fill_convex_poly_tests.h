@@ -78,8 +78,8 @@ namespace heyho {
 				, center(center)
 			{}
 
-			template<typename pixel_t, int line_type>
-			bool operator()() const
+			template<typename pixel_t>
+			bool operator()(int line_type) const
 			{
 				constexpr int img_type = cv::DataType<pixel_t>::type;
 				std::vector<cv::Point> points;
@@ -125,8 +125,8 @@ namespace heyho {
 			const int angle;
 			std::size_t times;
 
-			template<typename pixel_t, int line_type>
-			bool operator()() const
+			template<typename pixel_t>
+			bool operator()(int line_type) const
 			{
 				constexpr int img_type = cv::DataType<pixel_t>::type;
 				constexpr int shift = 0;
@@ -168,34 +168,26 @@ namespace heyho {
 		 * @throws iff f returns false
 		 *
 		 */
-		struct foreach {
-
-			template<typename F>
-			void operator()(F f) const {
-
-				// img_types:  {CV_8UC1, CV_8SC1, CV_8UC3, CV_32FC1, CV_32FC3}
+		class foreach {
+		private:
+			template<typename T, typename F>
+			void helper(F f) const
+			{
 				// line_types: {8, 4}
+				if (! f.template operator()<T>(8) ) {throw std::runtime_error("");}
+				if (! f.template operator()<T>(4) ) {throw std::runtime_error("");}
+			}
 
-				using t_8UC1 = uint8_t;
-				using t_8SC1 = int8_t;
-				using t_8UC3 = cv::Vec<uint8_t, 3>;
-				using t_32FC1 = float;
-				using t_32FC3 = cv::Vec<float, 3>;
-
-				if (! f.template operator()<t_8UC1,  8    >() ) {throw std::runtime_error("");}
-				if (! f.template operator()<t_8UC1,  4    >() ) {throw std::runtime_error("");}
-
-				if (! f.template operator()<t_8SC1,  8    >() ) {throw std::runtime_error("");}
-				if (! f.template operator()<t_8SC1,  4    >() ) {throw std::runtime_error("");}
-
-				if (! f.template operator()<t_8UC3,  8    >() ) {throw std::runtime_error("");}
-				if (! f.template operator()<t_8UC3,  4    >() ) {throw std::runtime_error("");}
-
-				if (! f.template operator()<t_32FC1, 8    >() ) {throw std::runtime_error("");}
-				if (! f.template operator()<t_32FC1, 4    >() ) {throw std::runtime_error("");}
-
-				if (! f.template operator()<t_32FC3, 8    >() ) {throw std::runtime_error("");}
-				if (! f.template operator()<t_32FC3, 4    >() ) {throw std::runtime_error("");}
+		public:
+			template<typename F>
+			void operator()(F f) const
+			{
+				// img_types:  {CV_8UC1, CV_8SC1, CV_8UC3, CV_32FC1, CV_32FC3}
+				this->helper<uint8_t>(f);
+				this->helper<int8_t>(f);
+				this->helper<cv::Vec<uint8_t, 3>>(f);
+				this->helper<float>(f);
+				this->helper<cv::Vec<float, 3>>(f);
 			}
 
 		};
