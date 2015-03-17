@@ -23,7 +23,7 @@
 
 
 
-int main() {
+int main_impl() {
 
 	{
 
@@ -118,3 +118,9 @@ int main() {
 
 	return 0;
 }
+
+#ifdef MAIN
+int main() {
+	return main_impl();
+}
+#endif
