@@ -35,11 +35,11 @@ namespace heyho {
 		for (; !side_1.end() && !side_2.end(); ++side_1, ++side_2)
 		{
 			f = hline(
+				std::move(f),
 				boundaries,
 				std::min(side_1->x_left,  side_2->x_left ),
 				std::max(side_1->x_right, side_2->x_right),
-				side_1->y,
-				std::move(f)
+				side_1->y
 			);
 		}
 		return std::move(f);

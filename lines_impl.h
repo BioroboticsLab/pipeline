@@ -11,7 +11,7 @@
 namespace heyho {
 
 	template<typename F>
-	inline F hline(int x_left, int x_right, int y, F f)
+	inline F hline(F f, no_boundaries_tag, int x_left, int x_right, int y)
 	{
 		for(; x_left <= x_right; ++x_left) {
 			f(cv::Point(x_left, y));
@@ -20,20 +20,32 @@ namespace heyho {
 	}
 
 	template<typename F>
-	inline F hline(cv::Size size, int x_left, int x_right, int y, F f)
+	inline F hline(F f, cv::Size boundaries, int x_left, int x_right, int y)
 	{
-		if (y >= 0 && y < size.height)
+		if (y >= 0 && y < boundaries.height)
 		{
-			return hline(std::max(x_left, 0), std::min(x_right, size.width - 1), y, std::move(f));
+			return hline(
+				std::move(f),
+				no_boundaries_tag{},
+				std::max(x_left,  0),
+				std::min(x_right, boundaries.width - 1),
+				y
+			);
 		}
 		return std::move(f);
 	}
 
 	template<typename F>
-	inline F hline(cv::Rect boundaries, int x_left, int x_right, int y, F f) {
+	inline F hline(F f, cv::Rect boundaries, int x_left, int x_right, int y) {
 		if (y >= boundaries.tl().y && y < boundaries.br().y)
 		{
-			return hline(std::max(x_left, boundaries.tl().x), std::min(x_right, boundaries.br().x - 1), y, std::move(f));
+			return hline(
+				std::move(f),
+				no_boundaries_tag{},
+				std::max(x_left,  boundaries.tl().x    ),
+				std::min(x_right, boundaries.br().x - 1),
+				y
+			);
 		}
 		return std::move(f);
 	}

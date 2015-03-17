@@ -134,7 +134,7 @@ namespace heyho {
 							xx1 = 0;
 						if( xx2 >= size.width )
 							xx2 = size.width - 1;
-						f = heyho::hline(xx1, xx2, y, std::move(f));
+						f = heyho::hline(std::move(f), no_boundaries_tag{}, xx1, xx2, y);
 					}
 				}
 

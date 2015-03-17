@@ -17,21 +17,19 @@
 namespace heyho {
 
 	template<typename F>
-	F hline(int x_left, int x_right, int y, F f);
-
+	F hline(F f, no_boundaries_tag boundaries, int x_left, int x_right, int y);
 	template<typename F>
-	F hline(cv::Size size, int x_left, int x_right, int y, F f);
-
+	F hline(F f, cv::Size          boundaries, int x_left, int x_right, int y);
 	template<typename F>
-	F hline(cv::Rect boundaries, int x_left, int x_right, int y, F f);
+	F hline(F f, cv::Rect          boundaries, int x_left, int x_right, int y);
 
 	template<typename F, typename LINE_IT>
 	F line(cv::Size size, cv::Point pt1, cv::Point pt2, F f, int connectivity = 8, bool left_to_right = false);
 
 
 	template<typename pixel_t>
-	inline void draw_hline(cv::Mat &img, int x1, int x2, int y, const pixel_t &color) {
-		heyho::hline(img.size(), x1, x2, y, pixel_setter<pixel_t>{img, color});
+	inline void draw_hline(cv::Mat &img, const pixel_t &color, int x1, int x2, int y) {
+		heyho::hline(pixel_setter<pixel_t>{img, color}, img.size(), x1, x2, y);
 	}
 
 	template<typename pixel_t, typename LINE_IT>
