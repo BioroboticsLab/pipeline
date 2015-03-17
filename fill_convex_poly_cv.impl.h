@@ -10,8 +10,8 @@
 
 namespace heyho {
 
-	template<typename F, typename LINE_IT>
-	F convex_poly_cv(const cv::Size size, cv::InputArray points, F f, const int line_type)
+	template<typename LINE_IT, typename F>
+	F convex_poly_cv(F f, const cv::Size size, cv::InputArray points, const int line_type)
 	{
 		const auto ptr_size = cv_point_input_array_to_pointer(points);
 		const cv::Point* const pts = ptr_size.first;
@@ -150,47 +150,47 @@ namespace heyho {
 	}
 
 
-	template<typename pixel_t, typename LINE_IT>
-	void fill_convex_poly_cv(cv::InputOutputArray img, cv::InputArray points, const cv::Scalar& color, int line_type)
+	template<typename LINE_IT, typename pixel_t>
+	void fill_convex_poly_cv(cv::InputOutputArray img, const cv::Scalar& color, cv::InputArray points, int line_type)
 	{
 		/*
 		 * cv::InputOutputArray --> cv::Mat; forward everything else
 		 */
 		cv::Mat img_mat = img.getMat();
-		heyho::fill_convex_poly_cv<pixel_t, LINE_IT>(
+		heyho::fill_convex_poly_cv<LINE_IT, pixel_t>(
 			img_mat,
-			points,
 			color,
+			points,
 			line_type
 		);
 	}
 
 
-	template<typename pixel_t, typename LINE_IT>
-	void fill_convex_poly_cv(cv::Mat& img, cv::InputArray points, const cv::Scalar& color, int line_type)
+	template<typename LINE_IT, typename pixel_t>
+	void fill_convex_poly_cv(cv::Mat& img, const cv::Scalar& color, cv::InputArray points, int line_type)
 	{
 		/*
 		 * cv::Scalar --> pixel_t; forward everything else
 		 */
-		heyho::fill_convex_poly_cv<pixel_t, LINE_IT>(
+		heyho::fill_convex_poly_cv<LINE_IT>(
 			img,
-			points,
 			scalar2pixel<pixel_t>(color),
+			points,
 			line_type
 		);
 	}
 
 
-	template<typename pixel_t, typename LINE_IT>
-	void fill_convex_poly_cv(cv::Mat& img, cv::InputArray points, const pixel_t &color, int line_type)
+	template<typename LINE_IT, typename pixel_t>
+	void fill_convex_poly_cv(cv::Mat& img, const pixel_t &color, cv::InputArray points, int line_type)
 	{
 		/*
 		 * cv::Mat + pixel_t --> pixel_setter; forward everything else
 		 */
-		heyho::convex_poly_cv<pixel_setter<pixel_t>, LINE_IT>(
+		heyho::convex_poly_cv<LINE_IT>(
+			pixel_setter<pixel_t>{img, color},
 			img.size(),
 			points,
-			pixel_setter<pixel_t>{img, color},
 			line_type
 		);
 	}
