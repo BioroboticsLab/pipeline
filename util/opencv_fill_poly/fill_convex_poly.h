@@ -23,7 +23,7 @@ namespace heyho {
 	 *
 	 * The polygon is cropped by the rectangle cv::Rect(cv::Point(0,0), size).
 	 *
-	 * @param size          cropping dimensions
+	 * @param boundaries    cropping dimensions
 	 * @param begin         iterator to the polygon's first point
 	 * @param end           iterator behind the polygon's last point
 	 * @param f             some functor or function

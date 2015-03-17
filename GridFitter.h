@@ -44,7 +44,7 @@ typedef struct {
 	size_t numResults = 1;
 
 	// stop gradient descent when error < errorThreshold
-	double errorThreshold = 80.;
+	double errorThreshold = 0.2;
 	// stop gradient after maxIterations iterations
 	size_t maxIterations  = 100;
 

@@ -24,36 +24,25 @@ public:
 		double angle_x;
 	} gridconfig_t;
 
+	static const uint8_t NOID = 255;
+
 	explicit PipelineGrid(cv::Point2i center, double radius, double angle_z, double angle_y, double angle_x);
 	explicit PipelineGrid(gridconfig_t const& config);
 	virtual ~PipelineGrid() {}
 
 	gridconfig_t getConfig() const;
 
-	/**
-	 * @brief getOuterRingCoordinates
-	 * @return coordinates of outer (white) ring
-	 */
-	coordinates_t const& getOuterRingCoordinates();
+	template <typename Func>
+	Func processOuterRingCoordinates(Func coordinateFunction);
 
-	/**
-	 * @brief getInnerWhiteRingCoordinates
-	 * @return  coordinates of inner white semicircle
-	 */
-	coordinates_t const& getInnerWhiteRingCoordinates();
+	template <typename Func>
+	Func processInnerWhiteRingCoordinates(Func coordinateFunction);
 
-	/**
-	 * @brief getInnerBlackRingCoordinates
-	 * @return  coordinates of inner black semicircle
-	 */
-	coordinates_t const& getInnerBlackRingCoordinates();
+	template <typename Func>
+	Func processInnerBlackRingCoordinates(Func coordinateFunction);
 
-	/**
-	 * @brief getGridCellCoordinates
-	 * @param idx index of the grid cells in [0, Grid::NUM_MIDDLE_CELLS]
-	 * @return coordinates of the requested grid cell
-	 */
-	coordinates_t const& getGridCellCoordinates(const size_t idx);
+	template <typename Func>
+	Func processGridCellCoordinates(const size_t idx, Func coordinateFunction);
 
 	// legacy code
 	const std::vector<cv::Point2i> getOuterRingEdgeCoordinates();
@@ -106,13 +95,17 @@ private:
 
 	// convenience function to avoid code duplication, either return the already
 	// cached coordinates or calculates the coordinates and then returns them
-    const coordinates_t& getCoordinates(cached_coordinates_t& coordinates, const size_t idx);
+	template <typename Func>
+	Func processCoordinates(cached_coordinates_t& coordinates, const size_t idx, Func coordinateFunction);
 
 	// calculates the rasterized coordinates of the (convex) polygon with the
 	// given index
-    coordinates_t calculatePolygonCoordinates(const size_t idx);
+	template <typename Func>
+	std::pair<coordinates_t, Func> calculatePolygonCoordinates(const size_t idx, Func coordinateFunction);
 
 	// resets the coordinate caches. has to be called after a change of
 	// orientation or scale but not after a position change.
     void resetCache();
 };
+
+#include "PipelineGrid.impl.h"

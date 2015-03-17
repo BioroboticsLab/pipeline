@@ -23,44 +23,6 @@ PipelineGrid::PipelineGrid(const PipelineGrid::gridconfig_t& config)
 				   config.angle_y, config.angle_x)
 {}
 
-const PipelineGrid::coordinates_t& PipelineGrid::getInnerWhiteRingCoordinates()
-{
-	// outer ring coordinates always have to be calculated first
-	if (!_outerRingCoordinates) getOuterRingCoordinates();
-
-	return getCoordinates(_innerWhiteRingCoordinates, INDEX_INNER_WHITE_SEMICIRCLE);
-}
-
-const PipelineGrid::coordinates_t& PipelineGrid::getInnerBlackRingCoordinates()
-{
-	// outer ring coordinates always have to be calculated first
-	if (!_outerRingCoordinates) getOuterRingCoordinates();
-
-	return getCoordinates(_innerBlackRingCoordinates, INDEX_INNER_BLACK_SEMICIRCLE);
-}
-
-const PipelineGrid::coordinates_t& PipelineGrid::getGridCellCoordinates(const size_t idx)
-{
-	// outer ring coordinates always have to be calculated first
-	if (!_outerRingCoordinates) getOuterRingCoordinates();
-
-	return getCoordinates(_gridCellCoordinates[idx], idx + Grid::INDEX_MIDDLE_CELLS_BEGIN);
-}
-
-const PipelineGrid::coordinates_t& PipelineGrid::getOuterRingCoordinates()
-{
-	return getCoordinates(_outerRingCoordinates, INDEX_OUTER_WHITE_RING);
-}
-
-const PipelineGrid::coordinates_t& PipelineGrid::getCoordinates(PipelineGrid::cached_coordinates_t& coordinates, const size_t idx)
-{
-	// if already in cache, return previous results
-	if (coordinates) return coordinates.get();
-
-	coordinates = calculatePolygonCoordinates(idx);
-	return coordinates.get();
-}
-
 cv::Mat PipelineGrid::getProjectedImage(const cv::Size2i size) const
 {
     static const cv::Scalar white(255, 255, 255);
@@ -97,24 +59,26 @@ void PipelineGrid::draw(cv::Mat& img, const double transparency)
 {
 	assert(img.channels() == 1);
 
-	for (const cv::Point& point : getOuterRingCoordinates().areaCoordinates) {
-		uint8_t* ptr = (img.ptr<uint8_t>(point.y));
-		ptr[point.x] = 200;
-	}
-	for (const cv::Point& point : getInnerWhiteRingCoordinates().areaCoordinates) {
-		uint8_t* ptr = (img.ptr<uint8_t>(point.y));
-		ptr[point.x] = 255;
-	}
-	for (const cv::Point& point : getInnerBlackRingCoordinates().areaCoordinates) {
-		uint8_t* ptr = (img.ptr<uint8_t>(point.y));
-		ptr[point.x] = 0;
-	}
+	static const uint8_t COLOR_OUTER       = 200;
+	static const uint8_t COLOR_INNER_WHITE = 255;
+	static const uint8_t COLOR_INNER_BLACK = 0;
+	static const uint8_t COLOR_CELL_WHITE  = 220;
+	static const uint8_t COLOR_CELL_BLACK  = 60;
+
+	auto fill = [&](const cv::Point2i& coord, const uint8_t color) {img.at<uint8_t>(coord) = color;};
+
+	processInnerWhiteRingCoordinates([&](const cv::Point2i& coord) { fill(coord, COLOR_INNER_WHITE); });
+	processInnerBlackRingCoordinates([&](const cv::Point2i& coord) { fill(coord, COLOR_INNER_BLACK); });
+
 	for (size_t idx = 0; idx < Grid::NUM_MIDDLE_CELLS; ++idx) {
-		for (const cv::Point& point : getGridCellCoordinates(idx).areaCoordinates) {
-				uint8_t* ptr = (img.ptr<uint8_t>(point.y));
-				ptr[point.x] = idx % 2 ? 220 : 60;
-		}
+		processGridCellCoordinates(idx, [&](const cv::Point2i& coord) {
+			const uint8_t color = idx % 2 ? COLOR_CELL_WHITE : COLOR_CELL_BLACK;
+			fill(coord, color);
+		});
 	}
+
+	processOuterRingCoordinates([&](const cv::Point2i& coord) { fill(coord, COLOR_OUTER); });
+
 }
 
 void PipelineGrid::drawContours(cv::Mat& img, const double transparency, const cv::Scalar color) const
@@ -148,23 +112,23 @@ void PipelineGrid::drawContours(cv::Mat& img, const double transparency, const c
 
 void PipelineGrid::setCenter(cv::Point center)
 {
-    auto shiftCoordinates = [&](cached_coordinates_t& coordinates) {
-        if (coordinates) {
-            for (cv::Point& point : coordinates.get().areaCoordinates) {
-                point = point - _center + center;
-            }
-            for (cv::Point& point : coordinates.get().edgeCoordinates) {
-                point = point - _center + center;
-            }
-        }
-    };
+	auto shiftCoordinates = [&](cached_coordinates_t& coordinates) {
+		if (coordinates) {
+			for (cv::Point& point : coordinates.get().areaCoordinates) {
+				point = point - _center + center;
+			}
+			for (cv::Point& point : coordinates.get().edgeCoordinates) {
+				point = point - _center + center;
+			}
+		}
+	};
 
-    shiftCoordinates(_outerRingCoordinates);
-    shiftCoordinates(_innerBlackRingCoordinates);
-    shiftCoordinates(_innerWhiteRingCoordinates);
-    for (size_t idx = 0; idx < Grid::NUM_MIDDLE_CELLS; ++idx) {
-        shiftCoordinates(_gridCellCoordinates[idx]);
-    }
+	shiftCoordinates(_outerRingCoordinates);
+	shiftCoordinates(_innerBlackRingCoordinates);
+	shiftCoordinates(_innerWhiteRingCoordinates);
+	for (size_t idx = 0; idx < Grid::NUM_MIDDLE_CELLS; ++idx) {
+		shiftCoordinates(_gridCellCoordinates[idx]);
+	}
 
     Grid::setCenter(center);
 }
@@ -186,67 +150,6 @@ cv::Rect PipelineGrid::getPolygonBoundingBox(size_t idx)
     return {minx - _boundingBox.tl().x, miny - _boundingBox.tl().y, maxx - minx, maxy - miny};
 }
 
-PipelineGrid::coordinates_t PipelineGrid::calculatePolygonCoordinates(const size_t idx)
-{
-	coordinates_t coordinates;
-
-	// for each polygon, we speed up the calulation by iterating over the
-	// bounding box of the polygon instead of the bounding box of the grid
-	cv::Rect box = getPolygonBoundingBox(idx);
-
-	// we actually have to draw the polygons in order to be able to extract the
-	// coordinates. because the coordinates are internally centered at [0, 0],
-	// we have to shift them initially.
-	// this is unnecessary overhead and will be removed as soon as Tobi's
-	// functions for polygon rasterization are finished.
-    std::vector<cv::Point> shiftedPoints;
-    shiftedPoints.reserve(_coordinates2D[idx].size());
-    for (const cv::Point2i& origPoint : _coordinates2D[idx]) {
-        shiftedPoints.push_back(origPoint - _boundingBox.tl() - box.tl());
-    }
-
-	// draw polygon and edges on internal id image representation (see comment
-	// in header for _idImage
-    cv::Mat roi = _idImage(box);
-    cv::fillConvexPoly(roi, shiftedPoints, idx, 8);
-    CvHelper::drawPolyline(roi, shiftedPoints, CONTOUR_OFFSET + idx, false, cv::Point(), 3);
-
-	// iterate over roi and extract edge coordinates and store them in the
-	// associated vector
-	const cv::Point offset = box.tl() + _boundingBox.tl() + _center;
-	const int nRows = roi.rows;
-	const int nCols = roi.cols;
-	uint8_t* point;
-	for (int i = 0; i < nRows; ++i) {
-		point = roi.ptr<uint8_t>(i);
-		for (int j = 0; j < nCols; ++j) {
-			if (point[j] == CONTOUR_OFFSET + idx) coordinates.edgeCoordinates.push_back(cv::Point2i(j, i) + offset);
-		}
-	}
-
-	// when calculating the coordinates of the outer ring polygon, we have to
-	// make sure that a) the outer ring is drawn first and b) the other area
-	// are drawn before extracting the outer ring coordinates (because initially
-	// the outer ring polygon also contains all or the coordinates that actually
-	// belong to one of the other areas.
-    if (idx == INDEX_OUTER_WHITE_RING) {
-        _innerWhiteRingCoordinates = calculatePolygonCoordinates(INDEX_INNER_WHITE_SEMICIRCLE);
-        _innerBlackRingCoordinates = calculatePolygonCoordinates(INDEX_INNER_BLACK_SEMICIRCLE);
-        for (size_t cellIdx = Grid::INDEX_MIDDLE_CELLS_BEGIN; cellIdx < Grid::INDEX_MIDDLE_CELLS_END; ++cellIdx) {
-            _gridCellCoordinates[cellIdx - Grid::INDEX_MIDDLE_CELLS_BEGIN] = calculatePolygonCoordinates(cellIdx);
-        }
-    }
-
-	for (int i = 0; i < nRows; ++i) {
-		point = roi.ptr<uint8_t>(i);
-		for (int j = 0; j < nCols; ++j) {
-			if (point[j] == idx) coordinates.areaCoordinates.push_back(cv::Point2i(j, i) + offset);
-		}
-	}
-
-    return coordinates;
-}
-
 void PipelineGrid::resetCache()
 {
 	_innerWhiteRingCoordinates.reset();
@@ -256,7 +159,7 @@ void PipelineGrid::resetCache()
 		coordinates.reset();
 	}
 
-	_idImage = cv::Mat(_boundingBox.size(), CV_8UC1, cv::Scalar(255));
+	_idImage = cv::Mat(_boundingBox.size(), CV_8UC1, cv::Scalar(NOID));
 }
 
 PipelineGrid::gridconfig_t PipelineGrid::getConfig() const

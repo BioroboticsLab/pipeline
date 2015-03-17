@@ -52,23 +52,24 @@ std::vector<decoding_t> Decoder::getDecodings(const Tag &tag, TagCandidate &cand
 	cv::cvtColor(tag.getOrigSubImage(), roi, CV_BGR2GRAY);
 
 	std::vector<decoding_t> decodings;
-	for (PipelineGrid& grid : candidate.getGrids()) {
-		decoding_t decoding;
+	//TODO
+//	for (PipelineGrid& grid : candidate.getGrids()) {
+//		decoding_t decoding;
 
-		const double meanBlack = getMeanIntensity(roi, grid.getInnerBlackRingCoordinates(), tag.getBox().tl());
-		const double meanWhite = getMeanIntensity(roi, grid.getInnerWhiteRingCoordinates(), tag.getBox().tl());
+//		const double meanBlack = getMeanIntensity(roi, grid.getInnerBlackRingCoordinates(), tag.getBox().tl());
+//		const double meanWhite = getMeanIntensity(roi, grid.getInnerWhiteRingCoordinates(), tag.getBox().tl());
 
-		for (size_t idx = 0; idx < Grid::NUM_MIDDLE_CELLS; ++ idx) {
-			const PipelineGrid::coordinates_t& coordinates = grid.getGridCellCoordinates(idx);
-			const double distanceBlack = getMeanDistance(roi, coordinates, tag.getBox().tl(), meanBlack);
-			const double distanceWhite = getMeanDistance(roi, coordinates, tag.getBox().tl(), meanWhite);
+//		for (size_t idx = 0; idx < Grid::NUM_MIDDLE_CELLS; ++ idx) {
+//			const PipelineGrid::coordinates_t& coordinates = grid.getGridCellCoordinates(idx);
+//			const double distanceBlack = getMeanDistance(roi, coordinates, tag.getBox().tl(), meanBlack);
+//			const double distanceWhite = getMeanDistance(roi, coordinates, tag.getBox().tl(), meanWhite);
 
-			if (distanceBlack < distanceWhite) {
-				decoding.set(idx, true);
-			}
-		}
-		decodings.push_back(decoding);
-	}
+//			if (distanceBlack < distanceWhite) {
+//				decoding.set(idx, true);
+//			}
+//		}
+//		decodings.push_back(decoding);
+//	}
 	return decodings;
 }
 
