@@ -52,7 +52,7 @@ namespace heyho {
 				xmax = std::max( xmax, p.x );
 				xmin = std::min( xmin, p.x );
 
-				f = heyho::line<F, LINE_IT>(size, p0, p, std::move(f), line_type, true);
+				f = heyho::line<LINE_IT>(std::move(f), size, p0, p, line_type, true);
 
 				p0 = p;
 			}
