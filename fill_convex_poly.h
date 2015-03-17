@@ -53,15 +53,11 @@ namespace heyho {
 	 *                                pixel in each horizontal line
 	 *
 	 */
-	template<typename IT, typename F, typename LINE_IT>
-	F convex_poly(cv::Rect boundaries, IT begin, IT end,      F f, int connectivity = 8);
-	template<typename IT, typename F, typename LINE_IT>
-	F convex_poly(cv::Size size,       IT begin, IT end,      F f, int connectivity = 8);
+	template<typename LINE_IT, typename F, typename B, typename IT>
+	F convex_poly(F f, B boundaries, IT begin, IT end, int connectivity = 8);
 
-	template<typename F, typename LINE_IT>
-	F convex_poly(cv::Rect boundaries, cv::InputArray points, F f, int connectivity = 8);
-	template<typename F, typename LINE_IT>
-	F convex_poly(cv::Size size,       cv::InputArray points, F f, int connectivity = 8);
+	template<typename LINE_IT, typename F, typename B>
+	F convex_poly(F f, B boundaries, cv::InputArray points, int connectivity = 8);
 
 	/**
 	 * @see convex_poly
@@ -69,12 +65,12 @@ namespace heyho {
 	 * Sets every pixel inside the polygon to the specified color.
 	 *
 	 */
-	template<typename pixel_t, typename LINE_IT>
-	void fill_convex_poly(cv::InputOutputArray img, cv::InputArray points, const cv::Scalar& color, int line_type = 8);
-	template<typename pixel_t, typename LINE_IT>
-	void fill_convex_poly(cv::Mat &img,             cv::InputArray points, const cv::Scalar& color, int line_type = 8);
-	template<typename pixel_t, typename LINE_IT>
-	void fill_convex_poly(cv::Mat &img,             cv::InputArray points, const pixel_t &color,    int line_type = 8);
+	template<typename LINE_IT, typename pixel_t>
+	void fill_convex_poly(cv::InputOutputArray img, const cv::Scalar& color, cv::InputArray points, int line_type = 8);
+	template<typename LINE_IT, typename pixel_t>
+	void fill_convex_poly(cv::Mat &img,             const cv::Scalar& color, cv::InputArray points, int line_type = 8);
+	template<typename LINE_IT, typename pixel_t>
+	void fill_convex_poly(cv::Mat &img,             const pixel_t &color,    cv::InputArray points, int line_type = 8);
 
 }
 

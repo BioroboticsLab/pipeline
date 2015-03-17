@@ -41,7 +41,7 @@ int main_impl() {
 		{
 			for (const auto &key_val : m) {
 				cv::Mat img(100, 100, CV_8UC1, cv::Scalar(0));
-				heyho::fill_convex_poly<uchar, heyho::line_iterator_cv>(img, key_val.second, cv::Scalar(255), 8);
+				heyho::fill_convex_poly<heyho::line_iterator_cv, uchar>(img, cv::Scalar(255), key_val.second, 8);
 				const auto name = "heyho: " + key_val.first;
 				cv::namedWindow(name, cv::WINDOW_AUTOSIZE);
 				cv::imshow(name, img);

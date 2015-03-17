@@ -155,7 +155,7 @@ namespace heyho {
 					std::cout << "    heyho:     ";
 					timer t;
 					for (size_t i = 0; i < times; ++i) {
-						heyho::fill_convex_poly<pixel_t, line_iterator_cv>(img, points, default_color<img_type>(), line_type);
+						heyho::fill_convex_poly<line_iterator_cv, pixel_t>(img, default_color<img_type>(), points, line_type);
 					}
 				}
 				return true;

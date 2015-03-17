@@ -108,11 +108,11 @@ namespace heyho {
 			}
 			template<typename pixel_t>
 			static void paint(cv::Mat &img, cv::InputArray points, const cv::Scalar& color, int line_type) {
-				heyho::fill_convex_poly<pixel_t, LINE_IT>(img, points, color, line_type);
+				heyho::fill_convex_poly<LINE_IT, pixel_t>(img, color, points, line_type);
 			}
 			template<typename pixel_t>
 			static std::pair<size_t, size_t> count(const cv::Mat &img, cv::InputArray points, int line_type) {
-				const auto counts = heyho::convex_poly<pixel_counter<pixel_t>, LINE_IT>(img.size(), points, pixel_counter<pixel_t>{img, pixel_2_white<pixel_t>()}, line_type).count();
+				const auto counts = heyho::convex_poly<LINE_IT>(pixel_counter<pixel_t>{img, pixel_2_white<pixel_t>()}, img.size(), points, line_type).count();
 				return {counts.zero(), counts.non_zero()};
 			}
 		};
