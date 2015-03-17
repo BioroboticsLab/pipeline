@@ -27,30 +27,30 @@ namespace heyho {
 	}
 
 
-	inline line_iterator_cv::line_iterator_cv(cv::Point p1, cv::Point p2, int connectivity, cv::Size size)
+	inline line_iterator_cv::line_iterator_cv(cv::Size boundaries, cv::Point p1, cv::Point p2, int connectivity)
 		/*
 		 * forward everything to private "main" constructor
 		 */
-		: line_iterator_cv(p1, p2, connectivity, size, {0, 0})
+		: line_iterator_cv(p1, p2, connectivity, boundaries, {0, 0})
 	{}
 
 
-	inline line_iterator_cv::line_iterator_cv(cv::Point p1, cv::Point p2, int connectivity, cv::Rect boundaries)
+	inline line_iterator_cv::line_iterator_cv(cv::Rect boundaries, cv::Point p1, cv::Point p2, int connectivity)
 		/*
 		 * shift points by the bounding box' upper left corner, set offset
 		 */
 		: line_iterator_cv(p1 - boundaries.tl(), p2 - boundaries.tl(), connectivity, boundaries.size(), boundaries.tl())
 	{}
 
-	inline line_iterator_cv::line_iterator_cv(cv::Point p1, cv::Point p2, int connectivity)
+	inline line_iterator_cv::line_iterator_cv(no_boundaries_tag, cv::Point p1, cv::Point p2, int connectivity)
 		/*
 		 * use bounding box that contains both points --> no clippnig
 		 */
-		: line_iterator_cv(p1, p2, connectivity, cv::Rect(p1, p2) + cv::Size(1,1))
+		: line_iterator_cv(cv::Rect(p1, p2) + cv::Size(1,1), p1, p2, connectivity)
 	{}
 
 	inline line_iterator_cv::line_iterator_cv()
-		: line_iterator_cv({0,0}, {0,0}, 8)
+		: line_iterator_cv(no_boundaries_tag{}, {0,0}, {0,0}, 8)
 	{
 		++*this;
 	}

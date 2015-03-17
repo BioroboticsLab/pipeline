@@ -46,7 +46,7 @@ namespace heyho {
 			using std::swap;
 			swap(pt1, pt2);
 		}
-		for (LINE_IT it(pt1, pt2, connectivity, size); !it.end(); ++it) {
+		for (LINE_IT it(size, pt1, pt2, connectivity); !it.end(); ++it) {
 			f(*it);
 		}
 		return std::move(f);

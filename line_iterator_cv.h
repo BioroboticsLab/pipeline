@@ -10,6 +10,7 @@
 
 #include <opencv2/opencv.hpp> // cv::Point, cv::LineIterator, cv::Size, cv::Rect
 #include <stdexcept>          // std::runtime_error
+#include "helper.h"           // heyho::no_boundaries_tag
 
 namespace heyho {
 
@@ -22,24 +23,24 @@ namespace heyho {
 
 		/**
 		 * Iterator for the line connecting p1 and p2.
-		 * The line will be clipped on the image boundaries ( i.e. (0,0),(size.width,size.height) ).
+		 * The line will be clipped on the image boundaries ( i.e. (0,0),(boundaries.width,boundaries.height) ).
 		 * The line is 8-connected or 4-connected.
 		 */
-		explicit line_iterator_cv(cv::Point p1, cv::Point p2, int connectivity, cv::Size size);
+		explicit line_iterator_cv(cv::Size          boundaries, cv::Point p1, cv::Point p2, int connectivity);
 
 		/**
 		 * Iterator for the line connecting p1 and p2.
 		 * The line will be clipped on the image boundaries.
 		 * The line is 8-connected or 4-connected.
 		 */
-		explicit line_iterator_cv(cv::Point p1, cv::Point p2, int connectivity, cv::Rect boundaries);
+		explicit line_iterator_cv(cv::Rect          boundaries, cv::Point p1, cv::Point p2, int connectivity);
 
 		/**
 		 * Iterator for the line connecting p1 and p2.
 		 * The line will not be clipped.
 		 * The line is 8-connected or 4-connected.
 		 */
-		explicit line_iterator_cv(cv::Point p1, cv::Point p2, int connectivity);
+		explicit line_iterator_cv(no_boundaries_tag boundaries, cv::Point p1, cv::Point p2, int connectivity);
 
 		/**
 		 * empty line iterator.
