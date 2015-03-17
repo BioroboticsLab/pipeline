@@ -11,7 +11,7 @@
 namespace heyho {
 
 	template<typename IT, typename F, typename LINE_IT>
-	F convex_poly(cv::Size size, IT begin, IT end, F f, int connectivity)
+	inline F convex_poly(cv::Rect boundaries, IT begin, IT end, F f, int connectivity)
 	{
 		//using ring_it_t  = ring_iterator_bd<IT>;
 		//using pixel_it_t = poly_line_vertical_iterator<ring_it_t>;
@@ -35,7 +35,7 @@ namespace heyho {
 		for (; !side_1.end() && !side_2.end(); ++side_1, ++side_2)
 		{
 			f = hline(
-				size,
+				boundaries,
 				std::min(side_1->x_left,  side_2->x_left ),
 				std::max(side_1->x_right, side_2->x_right),
 				side_1->y,
@@ -45,11 +45,26 @@ namespace heyho {
 		return std::move(f);
 	}
 
+	template<typename IT, typename F, typename LINE_IT>
+	inline F convex_poly(cv::Size size, IT begin, IT end, F f, int connectivity)
+	{
+		// cv::Size --> cv::Rect; forward everything else
+		return convex_poly<IT, F, LINE_IT>(
+			cv::Rect(cv::Point(0,0), size),
+			std::move(begin),
+			std::move(end),
+			std::move(f),
+			connectivity
+		);
+	}
+
 	template<typename F, typename LINE_IT>
-	inline F convex_poly(cv::Size size, cv::InputArray points, F f, int connectivity) {
+	inline F convex_poly(cv::Rect boundaries, cv::InputArray points, F f, int connectivity)
+	{
+		// cv::InputArray --> begin & end iterator; forward everything else
 		const auto ptr_size = cv_point_input_array_to_pointer(points);
 		return convex_poly<const cv::Point*, F, LINE_IT>(
-			size,
+			boundaries,
 			ptr_size.first,
 			ptr_size.first + ptr_size.second,
 			std::move(f),
@@ -57,9 +72,23 @@ namespace heyho {
 		);
 	}
 
+	template<typename F, typename LINE_IT>
+	inline F convex_poly(cv::Size size, cv::InputArray points, F f, int connectivity)
+	{
+		// cv::Size --> cv::Rect; forward everything else
+		return convex_poly<F, LINE_IT>(
+			cv::Rect(cv::Point(0,0), size),
+			points,
+			std::move(f),
+			connectivity
+		);
+	}
+
+
 	template<typename pixel_t, typename LINE_IT>
 	void fill_convex_poly(cv::InputOutputArray img, cv::InputArray points, const cv::Scalar& color, int line_type)
 	{
+		// cv::InputOutputArray --> cv::Mat; forward everything else
 		cv::Mat img_mat = img.getMat();
 		heyho::fill_convex_poly<pixel_t, LINE_IT>(
 			img_mat,
@@ -72,6 +101,7 @@ namespace heyho {
 	template<typename pixel_t, typename LINE_IT>
 	void fill_convex_poly(cv::Mat& img, cv::InputArray points, const cv::Scalar& color, int line_type)
 	{
+		// cv::Scalar --> pixel_t; forward everything else
 		heyho::fill_convex_poly<pixel_t, LINE_IT>(
 			img,
 			points,
@@ -83,6 +113,7 @@ namespace heyho {
 	template<typename pixel_t, typename LINE_IT>
 	void fill_convex_poly(cv::Mat& img, cv::InputArray points, const pixel_t &color, int line_type)
 	{
+		// cv::Mat & pixel_t --> pixel_setter; forward everything else
 		heyho::convex_poly<pixel_setter<pixel_t>, LINE_IT>(
 			img.size(),
 			points,
