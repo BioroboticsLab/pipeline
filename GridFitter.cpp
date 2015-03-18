@@ -252,107 +252,6 @@ std::vector<PipelineGrid> GridFitter::fitGrid(const Tag& tag, const TagCandidate
     return results;
 }
 
-namespace {
-struct expected_white_error_fun_t {
-	inline uint8_t operator()(const uint8_t value) {
-		return 255 - value;
-	}
-};
-
-struct expected_black_error_fun_t {
-	inline uint8_t operator()(const uint8_t value) {
-		return value - 255;
-	}
-};
-
-template <typename ErrorCounterFun>
-class error_counter_t {
-public:
-	explicit error_counter_t(const cv::Mat& roi)
-		: _roi(roi), _errorSum(0), _pixelNum(0)
-	{}
-
-	inline void operator()(cv::Point coords) {
-		const uint8_t value = _roi.get().template at<uint8_t>(coords);
-		_errorSum += errorFun(value);
-		++_pixelNum;
-	}
-
-	inline double getNormalizedError() const {
-		return static_cast<double>(_errorSum) / (static_cast<double>(_pixelNum) * 255.);
-	}
-
-private:
-	ErrorCounterFun errorFun;
-	std::reference_wrapper<const cv::Mat> _roi;
-	size_t _errorSum;
-	size_t _pixelNum;
-};
-
-// http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Online_algorithm
-class variance_online_calculator_t {
-public:
-//	variance_calculator_t(const cv::Mat& roi)
-//		: _roi(roi), _pixelNum(0), _sum1(0)
-//	{}
-
-	variance_online_calculator_t(const cv::Mat& roi)
-		: _roi(roi), _pixelNum(0), _mean(0.), _m2(0.)
-	{}
-
-//	inline void operator()(cv::Point coords) {
-//		const uint8_t value = _roi.get().template at<uint8_t>(coords);
-//		++_pixelNum;
-//		_sum1 += value;
-//		_values.push_back(value);
-//	}
-
-//	inline double getNormalizedVariance() const {
-//		if (_pixelNum < 2) return 0.;
-
-//		const double mean = static_cast<double>(_sum1) / static_cast<double>(_pixelNum);
-
-//		double sum = 0.;
-//		for (const uint8_t value : _values) {
-//			std::cout << std::to_string(value) << std::endl;
-//			sum += (static_cast<double>(value) - mean) * (static_cast<double>(value) - mean);
-//		}
-
-//		static const double maxVariance = (255. * 255.) / 4.;
-//		const double variance = sum / (_pixelNum - 1);
-
-//		return variance / maxVariance;
-//	}
-
-	inline void operator()(cv::Point coords) {
-		const double value = _roi.get().template at<uint8_t>(coords);
-		++_pixelNum;
-		const double delta = value - _mean;
-		_mean += (delta / _pixelNum);
-		_m2   += delta * (value - _mean);
-	}
-
-	inline double getNormalizedVariance() const {
-		if (_pixelNum < 2) return 0.;
-
-		// http://math.stackexchange.com/q/83046
-		static const double maxVariance = (255. * 255.) / 4.;
-		const double variance           = (_m2 / (_pixelNum - 1));
-
-		//return variance;
-		return (variance / maxVariance);
-	}
-
-private:
-	std::reference_wrapper<const cv::Mat> _roi;
-	std::vector<uint8_t> _values;
-	size_t _pixelNum;
-	//size_t _sum1;
-	double _mean;
-	double _m2;
-};
-}
-
 double GridFitter::evaluateCandidate(PipelineGrid& grid, cv::Mat const& roi, cv::Mat const& binarizedROI, cv::Mat const& edgeROI,  settings::gridfitter_settings_t &settings)
 {
 	double error = 0;
@@ -637,4 +536,40 @@ void GridFitter::GradientDescent::storeConfig(const double error, const Pipeline
 		_bestGrids.erase(std::prev(_bestGrids.end()));
 	}
 }
+
+double GridFitter::variance_twopass_calculator_t::getNormalizedVariance() const
+{
+	if (_pixelNum < 2) return 0.;
+
+	const double mean = static_cast<double>(_sum) / static_cast<double>(_pixelNum);
+
+	double sum = 0.;
+	for (const uint8_t value : _values) {
+		std::cout << std::to_string(value) << std::endl;
+		sum += (static_cast<double>(value) - mean) * (static_cast<double>(value) - mean);
+	}
+
+	static const double maxVariance = (255. * 255.) / 4.;
+	const double variance = sum / (_pixelNum - 1);
+
+	return variance / maxVariance;
+}
+
+double GridFitter::variance_online_calculator_t::getNormalizedVariance() const
+{
+	if (_pixelNum < 2) return 0.;
+
+	// http://math.stackexchange.com/q/83046
+	static const double maxVariance = (255. * 255.) / 4.;
+	const double variance           = (_m2 / (_pixelNum - 1));
+
+	//return variance;
+	return (variance / maxVariance);
+}
+
+double GridFitter::error_counter_t::getNormalizedError() const
+{
+	return static_cast<double>(_errorSum) / (static_cast<double>(_pixelNum) * 255.);
+}
+
 }
