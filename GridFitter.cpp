@@ -567,9 +567,4 @@ double GridFitter::variance_online_calculator_t::getNormalizedVariance() const
 	return (variance / maxVariance);
 }
 
-double GridFitter::error_counter_t::getNormalizedError() const
-{
-	return static_cast<double>(_errorSum) / (static_cast<double>(_pixelNum) * 255.);
-}
-
 }
