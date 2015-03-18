@@ -65,7 +65,7 @@ void PipelineGrid::draw(cv::Mat& img, const double transparency)
 	static const uint8_t COLOR_CELL_WHITE  = 220;
 	static const uint8_t COLOR_CELL_BLACK  = 60;
 
-	auto fill = [&](const cv::Point2i& coord, const uint8_t color) {img.at<uint8_t>(coord) = color;};
+	auto fill = [&](const cv::Point2i& coord, const uint8_t color) { img.at<uint8_t>(coord) = color; };
 
 	processInnerWhiteRingCoordinates([&](const cv::Point2i& coord) { fill(coord, COLOR_INNER_WHITE); });
 	processInnerBlackRingCoordinates([&](const cv::Point2i& coord) { fill(coord, COLOR_INNER_BLACK); });
@@ -78,7 +78,6 @@ void PipelineGrid::draw(cv::Mat& img, const double transparency)
 	}
 
 	processOuterRingCoordinates([&](const cv::Point2i& coord) { fill(coord, COLOR_OUTER); });
-
 }
 
 void PipelineGrid::drawContours(cv::Mat& img, const double transparency, const cv::Scalar color) const
