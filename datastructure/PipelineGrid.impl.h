@@ -60,12 +60,12 @@ std::pair<PipelineGrid::coordinates_t, Func> PipelineGrid::calculatePolygonCoord
 	// TODO: maybe move coordinateFunction
 	if (idx == INDEX_OUTER_WHITE_RING) {
 		cacheSetterOuter<Func> cacheFun(idx, _idImage, coordinates, coordinateFunction, _boundingBox.tl(), _center);
-		cacheFun = heyho::convex_poly<cacheSetterOuter<Func>, heyho::line_iterator>(
-					_boundingBox, _coordinates2D[idx], std::move(cacheFun), 8);
+		cacheFun = heyho::convex_poly<heyho::line_iterator, cacheSetterOuter<Func>, heyho::no_boundaries_tag>(
+					std::move(cacheFun), heyho::no_boundaries_tag(), _coordinates2D[idx], 8);
 	} else {
 		cacheSetter<Func> cacheFun(idx, _idImage, coordinates, coordinateFunction, _boundingBox.tl(), _center);
-		cacheFun = heyho::convex_poly<cacheSetter<Func>, heyho::line_iterator>(
-					_boundingBox, _coordinates2D[idx], std::move(cacheFun), 8);
+		cacheFun = heyho::convex_poly<heyho::line_iterator, cacheSetter<Func>, heyho::no_boundaries_tag>(
+					std::move(cacheFun), heyho::no_boundaries_tag(), _coordinates2D[idx], 8);
 	}
 
 	return { coordinates, coordinateFunction };
