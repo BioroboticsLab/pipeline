@@ -51,25 +51,42 @@ std::vector<decoding_t> Decoder::getDecodings(const Tag &tag, TagCandidate &cand
 	// TODO: shouldn't be BGR in the first place
 	cv::cvtColor(tag.getOrigSubImage(), roi, CV_BGR2GRAY);
 
+	const cv::Point roiOffset = tag.getBox().tl();
+
 	std::vector<decoding_t> decodings;
-	//TODO
-//	for (PipelineGrid& grid : candidate.getGrids()) {
-//		decoding_t decoding;
+	for (PipelineGrid& grid : candidate.getGrids()) {
+		decoding_t decoding;
 
-//		const double meanBlack = getMeanIntensity(roi, grid.getInnerBlackRingCoordinates(), tag.getBox().tl());
-//		const double meanWhite = getMeanIntensity(roi, grid.getInnerWhiteRingCoordinates(), tag.getBox().tl());
+		mean_calculator_t blackMeanCalculator(roi, roiOffset);
+		blackMeanCalculator = grid.processInnerBlackRingCoordinates(std::move(blackMeanCalculator));
 
-//		for (size_t idx = 0; idx < Grid::NUM_MIDDLE_CELLS; ++ idx) {
-//			const PipelineGrid::coordinates_t& coordinates = grid.getGridCellCoordinates(idx);
-//			const double distanceBlack = getMeanDistance(roi, coordinates, tag.getBox().tl(), meanBlack);
-//			const double distanceWhite = getMeanDistance(roi, coordinates, tag.getBox().tl(), meanWhite);
+		mean_calculator_t whiteMeanCalculator(roi, roiOffset);
+		whiteMeanCalculator = grid.processInnerWhiteRingCoordinates(std::move(whiteMeanCalculator));
 
-//			if (distanceBlack < distanceWhite) {
-//				decoding.set(idx, true);
-//			}
-//		}
-//		decodings.push_back(decoding);
-//	}
+		// grid cell coordinates have to be initialized before outer ring coordinates. only small
+		// performance overhead because they will be cached by the PipelineGrid for the next use
+		for (size_t idx = 0; idx < Grid::NUM_MIDDLE_CELLS; ++ idx) {
+			// just calculate the coordinates, do nothing with them
+			grid.processGridCellCoordinates(idx, dummy_functor_t());
+		}
+		whiteMeanCalculator = grid.processOuterRingCoordinates(std::move(whiteMeanCalculator));
+
+		const double meanBlack = blackMeanCalculator.getMean();
+		const double meanWhite = whiteMeanCalculator.getMean();
+
+		for (size_t idx = 0; idx < Grid::NUM_MIDDLE_CELLS; ++ idx) {
+			distance_calculator_t distanceCalculator(roi, roiOffset, meanBlack, meanWhite);
+			distanceCalculator = grid.processGridCellCoordinates(idx, std::move(distanceCalculator));
+
+			const double distanceBlack = distanceCalculator.getDistanceBlack();
+			const double distanceWhite = distanceCalculator.getDistanceWhite();
+
+			if (distanceBlack < distanceWhite) {
+				decoding.set(idx, true);
+			}
+		}
+		decodings.push_back(decoding);
+	}
 	return decodings;
 }
 
