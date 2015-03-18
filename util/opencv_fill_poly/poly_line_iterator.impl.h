@@ -45,7 +45,7 @@ namespace heyho {
 				const auto prev_line_point = *m_points;
 				++m_points;
 				if (!m_points.end()) {
-					m_current_line = LINE_IT(prev_line_point, *m_points, m_connectivity);
+					m_current_line = LINE_IT(no_boundaries_tag{}, prev_line_point, *m_points, m_connectivity);
 					// this isn't the first line --> skipt it's first pixel == previous line's last pixel
 					++m_current_line;
 				}
@@ -59,7 +59,7 @@ namespace heyho {
 		const auto p1 = *it;
 		++it;
 		const auto p2 = it.end() ? p1 : *it;
-		return LINE_IT(p1, p2, connectivity);
+		return LINE_IT(no_boundaries_tag{}, p1, p2, connectivity);
 	}
 
 }

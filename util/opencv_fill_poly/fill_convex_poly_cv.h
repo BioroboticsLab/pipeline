@@ -33,8 +33,8 @@ namespace heyho {
 	 *                 (e.g. heyho::line_iterator_cv, heyho::line_iterator)
 	 *
 	 */
-	template<typename F, typename LINE_IT>
-	F convex_poly_cv(cv::Size size, cv::InputArray points, F f, int line_type = 8);
+	template<typename LINE_IT, typename F>
+	F convex_poly_cv(F f, cv::Size size, cv::InputArray points, int line_type = 8);
 
 	/**
 	 * @see convex_poly_cv
@@ -42,12 +42,12 @@ namespace heyho {
 	 * Sets every pixel inside the polygon to the specified color.
 	 *
 	 */
-	template<typename pixel_t, typename LINE_IT>
-	void fill_convex_poly_cv(cv::InputOutputArray img, cv::InputArray points, const cv::Scalar& color, int line_type = 8);
-	template<typename pixel_t, typename LINE_IT>
-	void fill_convex_poly_cv(cv::Mat& img,             cv::InputArray points, const cv::Scalar& color, int line_type = 8);
-	template<typename pixel_t, typename LINE_IT>
-	void fill_convex_poly_cv(cv::Mat& img,             cv::InputArray points, const pixel_t &color,    int line_type = 8);
+	template<typename LINE_IT, typename pixel_t>
+	void fill_convex_poly_cv(cv::InputOutputArray img, const cv::Scalar &color, cv::InputArray points, int line_type = 8);
+	template<typename LINE_IT, typename pixel_t>
+	void fill_convex_poly_cv(cv::Mat& img,             const cv::Scalar &color, cv::InputArray points, int line_type = 8);
+	template<typename LINE_IT, typename pixel_t>
+	void fill_convex_poly_cv(cv::Mat& img,             const pixel_t &color,    cv::InputArray points, int line_type = 8);
 
 }
 

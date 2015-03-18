@@ -37,6 +37,10 @@ namespace heyho {
 	template<typename pixel_t>
 	inline pixel_t scalar2pixel(const cv::Scalar &color);
 
+	/**
+	 * used as param for functions that accept cv::Size, cv::Rect as boundaries
+	 */
+	struct no_boundaries_tag {};
 
 	/**
 	 * Stores a reference to a cv::Mat and a pixel.
