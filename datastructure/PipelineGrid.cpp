@@ -8,8 +8,6 @@
 namespace {
 static const cv::Scalar whiteC1(255);
 static const cv::Scalar blackC1(0);
-
-static uint8_t CONTOUR_OFFSET = Grid::INDEX_MIDDLE_CELLS_END + 10;
 }
 
 PipelineGrid::PipelineGrid(cv::Point2i center, double radius, double angle_z, double angle_y, double angle_x)
@@ -55,7 +53,7 @@ cv::Mat PipelineGrid::getProjectedImage(const cv::Size2i size) const
     return img;
 }
 
-void PipelineGrid::draw(cv::Mat& img, const double transparency)
+void PipelineGrid::draw(cv::Mat& img)
 {
 	assert(img.channels() == 1);
 

@@ -49,7 +49,7 @@ public:
 
 	// TODO: maybe merge different draw functions
 	cv::Mat getProjectedImage(const cv::Size2i size) const;
-    void draw(cv::Mat& img, const double transparency);
+	void draw(cv::Mat& img);
     void drawContours(cv::Mat& img, const double transparency, const cv::Scalar color = cv::Scalar(255, 255, 255)) const;
 
 	void setXRotation(double angle) { Grid::setXRotation(angle); resetCache(); }
