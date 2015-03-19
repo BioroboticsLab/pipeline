@@ -762,7 +762,7 @@ static const double ADAPTIVE_C = 3;
 static const size_t GRADIENT_NUM_INITIAL = 6;
 static const size_t GRADIENT_NUM_RESULTS = 1;
 
-static const double GRADIENT_ERROR_THRESHOLD = 5.0;
+static const double GRADIENT_ERROR_THRESHOLD = 0.1;
 static const size_t GRADIENT_MAX_ITERATIONS = 100;
 
 static const double EPS_ANGLE = 0.02;
