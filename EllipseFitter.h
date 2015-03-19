@@ -28,10 +28,25 @@ class EllipseFitter {
 private:
 	settings::ellipsefitter_settings_t _settings;
 
+	/**
+	 * @brief detectXieEllipse
+	 * @param tag
+	 *
+	 * see: Xie, Ji A New Efficient Ellipse Detection Method (2002) for details
+	 * http://hci.iwr.uni-heidelberg.de/publications/dip/2002/ICPR2002/DATA/07_3_20.PDF
+	 */
 	void detectXieEllipse(Tag &tag);
 
+	/**
+	 * @brief detectEllipse
+	 * @param tag
+	 *
+	 * see:
+	 *  http://docs.opencv.org/modules/imgproc/doc/structural_analysis_and_shape_descriptors.html#findcontours
+	 *  http://docs.opencv.org/modules/imgproc/doc/structural_analysis_and_shape_descriptors.html#fitellipse
+	 *  http://docs.opencv.org/doc/tutorials/imgproc/shapedescriptors/bounding_rotated_ellipses/bounding_rotated_ellipses.html
+	 */
 	void detectEllipse(Tag &tag);
-
 
 #ifdef PipelineStandalone
 	void loadConfigVars(std::string filename);
