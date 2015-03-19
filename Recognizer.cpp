@@ -28,7 +28,7 @@ struct compareVote {
 
 namespace pipeline {
 
-//#define DEBUG_RECOGNIZER
+#define DEBUG_RECOGNIZER_XIE
 
 Recognizer::Recognizer() {
 #ifdef PipelineStandalone
@@ -62,27 +62,16 @@ void Recognizer::detectEllipse(Tag &tag) {
 #ifdef DEBUG_RECOGNIZER
 	//cv::destroyAllWindows();
 
-	cv::namedWindow("Canny",cv::WINDOW_NORMAL);
+/*	cv::namedWindow("Canny",cv::WINDOW_NORMAL);
 		cv::imshow("Canny", cannyImage);
 		cv::waitKey(0);
 
 		cv::namedWindow("Original", cv::WINDOW_NORMAL);
 		cv::imshow("Original", subImage);
-		cv::waitKey(0);
+		cv::waitKey(0);*/
 #endif
 
 
-#ifdef DEBUG_RECOGNIZER
-	//cv::destroyAllWindows();
-
-	cv::namedWindow("Canny",cv::WINDOW_NORMAL);
-		cv::imshow("Canny", cannyImage);
-		cv::waitKey(0);
-
-		cv::namedWindow("Original", cv::WINDOW_NORMAL);
-		cv::imshow("Original", subImage);
-		cv::waitKey(0);
-#endif
 
 		std::vector<Ellipse> candidates;
 
@@ -171,13 +160,13 @@ void Recognizer::detectEllipse(Tag &tag) {
 			 const size_t num = std::min<size_t>(3, candidates.size());
 #ifdef DEBUG_RECOGNIZER
 
-	for (size_t i = 0; i < candidates.size(); ++i) {
+	/*for (size_t i = 0; i < candidates.size(); ++i) {
 		Ellipse const& ell = candidates[i];
 		if ((i >= num) || (ell.getVote() < _settings.get_threshold_vote())) {
 
 			visualizeEllipse(tag, ell, "ignored_ellipse ");
 		}
-	}
+	}*/
 
 #endif
 	// remove remaining candidates
@@ -199,8 +188,12 @@ void Recognizer::detectEllipse(Tag &tag) {
 		tag.addCandidate(TagCandidate(ell));
 	}
 	if (tag.getCandidates().empty()) {
+		if(this->_settings.get_use_xie_as_fallback()){
 		std::cout<< "start Xie-Detection" << std::endl;
-		detectXieEllipse(tag);//tag.setValid(false);
+		detectXieEllipse(tag);
+		}else{
+			tag.setValid(false);
+		}
 	}
 #ifdef PipelineStandalone
 	if (config::DEBUG_MODE_RECOGNIZER_IMAGE) {
@@ -225,7 +218,7 @@ void Recognizer::detectXieEllipse(Tag &tag) {
 	 cannyImage = computeCannyEdgeMap(subImage);
 
 
-#ifdef DEBUG_RECOGNIZER
+#ifdef DEBUG_RECOGNIZER_XIE
 	//cv::destroyAllWindows();
 
 	cv::namedWindow("Canny",cv::WINDOW_NORMAL);
@@ -396,7 +389,7 @@ foundEllipse:
 		Ellipse const& ell = candidates[i];
 		if ((i >= num) || (ell.getVote() < _settings.get_threshold_vote())) {
 			std::cout << "Ignore Xie-Ellipse With Vote " << ell.getVote() << std::endl;
-#ifdef DEBUG_RECOGNIZER
+#ifdef DEBUG_RECOGNIZER_XIE
 			visualizeEllipse(tag, ell, "ignored_ellipse ");
 #endif
 		}
@@ -413,7 +406,7 @@ foundEllipse:
 	// add remaining candidates to tag
 	for (Ellipse const& ell : candidates) {
 		std::cout << "Add Xie-Ellipse With Vote " << ell.getVote() << std::endl;
-#ifdef DEBUG_RECOGNIZER
+#ifdef DEBUG_RECOGNIZER_XIE
 
 
 
@@ -492,8 +485,8 @@ cv::Mat Recognizer::computeCannyEdgeMap(cv::Mat const& grayImage) {
 
 	cv::Mat cannyEdgeMap;
 
-	double low=static_cast<double>(this->_settings.get_canny_threshold_low());
-	double high = static_cast<double>(this->_settings.get_canny_threshold_high());
+	double low=static_cast<double>(this->_settings.get_canny_initial_high()- this->_settings.get_canny_values_distance());
+	double high = static_cast<double>(this->_settings.get_canny_initial_high());
 
 
 	double average_old = -1, average_old_2 =-1;

@@ -562,39 +562,57 @@ namespace Recognizer {
 namespace Params {
 static const std::string BASE = "BEESBOOKPIPELINE.RECOGNIZER.";
 static const std::string BASE_STANDALONE = "RECOGNIZER.";
-static const std::string CANNY_THRESHOLD_LOW = "CANNY_THRESHOLD_LOW";
-static const std::string CANNY_THRESHOLD_HIGH = "CANNY_THRESHOLD_HIGH";
+
+/**
+ * canny edge detection
+ */
+static const std::string CANNY_INITIAL_HIGH = "CANNY_INITIAL_HIGH";
+static const std::string CANNY_VALUES_DISTANCE = "CANNY_VALUES_DISTANCE";
 static const std::string CANNY_MEAN_MIN = "CANNY_MEAN_MIN";
 static const std::string CANNY_MEAN_MAX = "CANNY_MEAN_MAX";
+
+/**
+ * size constraints
+ */
 static const std::string MIN_MAJOR_AXIS = "MIN_MAJOR_AXIS";
 static const std::string MAX_MAJOR_AXIS = "MAX_MAJOR_AXIS";
 static const std::string MIN_MINOR_AXIS = "MIN_MINOR_AXIS";
 static const std::string MAX_MINOR_AXIS = "MAX_MINOR_AXIS";
+
+/**
+ * voting
+ */
 static const std::string THRESHOLD_EDGE_PIXELS = "THRESHOLD_EDGE_PIXELS";
 static const std::string THRESHOLD_VOTE = "THRESHOLD_VOTE";
 static const std::string THRESHOLD_BEST_VOTE = "THRESHOLD_BEST_VOTE";
+
+static const std::string USE_XIE_AS_FALLBACK = "USE_XIE_AS_FALLBACK";
+
 }
 namespace Defaults {
-static const int CANNY_THRESHOLD_LOW = 70;
-static const int CANNY_THRESHOLD_HIGH = 90;
+static const int CANNY_INITIAL_HIGH = 90;
+static const int CANNY_VALUES_DISTANCE = 20;
 static const int CANNY_MEAN_MIN = 12;
 static const int CANNY_MEAN_MAX = 15;
+
 static const int MIN_MAJOR_AXIS = 42;
 static const int MAX_MAJOR_AXIS = 54;
 static const int MIN_MINOR_AXIS = 30;
 static const int MAX_MINOR_AXIS = 54;
+
 static const int THRESHOLD_EDGE_PIXELS = 25;
 static const int THRESHOLD_VOTE = 1800;
 static const int THRESHOLD_BEST_VOTE = 3000;
+static const bool USE_XIE_AS_FALLBACK = true;
 }
 }
 class recognizer_settings_t: public settings_abs {
 public:
-	int get_canny_threshold_low() {
-		return this->_getValue<int>(Recognizer::Params::CANNY_THRESHOLD_LOW);
+	int get_canny_initial_high() {
+		return this->_getValue<int>(Recognizer::Params::CANNY_INITIAL_HIGH);
 	}
-	int get_canny_threshold_high() {
-		return this->_getValue<int>(Recognizer::Params::CANNY_THRESHOLD_HIGH);
+	int get_canny_values_distance() {
+		return this->_getValue<int>(Recognizer::Params::CANNY_VALUES_DISTANCE);
 	}
 
 	int get_canny_mean_min() {
@@ -625,17 +643,21 @@ public:
 		return this->_getValue<int>(Recognizer::Params::THRESHOLD_BEST_VOTE);
 	}
 
+	bool get_use_xie_as_fallback(){
+		return this->_getValue<bool>(Recognizer::Params::USE_XIE_AS_FALLBACK);
+	}
+
 	recognizer_settings_t() {
 
 		_base = Recognizer::Params::BASE_STANDALONE;
 
 		_addEntry(
-				setting_entry(Recognizer::Params::CANNY_THRESHOLD_LOW,
-						Recognizer::Defaults::CANNY_THRESHOLD_LOW));
+				setting_entry(Recognizer::Params::CANNY_INITIAL_HIGH,
+						Recognizer::Defaults::CANNY_INITIAL_HIGH));
 
 		_addEntry(
-				setting_entry(Recognizer::Params::CANNY_THRESHOLD_HIGH,
-						Recognizer::Defaults::CANNY_THRESHOLD_HIGH));
+				setting_entry(Recognizer::Params::CANNY_VALUES_DISTANCE,
+						Recognizer::Defaults::CANNY_VALUES_DISTANCE));
 
 
 		_addEntry(
@@ -671,6 +693,10 @@ public:
 		_addEntry(
 				setting_entry(Recognizer::Params::THRESHOLD_BEST_VOTE,
 						Recognizer::Defaults::THRESHOLD_BEST_VOTE));
+
+		_addEntry(
+						setting_entry(Recognizer::Params::USE_XIE_AS_FALLBACK,
+								Recognizer::Defaults::USE_XIE_AS_FALLBACK));
 
 	}
 };
