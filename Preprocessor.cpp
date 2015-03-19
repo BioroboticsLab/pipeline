@@ -141,7 +141,7 @@ cv::Mat Preprocessor::_contrastStretching(const cv::Mat& image) {
 	for (image_raster &raster : rasters) {
 
 		cv::Mat block = opt.rowRange(raster.row_range).colRange(
-				raster.col_range);
+		            raster.col_range);
 		cv::Scalar mean_sobel = mean(block);
 		double average_value = mean_sobel.val[0];
 		if (average_value < this->_options.get_opt_average_contrast_value()) {
@@ -174,7 +174,7 @@ cv::Mat Preprocessor::_computeSobel(const cv::Mat &grayImage) const {
 	int delta = 0;
 	int ddepth = CV_16S;
 	cv::GaussianBlur(imageCopy, imageCopy, cv::Size(7, 7), 0, 0,
-			cv::BORDER_DEFAULT);
+	                 cv::BORDER_DEFAULT);
 
 	/// Generate grad_x and grad_y
 	cv::Mat grad_x, grad_y;
@@ -183,13 +183,13 @@ cv::Mat Preprocessor::_computeSobel(const cv::Mat &grayImage) const {
 	/// Gradient X
 	//Scharr( src_gray, grad_x, ddepth, 1, 0, scale, delta, BORDER_DEFAULT );
 	cv::Sobel(imageCopy, grad_x, ddepth, 1, 0, 3, scale, delta,
-			cv::BORDER_DEFAULT);
+	          cv::BORDER_DEFAULT);
 	cv::convertScaleAbs(grad_x, abs_grad_x);
 
 	/// Gradient Y
 	//Scharr( src_gray, grad_y, ddepth, 0, 1, scale, delta, BORDER_DEFAULT );
 	cv::Sobel(imageCopy, grad_y, ddepth, 0, 1, 3, scale, delta,
-			cv::BORDER_DEFAULT);
+	          cv::BORDER_DEFAULT);
 	cv::convertScaleAbs(grad_y, abs_grad_y);
 
 	/// Total Gradient (approximate)
@@ -209,7 +209,7 @@ cv::Mat Preprocessor::_computeSobel(const cv::Mat &grayImage) const {
 }
 
 cv::Mat Preprocessor::_filterHoney(const cv::Mat& opt_image,
-		const cv::Mat& orig_image) {
+                                   const cv::Mat& orig_image) {
 
 	cv::Mat image = opt_image.clone();
 	int frame_size = static_cast<int>(this->_options.get_honey_frame_size());
@@ -219,14 +219,14 @@ cv::Mat Preprocessor::_filterHoney(const cv::Mat& opt_image,
 	for (image_raster &raster : rasters) {
 
 		orig_block = orig_image.rowRange(raster.row_range).colRange(
-				raster.col_range);
+		            raster.col_range);
 		cv::Scalar mean, std_dev;
 
 		cv::meanStdDev(orig_block, mean, std_dev);
 		if (std_dev[0] < this->_options.get_honey_std_dev()
-				&& mean[0] > this->_options.get_honey_average_value()) {
+		    && mean[0] > this->_options.get_honey_average_value()) {
 			opt_block = image.rowRange(raster.row_range).colRange(
-					raster.col_range);
+			            raster.col_range);
 			opt_block.setTo(mean);
 		}
 	}
@@ -235,7 +235,7 @@ cv::Mat Preprocessor::_filterHoney(const cv::Mat& opt_image,
 }
 
 std::vector<image_raster> Preprocessor::_getRaster(cv::Mat image,
-		int frame_size) {
+                                                   int frame_size) {
 	std::vector<image_raster> raster = std::vector<image_raster>();
 
 	div_t div_rows, div_cols;
@@ -250,11 +250,11 @@ std::vector<image_raster> Preprocessor::_getRaster(cv::Mat image,
 		for (int j = 0; j < col_iterations; j++) {
 
 			rows = ((i == row_iterations - 1) ?
-					cv::Range(frame_size * i, image.rows) :
-					cv::Range(frame_size * i, frame_size * (i + 1)));
+			            cv::Range(frame_size * i, image.rows) :
+			            cv::Range(frame_size * i, frame_size * (i + 1)));
 			cols = ((j == col_iterations - 1) ?
-					cv::Range(frame_size * j, image.cols) :
-					cv::Range(frame_size * j, frame_size * (j + 1)));
+			            cv::Range(frame_size * j, image.cols) :
+			            cv::Range(frame_size * j, frame_size * (j + 1)));
 			raster.push_back(image_raster { rows, cols });
 		}
 	}
@@ -273,7 +273,7 @@ void Preprocessor::_filterCombs(cv::Mat& sobel) {
 
 	/// calculate binarized image for comb-detection
 	cv::threshold(sobel, threshold_image, this->_options.get_comb_threshold(),
-			255, cv::THRESH_BINARY);
+	              255, cv::THRESH_BINARY);
 
 #ifdef PipelineStandalone
 	if (config::DEBUG_MODE_LOCALIZER_IMAGE) {
@@ -288,7 +288,7 @@ void Preprocessor::_filterCombs(cv::Mat& sobel) {
 	threshold_image.copyTo(threshold_image_contours);
 	/// Find contours
 	cv::findContours(threshold_image_contours, contours, hierarchy,
-			CV_RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+	                 CV_RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
 
 	/// Find the rotated rectangles and ellipses for each contour
 	std::vector<cv::RotatedRect> minRect(contours.size());
@@ -314,17 +314,17 @@ void Preprocessor::_filterCombs(cv::Mat& sobel) {
 
 		///check for the right features to be a comb
 		if ((ell.size.height > this->_options.get_comb_min_size()
-				|| ell.size.width > this->_options.get_comb_min_size())
-				&& (std::abs(ell.size.height - ell.size.width)
-						< this->_options.get_comb_diff_size())) {
+		     || ell.size.width > this->_options.get_comb_min_size())
+		    && (std::abs(ell.size.height - ell.size.width)
+		        < this->_options.get_comb_diff_size())) {
 
 			/// draw the ellipse into the sobel image
 			//if(ell.center.x + ell.size.width <= image.cols && ell.center.y + ell.size.height <= image.rows){
 			cv::ellipse(sobel, ell,
-					cv::Scalar(this->_options.get_comb_line_color(),
-							this->_options.get_comb_line_color(),
-							this->_options.get_comb_line_color()),
-					this->_options.get_comb_line_width());
+			            cv::Scalar(this->_options.get_comb_line_color(),
+			                       this->_options.get_comb_line_color(),
+			                       this->_options.get_comb_line_color()),
+			            this->_options.get_comb_line_width());
 			//}
 
 		}

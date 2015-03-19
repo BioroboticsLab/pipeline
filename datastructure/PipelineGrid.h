@@ -50,7 +50,7 @@ public:
 	// TODO: maybe merge different draw functions
 	cv::Mat getProjectedImage(const cv::Size2i size) const;
 	void draw(cv::Mat& img);
-    void drawContours(cv::Mat& img, const double transparency, const cv::Scalar color = cv::Scalar(255, 255, 255)) const;
+	void drawContours(cv::Mat& img, const double transparency, const cv::Scalar color = cv::Scalar(255, 255, 255)) const;
 
 	void setXRotation(double angle) { Grid::setXRotation(angle); resetCache(); }
 	double getXRotation() const { return Grid::getXRotation(); }
@@ -71,27 +71,27 @@ public:
 
 	idarray_t const& getIdArray() const { return Grid::getIdArray(); }
 
-    double compare(const PipelineGrid &to) const;
+	double compare(const PipelineGrid &to) const;
 
 private:
 	// contains the cached coordinates of the current grid parameters
 	// or is invalid.
-    typedef boost::optional<coordinates_t> cached_coordinates_t;
+	typedef boost::optional<coordinates_t> cached_coordinates_t;
 
 	// image representation of the different areas and edges of the rasterized
 	// grid. during the calculation of the coordinates, each area/edge is filled
 	// with a scalar value equal to the the index of the area. for edges, a
 	// constant (CONTOUR_OFFSET) is added to the scalar.
-    cv::Mat _idImage;
+	cv::Mat _idImage;
 
-    cached_coordinates_t _outerRingCoordinates;
-    cached_coordinates_t _innerWhiteRingCoordinates;
-    cached_coordinates_t _innerBlackRingCoordinates;
-    std::array<cached_coordinates_t, NUM_MIDDLE_CELLS> _gridCellCoordinates;
+	cached_coordinates_t _outerRingCoordinates;
+	cached_coordinates_t _innerWhiteRingCoordinates;
+	cached_coordinates_t _innerBlackRingCoordinates;
+	std::array<cached_coordinates_t, NUM_MIDDLE_CELLS> _gridCellCoordinates;
 
 	// returns the bounding box of a single polygon (identified by the index
 	// of the polygon area [0, Grid::NUM_MIDDLE_CELLS)
-    cv::Rect getPolygonBoundingBox(size_t idx);
+	cv::Rect getPolygonBoundingBox(size_t idx);
 
 	// convenience function to avoid code duplication, either return the already
 	// cached coordinates or calculates the coordinates and then returns them
@@ -112,12 +112,12 @@ private:
 	{
 	public:
 		explicit cacheSetter(const size_t idx, cv::Mat& idImage, PipelineGrid::coordinates_t& coordinateCache, Func& coordinateFunction, const cv::Point2i& idImageOffset, const cv::Point2i& gridCenter)
-			: _idx(idx)
-			, _idImage(idImage)
-			, _coordinateCache(coordinateCache)
-			, _coordinateFunction(coordinateFunction)
-			, _idImageOffset(idImageOffset)
-			, _gridCenter(gridCenter)
+		    : _idx(idx)
+		    , _idImage(idImage)
+		    , _coordinateCache(coordinateCache)
+		    , _coordinateFunction(coordinateFunction)
+		    , _idImageOffset(idImageOffset)
+		    , _gridCenter(gridCenter)
 		{}
 
 		inline void operator()(cv::Point coords) {
@@ -141,7 +141,7 @@ private:
 	{
 	public:
 		explicit cacheSetterOuter(const size_t idx, cv::Mat& idImage, PipelineGrid::coordinates_t& coordinateCache, Func& coordinateFunction, const cv::Point2i& idImageOffset, const cv::Point2i gridCenter)
-			: cacheSetter<Func>(idx, idImage, coordinateCache, coordinateFunction, idImageOffset, gridCenter)
+		    : cacheSetter<Func>(idx, idImage, coordinateCache, coordinateFunction, idImageOffset, gridCenter)
 		{}
 
 		inline void operator()(cv::Point coords) {

@@ -28,28 +28,28 @@ class EllipseFitter {
 private:
 	settings::ellipsefitter_settings_t _settings;
 
-    void detectXieEllipse(Tag &tag);
+	void detectXieEllipse(Tag &tag);
 
-    void detectEllipse(Tag &tag);
+	void detectEllipse(Tag &tag);
 
 
 #ifdef PipelineStandalone
-    void loadConfigVars(std::string filename);
-    void visualizeEllipse(Ellipse const& ell, std::string const& title);
+	void loadConfigVars(std::string filename);
+	void visualizeEllipse(Ellipse const& ell, std::string const& title);
 #endif
 
 public:
-    EllipseFitter();
+	EllipseFitter();
 #ifdef PipelineStandalone
-    EllipseFitter(std::string configFile);
+	EllipseFitter(std::string configFile);
 #endif
-    virtual ~EllipseFitter() {}
+	virtual ~EllipseFitter() {}
 
 	void loadSettings(settings::ellipsefitter_settings_t &&settings);
 
-    std::vector<Tag> process(std::vector<Tag> &&taglist);
-    void visualizeEllipse(Tag const& tag , Ellipse const& ell, std::string const& title);
-    int calcScore(Ellipse ell, cv::Mat canny);
+	std::vector<Tag> process(std::vector<Tag> &&taglist);
+	void visualizeEllipse(Tag const& tag , Ellipse const& ell, std::string const& title);
+	int calcScore(Ellipse ell, cv::Mat canny);
 	cv::Mat computeCannyEdgeMap(const cv::Mat &grayImage);
 };
 }

@@ -27,7 +27,7 @@ private:
 	class mean_calculator_t {
 	public:
 		explicit mean_calculator_t(cv::Mat const& roi, const cv::Point roiOffset)
-			: _roi(roi), _roiOffset(roiOffset), _sum(0), _pixelNum(0) {}
+		    : _roi(roi), _roiOffset(roiOffset), _sum(0), _pixelNum(0) {}
 
 		inline void operator()(const cv::Point coords) {
 			const uint8_t value = _roi.get().template at<uint8_t>(coords - _roiOffset);
@@ -49,7 +49,7 @@ private:
 	class distance_calculator_t {
 	public:
 		explicit distance_calculator_t(cv::Mat const& roi, const cv::Point roiOffset, const double meanBlack, const double meanWhite)
-			: _roi(roi), _roiOffset(roiOffset), _meanBlack(meanBlack), _meanWhite(meanWhite), _distanceSumBlack(0.), _distanceSumWhite(0.), _pixelNum(0) {}
+		    : _roi(roi), _roiOffset(roiOffset), _meanBlack(meanBlack), _meanWhite(meanWhite), _distanceSumBlack(0.), _distanceSumWhite(0.), _pixelNum(0) {}
 
 		inline void operator()(const cv::Point coords) {
 			const double value = static_cast<double>(_roi.get().template at<uint8_t>(coords - _roiOffset));

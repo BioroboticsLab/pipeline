@@ -53,10 +53,10 @@ private:
 	class GradientDescent {
 	public:
 		GradientDescent(const candidate_set& initialCandidates,
-						const cv::Mat& roi,
-						const cv::Mat& binarizedRoi,
-						const cv::Mat& edgeRoi,
-						settings::gridfitter_settings_t& settings);
+		                const cv::Mat& roi,
+		                const cv::Mat& binarizedRoi,
+		                const cv::Mat& edgeRoi,
+		                settings::gridfitter_settings_t& settings);
 
 		/**
 		 * @brief optimize tries to improve the fit of the given initial
@@ -169,7 +169,7 @@ private:
 	class error_counter_t {
 	public:
 		explicit error_counter_t(const cv::Mat& roi)
-			: _roi(roi), _errorSum(0), _pixelNum(0)
+		    : _roi(roi), _errorSum(0), _pixelNum(0)
 		{}
 
 		inline void operator()(cv::Point coords)
@@ -203,7 +203,7 @@ private:
 	class variance_twopass_calculator_t {
 	public:
 		explicit variance_twopass_calculator_t(const cv::Mat& roi)
-			: _roi(roi), _pixelNum(0), _sum(0)
+		    : _roi(roi), _pixelNum(0), _sum(0)
 		{}
 
 		inline void operator()(cv::Point coords)
@@ -227,7 +227,7 @@ private:
 	class variance_online_calculator_t {
 	public:
 		explicit variance_online_calculator_t(const cv::Mat& roi)
-			: _roi(roi), _pixelNum(0), _mean(0.), _m2(0.)
+		    : _roi(roi), _pixelNum(0), _mean(0.), _m2(0.)
 		{}
 
 		inline void operator()(cv::Point coords)

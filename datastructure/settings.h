@@ -43,29 +43,29 @@ public:
 	}
 
 	setting_entry(std::string name, int member) :
-			setting_name(name), field(member) {
+	    setting_name(name), field(member) {
 		type = setting_entry_type::INT;
 
 	}
 
-    setting_entry(std::string name, unsigned int member) :
-            setting_name(name), field(member) {
-        type = setting_entry_type::U_INT;
+	setting_entry(std::string name, unsigned int member) :
+	    setting_name(name), field(member) {
+		type = setting_entry_type::U_INT;
 
-    }
+	}
 
 	setting_entry(std::string name, double member) :
-			setting_name(name), field(member) {
+	    setting_name(name), field(member) {
 		type = setting_entry_type::DOUBLE;
 
 	}
 	setting_entry(std::string name, bool member) :
-			setting_name(name), field(member) {
+	    setting_name(name), field(member) {
 		type = setting_entry_type::BOOL;
 
 	}
 	setting_entry(std::string name, size_t member) :
-			setting_name(name), field(member) {
+	    setting_name(name), field(member) {
 		type = setting_entry_type::SIZE_T;
 
 	}
@@ -80,8 +80,8 @@ protected:
 
 	void _addEntry(setting_entry setting) {
 		_settings.insert(
-				std::pair<std::string, setting_entry>(setting.setting_name,
-						setting));
+		            std::pair<std::string, setting_entry>(setting.setting_name,
+		                                                  setting));
 	}
 	template<typename T>
 	T _getValue(std::string setting_name) {
@@ -92,12 +92,12 @@ protected:
 			} catch (std::exception & e) {
 				std::cerr << "wrong value-type " << entry.field << std::endl;
 				throw std::runtime_error(
-						"could not get setting " + setting_name);
+				            "could not get setting " + setting_name);
 
 			}
 		} else {
 			throw std::runtime_error(
-					"setting_entry  doesn't exist " + setting_name);
+			            "setting_entry  doesn't exist " + setting_name);
 		}
 	}
 
@@ -118,7 +118,7 @@ public:
 
 	}
 	settings_abs(std::string section) :
-			_base(section) {
+	    _base(section) {
 	}
 
 	const std::string& getBase() const {
@@ -165,7 +165,7 @@ public:
 			switch (entry.type) {
 			case (setting_entry_type::INT): {
 				boost::optional<int> param = ptree.get_optional<int>(
-						_base + entry.setting_name);
+				            _base + entry.setting_name);
 
 				if (param)
 					entry.field = boost::get<int>(param);
@@ -174,14 +174,14 @@ public:
 			}
 			case (setting_entry_type::DOUBLE): {
 				boost::optional<double> param = ptree.get_optional<double>(
-						_base + entry.setting_name);
+				            _base + entry.setting_name);
 				if (param)
 					entry.field = boost::get<double>(param);
 				break;
 			}
 			case (setting_entry_type::BOOL): {
 				boost::optional<bool> param = ptree.get_optional<bool>(
-						_base + entry.setting_name);
+				            _base + entry.setting_name);
 				if (param)
 					entry.field = boost::get<bool>(param);
 
@@ -189,7 +189,7 @@ public:
 			}
 			case (setting_entry_type::U_INT): {
 				const boost::optional<unsigned int> param = ptree.get_optional<
-						unsigned int>(_base + entry.setting_name);
+				        unsigned int>(_base + entry.setting_name);
 				if (param)
 					entry.field = boost::get<unsigned int>(param);
 
@@ -197,7 +197,7 @@ public:
 			}
 			case (setting_entry_type::SIZE_T): {
 				const boost::optional<size_t> param =
-						ptree.get_optional<size_t>(_base + entry.setting_name);
+				        ptree.get_optional<size_t>(_base + entry.setting_name);
 				if (param)
 					entry.field = boost::get<size_t>(param);
 
@@ -284,12 +284,12 @@ namespace Params {
 static const std::string BASE = "BEESBOOKPIPELINE.PREPROCESSOR.";
 static const std::string BASE_STANDALONE = "PREPROCESSOR.";
 static const std::string OPT_USE_CONTRAST_STRETCHING =
-		"OPT_USE_CONTRAST_STRETCHING";
+        "OPT_USE_CONTRAST_STRETCHING";
 static const std::string OPT_USE_EQUALIZE_HISTOGRAM =
-		"OPT_USE_EQUALIZE_HISTOGRAM";
+        "OPT_USE_EQUALIZE_HISTOGRAM";
 static const std::string OPT_FRAME_SIZE = "OPT_FRAME_SIZE";
 static const std::string OPT_AVERAGE_CONTRAST_VALUE =
-		"OPT_AVERAGE_CONTRAST_VALUE";
+        "OPT_AVERAGE_CONTRAST_VALUE";
 
 static const std::string COMB_ENABLED = "COMB_ENABLED";
 static const std::string COMB_MIN_SIZE = "COMB_MIN_SIZE";
@@ -315,21 +315,21 @@ public:
 	 */
 	bool get_opt_use_contrast_streching() {
 		return this->_getValue<bool>(
-				Preprocessor::Params::OPT_USE_CONTRAST_STRETCHING);
+		            Preprocessor::Params::OPT_USE_CONTRAST_STRETCHING);
 	}
 
 	bool get_opt_use_equalize_histogram() {
 		return this->_getValue<bool>(
-				Preprocessor::Params::OPT_USE_EQUALIZE_HISTOGRAM);
+		            Preprocessor::Params::OPT_USE_EQUALIZE_HISTOGRAM);
 	}
 	unsigned int get_opt_frame_size() {
-        return this->_getValue<unsigned int>(
-				Preprocessor::Params::OPT_FRAME_SIZE);
+		return this->_getValue<unsigned int>(
+		            Preprocessor::Params::OPT_FRAME_SIZE);
 	}
 
 	double get_opt_average_contrast_value() {
 		return this->_getValue<double>(
-				Preprocessor::Params::OPT_AVERAGE_CONTRAST_VALUE);
+		            Preprocessor::Params::OPT_AVERAGE_CONTRAST_VALUE);
 	}
 
 	/*
@@ -342,12 +342,12 @@ public:
 
 	unsigned int get_comb_min_size() {
 		return this->_getValue<unsigned int>(
-				Preprocessor::Params::COMB_MIN_SIZE);
+		            Preprocessor::Params::COMB_MIN_SIZE);
 	}
 
 	unsigned int get_comb_max_size() {
 		return this->_getValue<unsigned int>(
-				Preprocessor::Params::COMB_MAX_SIZE);
+		            Preprocessor::Params::COMB_MAX_SIZE);
 	}
 
 	double get_comb_threshold() {
@@ -356,17 +356,17 @@ public:
 
 	unsigned int get_comb_diff_size() {
 		return this->_getValue<unsigned int>(
-				Preprocessor::Params::COMB_DIFF_SIZE);
+		            Preprocessor::Params::COMB_DIFF_SIZE);
 	}
 
 	unsigned int get_comb_line_width() {
 		return this->_getValue<unsigned int>(
-				Preprocessor::Params::COMB_LINE_WIDTH);
+		            Preprocessor::Params::COMB_LINE_WIDTH);
 	}
 
 	unsigned int get_comb_line_color() {
 		return this->_getValue<unsigned int>(
-				Preprocessor::Params::COMB_LINE_COLOR);
+		            Preprocessor::Params::COMB_LINE_COLOR);
 	}
 
 	/*
@@ -383,12 +383,12 @@ public:
 
 	unsigned int get_honey_frame_size() {
 		return this->_getValue<unsigned int>(
-				Preprocessor::Params::HONEY_FRAME_SIZE);
+		            Preprocessor::Params::HONEY_FRAME_SIZE);
 	}
 
 	double get_honey_average_value() {
 		return this->_getValue<double>(
-				Preprocessor::Params::HONEY_AVERAGE_VALUE);
+		            Preprocessor::Params::HONEY_AVERAGE_VALUE);
 	}
 
 	preprocessor_settings_t() {
@@ -398,64 +398,64 @@ public:
 		 * general optimizations
 		 */
 		_addEntry(
-				setting_entry(Preprocessor::Params::OPT_USE_CONTRAST_STRETCHING,
-						Preprocessor::Defaults::OPT_USE_CONTRAST_STRETCHING));
+		            setting_entry(Preprocessor::Params::OPT_USE_CONTRAST_STRETCHING,
+		                          Preprocessor::Defaults::OPT_USE_CONTRAST_STRETCHING));
 		_addEntry(
-				setting_entry(Preprocessor::Params::OPT_USE_EQUALIZE_HISTOGRAM,
-						Preprocessor::Defaults::OPT_USE_EQUALIZE_HISTOGRAM));
+		            setting_entry(Preprocessor::Params::OPT_USE_EQUALIZE_HISTOGRAM,
+		                          Preprocessor::Defaults::OPT_USE_EQUALIZE_HISTOGRAM));
 		_addEntry(
-				setting_entry(Preprocessor::Params::OPT_FRAME_SIZE,
-                        Preprocessor::Defaults::OPT_FRAME_SIZE));
+		            setting_entry(Preprocessor::Params::OPT_FRAME_SIZE,
+		                          Preprocessor::Defaults::OPT_FRAME_SIZE));
 		_addEntry(
-				setting_entry(Preprocessor::Params::OPT_AVERAGE_CONTRAST_VALUE,
-						Preprocessor::Defaults::OPT_AVERAGE_CONTRAST_VALUE));
+		            setting_entry(Preprocessor::Params::OPT_AVERAGE_CONTRAST_VALUE,
+		                          Preprocessor::Defaults::OPT_AVERAGE_CONTRAST_VALUE));
 		/*
 		 * comb detection
 		 */
 
 		_addEntry(
-				setting_entry(Preprocessor::Params::COMB_ENABLED,
-						Preprocessor::Defaults::COMB_ENABLED));
+		            setting_entry(Preprocessor::Params::COMB_ENABLED,
+		                          Preprocessor::Defaults::COMB_ENABLED));
 		_addEntry(
-                setting_entry(Preprocessor::Params::COMB_MIN_SIZE,
-                        Preprocessor::Defaults::COMB_MIN_SIZE));
+		            setting_entry(Preprocessor::Params::COMB_MIN_SIZE,
+		                          Preprocessor::Defaults::COMB_MIN_SIZE));
 
 		_addEntry(
-				setting_entry(Preprocessor::Params::COMB_MAX_SIZE,
-                        Preprocessor::Defaults::COMB_MAX_SIZE));
+		            setting_entry(Preprocessor::Params::COMB_MAX_SIZE,
+		                          Preprocessor::Defaults::COMB_MAX_SIZE));
 
 		_addEntry(
-				setting_entry(Preprocessor::Params::COMB_THRESHOLD,
-						Preprocessor::Defaults::COMB_THRESHOLD));
+		            setting_entry(Preprocessor::Params::COMB_THRESHOLD,
+		                          Preprocessor::Defaults::COMB_THRESHOLD));
 
 		_addEntry(
-				setting_entry(Preprocessor::Params::COMB_DIFF_SIZE,
-                        Preprocessor::Defaults::COMB_DIFF_SIZE));
+		            setting_entry(Preprocessor::Params::COMB_DIFF_SIZE,
+		                          Preprocessor::Defaults::COMB_DIFF_SIZE));
 
 		_addEntry(
-				setting_entry(Preprocessor::Params::COMB_LINE_WIDTH,
-                        Preprocessor::Defaults::COMB_LINE_WIDTH));
+		            setting_entry(Preprocessor::Params::COMB_LINE_WIDTH,
+		                          Preprocessor::Defaults::COMB_LINE_WIDTH));
 
 		_addEntry(
-				setting_entry(Preprocessor::Params::COMB_LINE_COLOR,
-                        Preprocessor::Defaults::COMB_LINE_COLOR));
+		            setting_entry(Preprocessor::Params::COMB_LINE_COLOR,
+		                          Preprocessor::Defaults::COMB_LINE_COLOR));
 
 		/*
 		 * honey detection
 		 */
 
 		_addEntry(
-				setting_entry(Preprocessor::Params::HONEY_ENABLED,
-						Preprocessor::Defaults::HONEY_ENABLED));
+		            setting_entry(Preprocessor::Params::HONEY_ENABLED,
+		                          Preprocessor::Defaults::HONEY_ENABLED));
 		_addEntry(
-				setting_entry(Preprocessor::Params::HONEY_STD_DEV,
-						Preprocessor::Defaults::HONEY_STD_DEV));
+		            setting_entry(Preprocessor::Params::HONEY_STD_DEV,
+		                          Preprocessor::Defaults::HONEY_STD_DEV));
 		_addEntry(
-				setting_entry(Preprocessor::Params::HONEY_FRAME_SIZE,
-                        Preprocessor::Defaults::HONEY_FRAME_SIZE));
+		            setting_entry(Preprocessor::Params::HONEY_FRAME_SIZE,
+		                          Preprocessor::Defaults::HONEY_FRAME_SIZE));
 		_addEntry(
-				setting_entry(Preprocessor::Params::HONEY_AVERAGE_VALUE,
-						Preprocessor::Defaults::HONEY_AVERAGE_VALUE));
+		            setting_entry(Preprocessor::Params::HONEY_AVERAGE_VALUE,
+		                          Preprocessor::Defaults::HONEY_AVERAGE_VALUE));
 
 	}
 };
@@ -472,7 +472,7 @@ static const std::string BASE = "BEESBOOKPIPELINE.LOCALIZER.";
 static const std::string BASE_STANDALONE = "LOCALIZER.";
 static const std::string BINARY_THRESHOLD = "BINARY_THRESHOLD";
 static const std::string FIRST_DILATION_NUM_ITERATIONS =
-		"FIRST_DILATION_NUM_ITERATIONS";
+        "FIRST_DILATION_NUM_ITERATIONS";
 static const std::string FIRST_DILATION_SIZE = "FIRST_DILATION_SIZE";
 static const std::string EROSION_SIZE = "EROSION_SIZE";
 static const std::string SECOND_DILATION_SIZE = "SECOND_DILATION_SIZE";
@@ -500,12 +500,12 @@ public:
 
 	unsigned int get_first_dilation_num_iterations() {
 		return this->_getValue<unsigned int>(
-				Localizer::Params::FIRST_DILATION_NUM_ITERATIONS);
+		            Localizer::Params::FIRST_DILATION_NUM_ITERATIONS);
 	}
 
 	unsigned int get_first_dilation_size() {
 		return this->_getValue<unsigned int>(
-				Localizer::Params::FIRST_DILATION_SIZE);
+		            Localizer::Params::FIRST_DILATION_SIZE);
 	}
 
 	unsigned int get_erosion_size() {
@@ -514,7 +514,7 @@ public:
 
 	unsigned int get_second_dilation_size() {
 		return this->_getValue<unsigned int>(
-				Localizer::Params::SECOND_DILATION_SIZE);
+		            Localizer::Params::SECOND_DILATION_SIZE);
 	}
 
 	unsigned int get_max_tag_size() {
@@ -529,26 +529,26 @@ public:
 		_base = Localizer::Params::BASE_STANDALONE;
 
 		_addEntry(
-				setting_entry(Localizer::Params::BINARY_THRESHOLD,
-						Localizer::Defaults::BINARY_THRESHOLD));
+		            setting_entry(Localizer::Params::BINARY_THRESHOLD,
+		                          Localizer::Defaults::BINARY_THRESHOLD));
 		_addEntry(
-				setting_entry(Localizer::Params::FIRST_DILATION_NUM_ITERATIONS,
-                        Localizer::Defaults::FIRST_DILATION_NUM_ITERATIONS));
+		            setting_entry(Localizer::Params::FIRST_DILATION_NUM_ITERATIONS,
+		                          Localizer::Defaults::FIRST_DILATION_NUM_ITERATIONS));
 		_addEntry(
-				setting_entry(Localizer::Params::FIRST_DILATION_SIZE,
-                        Localizer::Defaults::FIRST_DILATION_SIZE));
+		            setting_entry(Localizer::Params::FIRST_DILATION_SIZE,
+		                          Localizer::Defaults::FIRST_DILATION_SIZE));
 		_addEntry(
-				setting_entry(Localizer::Params::EROSION_SIZE,
-                        Localizer::Defaults::EROSION_SIZE));
+		            setting_entry(Localizer::Params::EROSION_SIZE,
+		                          Localizer::Defaults::EROSION_SIZE));
 		_addEntry(
-				setting_entry(Localizer::Params::SECOND_DILATION_SIZE,
-                        Localizer::Defaults::SECOND_DILATION_SIZE));
+		            setting_entry(Localizer::Params::SECOND_DILATION_SIZE,
+		                          Localizer::Defaults::SECOND_DILATION_SIZE));
 		_addEntry(
-				setting_entry(Localizer::Params::MAX_TAG_SIZE,
-                        Localizer::Defaults::MAX_TAG_SIZE));
+		            setting_entry(Localizer::Params::MAX_TAG_SIZE,
+		                          Localizer::Defaults::MAX_TAG_SIZE));
 		_addEntry(
-				setting_entry(Localizer::Params::MIN_BOUNDING_BOX_SIZE,
-						Localizer::Defaults::MIN_BOUNDING_BOX_SIZE));
+		            setting_entry(Localizer::Params::MIN_BOUNDING_BOX_SIZE,
+		                          Localizer::Defaults::MIN_BOUNDING_BOX_SIZE));
 	}
 };
 
@@ -659,52 +659,52 @@ public:
 
 		_addEntry(
 
-				setting_entry(EllipseFitter::Params::CANNY_INITIAL_HIGH,
-						EllipseFitter::Defaults::CANNY_INITIAL_HIGH));
+		            setting_entry(EllipseFitter::Params::CANNY_INITIAL_HIGH,
+		                          EllipseFitter::Defaults::CANNY_INITIAL_HIGH));
 
 		_addEntry(
-				setting_entry(EllipseFitter::Params::CANNY_VALUES_DISTANCE,
-						EllipseFitter::Defaults::CANNY_VALUES_DISTANCE));
-
-
-		_addEntry(
-				setting_entry(EllipseFitter::Params::CANNY_MEAN_MIN,
-						EllipseFitter::Defaults::CANNY_MEAN_MIN));
-
-		_addEntry(
-				setting_entry(EllipseFitter::Params::CANNY_MEAN_MAX,
-						EllipseFitter::Defaults::CANNY_MEAN_MAX));
+		            setting_entry(EllipseFitter::Params::CANNY_VALUES_DISTANCE,
+		                          EllipseFitter::Defaults::CANNY_VALUES_DISTANCE));
 
 
 		_addEntry(
-				setting_entry(EllipseFitter::Params::MIN_MAJOR_AXIS,
-						EllipseFitter::Defaults::MIN_MAJOR_AXIS));
+		            setting_entry(EllipseFitter::Params::CANNY_MEAN_MIN,
+		                          EllipseFitter::Defaults::CANNY_MEAN_MIN));
 
 		_addEntry(
-				setting_entry(EllipseFitter::Params::MAX_MAJOR_AXIS,
-						EllipseFitter::Defaults::MAX_MAJOR_AXIS));
+		            setting_entry(EllipseFitter::Params::CANNY_MEAN_MAX,
+		                          EllipseFitter::Defaults::CANNY_MEAN_MAX));
+
 
 		_addEntry(
-				setting_entry(EllipseFitter::Params::MIN_MINOR_AXIS,
-						EllipseFitter::Defaults::MIN_MINOR_AXIS));
+		            setting_entry(EllipseFitter::Params::MIN_MAJOR_AXIS,
+		                          EllipseFitter::Defaults::MIN_MAJOR_AXIS));
 
 		_addEntry(
-				setting_entry(EllipseFitter::Params::MAX_MINOR_AXIS,
-						EllipseFitter::Defaults::MAX_MINOR_AXIS));
+		            setting_entry(EllipseFitter::Params::MAX_MAJOR_AXIS,
+		                          EllipseFitter::Defaults::MAX_MAJOR_AXIS));
 
 		_addEntry(
-				setting_entry(EllipseFitter::Params::THRESHOLD_EDGE_PIXELS,
-						EllipseFitter::Defaults::THRESHOLD_EDGE_PIXELS));
-		_addEntry(
-				setting_entry(EllipseFitter::Params::THRESHOLD_VOTE,
-						EllipseFitter::Defaults::THRESHOLD_VOTE));
-		_addEntry(
-				setting_entry(EllipseFitter::Params::THRESHOLD_BEST_VOTE,
-						EllipseFitter::Defaults::THRESHOLD_BEST_VOTE));
+		            setting_entry(EllipseFitter::Params::MIN_MINOR_AXIS,
+		                          EllipseFitter::Defaults::MIN_MINOR_AXIS));
 
 		_addEntry(
-						setting_entry(EllipseFitter::Params::USE_XIE_AS_FALLBACK,
-								EllipseFitter::Defaults::USE_XIE_AS_FALLBACK));
+		            setting_entry(EllipseFitter::Params::MAX_MINOR_AXIS,
+		                          EllipseFitter::Defaults::MAX_MINOR_AXIS));
+
+		_addEntry(
+		            setting_entry(EllipseFitter::Params::THRESHOLD_EDGE_PIXELS,
+		                          EllipseFitter::Defaults::THRESHOLD_EDGE_PIXELS));
+		_addEntry(
+		            setting_entry(EllipseFitter::Params::THRESHOLD_VOTE,
+		                          EllipseFitter::Defaults::THRESHOLD_VOTE));
+		_addEntry(
+		            setting_entry(EllipseFitter::Params::THRESHOLD_BEST_VOTE,
+		                          EllipseFitter::Defaults::THRESHOLD_BEST_VOTE));
+
+		_addEntry(
+		            setting_entry(EllipseFitter::Params::USE_XIE_AS_FALLBACK,
+		                          EllipseFitter::Defaults::USE_XIE_AS_FALLBACK));
 
 	}
 };
@@ -787,15 +787,15 @@ public:
 	}
 	double get_err_func_alpha_variance() {
 		return this->_getValue<double>(
-				Gridfitter::Params::ERR_FUNC_ALPHA_VARIANCE);
+		            Gridfitter::Params::ERR_FUNC_ALPHA_VARIANCE);
 	}
 	double get_err_func_alpha_inner_edge() {
 		return this->_getValue<double>(
-				Gridfitter::Params::ERR_FUNC_ALPHA_INNER_EDGE);
+		            Gridfitter::Params::ERR_FUNC_ALPHA_INNER_EDGE);
 	}
 	double get_err_func_alpha_outer_edge() {
 		return this->_getValue<double>(
-				Gridfitter::Params::ERR_FUNC_ALPHA_OUTER_EDGE);
+		            Gridfitter::Params::ERR_FUNC_ALPHA_OUTER_EDGE);
 	}
 	/*
 	 * adaptive
@@ -817,11 +817,11 @@ public:
 	}
 	double get_gradient_error_threshold() {
 		return this->_getValue<double>(
-				Gridfitter::Params::GRADIENT_ERROR_THRESHOLD);
+		            Gridfitter::Params::GRADIENT_ERROR_THRESHOLD);
 	}
 	size_t get_gradient_max_iterations() {
 		return this->_getValue<size_t>(
-				Gridfitter::Params::GRADIENT_MAX_ITERATIONS);
+		            Gridfitter::Params::GRADIENT_MAX_ITERATIONS);
 	}
 
 	/*
@@ -848,43 +848,43 @@ public:
 		 * error function weights
 		 */
 		_addEntry(
-				setting_entry(Params::ERR_FUNC_ALPHA_INNER,
-						Defaults::ERR_FUNC_ALPHA_INNER));
+		            setting_entry(Params::ERR_FUNC_ALPHA_INNER,
+		                          Defaults::ERR_FUNC_ALPHA_INNER));
 		_addEntry(
-				setting_entry(Params::ERR_FUNC_ALPHA_INNER_EDGE,
-						Defaults::ERR_FUNC_ALPHA_INNER_EDGE));
+		            setting_entry(Params::ERR_FUNC_ALPHA_INNER_EDGE,
+		                          Defaults::ERR_FUNC_ALPHA_INNER_EDGE));
 		_addEntry(
-				setting_entry(Params::ERR_FUNC_ALPHA_OUTER,
-						Defaults::ERR_FUNC_ALPHA_OUTER));
+		            setting_entry(Params::ERR_FUNC_ALPHA_OUTER,
+		                          Defaults::ERR_FUNC_ALPHA_OUTER));
 		_addEntry(
-				setting_entry(Params::ERR_FUNC_ALPHA_OUTER_EDGE,
-						Defaults::ERR_FUNC_ALPHA_OUTER_EDGE));
+		            setting_entry(Params::ERR_FUNC_ALPHA_OUTER_EDGE,
+		                          Defaults::ERR_FUNC_ALPHA_OUTER_EDGE));
 		_addEntry(
-				setting_entry(Params::ERR_FUNC_ALPHA_VARIANCE,
-						Defaults::ERR_FUNC_ALPHA_VARIANCE));
+		            setting_entry(Params::ERR_FUNC_ALPHA_VARIANCE,
+		                          Defaults::ERR_FUNC_ALPHA_VARIANCE));
 		/*
 		 * adaptive
 		 */
 		_addEntry(
-				setting_entry(Params::ADAPTIVE_BLOCK_SIZE,
-						Defaults::ADAPTIVE_BLOCK_SIZE));
+		            setting_entry(Params::ADAPTIVE_BLOCK_SIZE,
+		                          Defaults::ADAPTIVE_BLOCK_SIZE));
 		_addEntry(setting_entry(Params::ADAPTIVE_C, Defaults::ADAPTIVE_C));
 
 		/*
 		 * gradient
 		 */
 		_addEntry(
-				setting_entry(Params::GRADIENT_ERROR_THRESHOLD,
-						Defaults::GRADIENT_ERROR_THRESHOLD));
+		            setting_entry(Params::GRADIENT_ERROR_THRESHOLD,
+		                          Defaults::GRADIENT_ERROR_THRESHOLD));
 		_addEntry(
-				setting_entry(Params::GRADIENT_MAX_ITERATIONS,
-						Defaults::GRADIENT_MAX_ITERATIONS));
+		            setting_entry(Params::GRADIENT_MAX_ITERATIONS,
+		                          Defaults::GRADIENT_MAX_ITERATIONS));
 		_addEntry(
-				setting_entry(Params::GRADIENT_NUM_INITIAL,
-						Defaults::GRADIENT_NUM_INITIAL));
+		            setting_entry(Params::GRADIENT_NUM_INITIAL,
+		                          Defaults::GRADIENT_NUM_INITIAL));
 		_addEntry(
-				setting_entry(Params::GRADIENT_NUM_RESULTS,
-						Defaults::GRADIENT_NUM_RESULTS));
+		            setting_entry(Params::GRADIENT_NUM_RESULTS,
+		                          Defaults::GRADIENT_NUM_RESULTS));
 
 		/*
 		 * eps

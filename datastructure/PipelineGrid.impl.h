@@ -10,10 +10,10 @@ Func PipelineGrid::processOuterRingCoordinates(Func coordinateFunction) {
 	static_assert(Grid::NUM_MIDDLE_CELLS > 0, "Grid must have at least one cell");
 
 	if (!_innerWhiteRingCoordinates ||
-		!_innerBlackRingCoordinates ||
-		!_gridCellCoordinates[0]) // if the coordinates for the first cell have been calculated,
-								  // the coordinates for all the other cells must have been
-								  // calculated as well
+	    !_innerBlackRingCoordinates ||
+	    !_gridCellCoordinates[0]) // if the coordinates for the first cell have been calculated,
+	                              // the coordinates for all the other cells must have been
+	                              // calculated as well
 	{
 		throw std::runtime_error("Outer ring coordinates must be calculated after other coordinates");
 	}
@@ -61,11 +61,11 @@ std::pair<PipelineGrid::coordinates_t, Func> PipelineGrid::calculatePolygonCoord
 	if (idx == INDEX_OUTER_WHITE_RING) {
 		cacheSetterOuter<Func> cacheFun(idx, _idImage, coordinates, coordinateFunction, _boundingBox.tl(), _center);
 		cacheFun = heyho::convex_poly<heyho::line_iterator, cacheSetterOuter<Func>, heyho::no_boundaries_tag>(
-					std::move(cacheFun), heyho::no_boundaries_tag(), _coordinates2D[idx], 8);
+		            std::move(cacheFun), heyho::no_boundaries_tag(), _coordinates2D[idx], 8);
 	} else {
 		cacheSetter<Func> cacheFun(idx, _idImage, coordinates, coordinateFunction, _boundingBox.tl(), _center);
 		cacheFun = heyho::convex_poly<heyho::line_iterator, cacheSetter<Func>, heyho::no_boundaries_tag>(
-					std::move(cacheFun), heyho::no_boundaries_tag(), _coordinates2D[idx], 8);
+		            std::move(cacheFun), heyho::no_boundaries_tag(), _coordinates2D[idx], 8);
 	}
 
 	return { coordinates, coordinateFunction };

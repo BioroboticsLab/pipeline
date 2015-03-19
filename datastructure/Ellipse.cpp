@@ -6,19 +6,19 @@
 namespace pipeline {
 
 Ellipse::Ellipse()
-	: _vote(0)
-	, _cen()
-	, _axis()
-	, _angle(0)
-	, _roiSize(cv::Size(0, 0))
+    : _vote(0)
+    , _cen()
+    , _axis()
+    , _angle(0)
+    , _roiSize(cv::Size(0, 0))
 { }
 
 Ellipse::Ellipse(int vote, cv::Point2i center, cv::Size axis_length, double angle, cv::Size roiSize)
-	: _vote(vote)
-	, _cen(center)
-	, _axis(axis_length)
-	, _angle(angle)
-	, _roiSize(roiSize)
+    : _vote(vote)
+    , _cen(center)
+    , _axis(axis_length)
+    , _angle(angle)
+    , _roiSize(roiSize)
 { }
 
 const cv::Mat Ellipse::getMask(const cv::Size axisBorder) const

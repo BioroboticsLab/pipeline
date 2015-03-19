@@ -21,25 +21,25 @@ void Decoder::loadSettings(decoder_settings_t &&settings)
 std::vector<Tag> Decoder::process(std::vector<Tag> &&taglist)
 {
 #ifdef DEBUG_DECODER
-    static const size_t numThreads = 1;
+	static const size_t numThreads = 1;
 #else
-    static const size_t numThreads = std::thread::hardware_concurrency() ?
-                std::thread::hardware_concurrency() * 2 : 1;
+	static const size_t numThreads = std::thread::hardware_concurrency() ?
+	            std::thread::hardware_concurrency() * 2 : 1;
 #endif
-    ThreadPool pool(numThreads);
+	ThreadPool pool(numThreads);
 
-    std::vector<std::future<void>> results;
+	std::vector<std::future<void>> results;
 	for (Tag& tag : taglist) {
 		results.emplace_back(
-		    pool.enqueue([&] {
-				for (TagCandidate& candidate : tag.getCandidates()) {
-					std::vector<decoding_t> decodings = getDecodings(tag, candidate);
-					candidate.setDecodings(std::move(decodings));
-				}
+		            pool.enqueue([&] {
+			for (TagCandidate& candidate : tag.getCandidates()) {
+				std::vector<decoding_t> decodings = getDecodings(tag, candidate);
+				candidate.setDecodings(std::move(decodings));
+			}
 		}));
 	}
 
-    for (auto && result : results) result.get();
+	for (auto && result : results) result.get();
 
 	return std::move(taglist);
 }
@@ -95,8 +95,8 @@ double Decoder::getMeanIntensity(const cv::Mat &image, const PipelineGrid::coord
 	size_t sum = 0;
 	for (cv::Point const& loc : coords.areaCoordinates) {
 		sum += image.at<uint8_t>(loc - offset);
-    }
-    return static_cast<double>(sum) / static_cast<double>(coords.areaCoordinates.size());
+	}
+	return static_cast<double>(sum) / static_cast<double>(coords.areaCoordinates.size());
 }
 
 double Decoder::getMeanDistance(const cv::Mat &image, const PipelineGrid::coordinates_t &coords, const cv::Point& offset, const double mean) const
@@ -104,7 +104,7 @@ double Decoder::getMeanDistance(const cv::Mat &image, const PipelineGrid::coordi
 	double sum = 0;
 	for (cv::Point const& loc : coords.areaCoordinates) {
 		sum += std::abs(image.at<uint8_t>(loc - offset) - mean);
-    }
-    return sum / static_cast<double>(coords.areaCoordinates.size());
+	}
+	return sum / static_cast<double>(coords.areaCoordinates.size());
 }
 }
