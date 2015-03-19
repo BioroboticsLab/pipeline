@@ -74,19 +74,14 @@ private:
 	private:
 		const candidate_set& _initialCandidates;
 
-
-
 		settings::gridfitter_settings_t& _settings;
 
-
 		// region of interest grayscale image
-
 		const cv::Mat& _roi;
 		// binarized region of interest
 		const cv::Mat& _binarizedRoi;
 		// edge image of region of interest
 		const cv::Mat& _edgeRoi;
-
 
 		// contains the settings.maxResults (or less) best grid candiates.
 		// candiates should only be inserted using the storeConfig() method.
@@ -107,7 +102,7 @@ private:
 		 * @param error errors associated with previous config
 		 * @param param which parameter to change in current step
 		 */
-		std::pair<double, PipelineGrid::gridconfig_t> step(const PipelineGrid::gridconfig_t &config, double error, const StepParameter param);
+		std::pair<double, PipelineGrid::gridconfig_t> step(candidate_set& bestGrids, const PipelineGrid::gridconfig_t &config, double error, const StepParameter param);
 
 		/**
 		 * @brief storeConfig store a config in _bestGrids

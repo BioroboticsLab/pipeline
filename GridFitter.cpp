@@ -17,7 +17,7 @@
 #include "source/utility/CvHelper.h"
 #include "source/utility/util.h"
 
-#define DEBUG_GRIDFITTER
+//#define DEBUG_GRIDFITTER
 
 namespace pipeline {
 GridFitter::GridFitter()
@@ -30,7 +30,7 @@ void GridFitter::loadSettings(settings::gridfitter_settings_t &&settings)
 
 std::vector<Tag> GridFitter::process(std::vector<Tag> &&taglist)
 {
-#ifdef DEBUG_GRIDFITTER
+#if defined(DEBUG_GRIDFITTER) || !defined(NDEBUG)
 	// run GridFitter in a single thread when debugging is enabled to get
 	// better and more consistent stack traces etc.
 	for (Tag& tag : taglist) {
@@ -111,7 +111,6 @@ void GridFitter::visualizeDebug(std::multiset<candidate_t> const& grids, const c
 	cv::cvtColor(roi, roiCpy, CV_GRAY2BGR);
 
 	const size_t to = std::min(grids.size(), numBest);
-	std::cout << numBest << std::endl;
     size_t idx = 0;
 	for (candidate_t const& candidate : grids) {
         std::vector<cv::Mat> images;
@@ -153,30 +152,6 @@ void GridFitter::visualizeDebug(std::multiset<candidate_t> const& grids, const c
 		std::string title(winName + " " + std::to_string(idx) + " (error: " + std::to_string(candidate.error) + ")");
         cv::namedWindow(title);
         cv::imshow(title, canvas);
-
-//		cv::Mat histImg = calculateHistogram(tag.getOrigSubImage(), ell);
-
-//		cv::Mat equalizedImg;
-//		cv::Mat roiToEqualize = tag.getOrigSubImage();
-//		cv::cvtColor(roiToEqualize, roiToEqualize, CV_BGR2GRAY);
-//		cv::Mat ellRoi;
-//		roiToEqualize.copyTo(ellRoi, ell.getMask(cv::Size(10, 10)));
-//		cv::equalizeHist(ellRoi, equalizedImg);
-
-//		cv::Mat histEqualizedImg = calculateHistogram(equalizedImg, ell);
-//		cv::cvtColor(equalizedImg, equalizedImg, CV_GRAY2BGR);
-
-//		std::string histogramTitle(title + " (histogram)");
-//		cv::namedWindow(histogramTitle);
-//		cv::imshow(histogramTitle, histImg);
-
-//		std::string histogramEqualizedTitle(title + " (histogram equalized)");
-//		cv::namedWindow(histogramEqualizedTitle);
-//		cv::imshow(histogramEqualizedTitle, histEqualizedImg);
-
-//		std::string equalizedTitle(title + " (equalized)");
-//		cv::namedWindow(equalizedTitle);
-//		cv::imshow(equalizedTitle, equalizedImg);
 
         ++idx;
         if (idx == to) break;
@@ -251,6 +226,7 @@ std::vector<PipelineGrid> GridFitter::fitGrid(const Tag& tag, const TagCandidate
     const cv::Mat& edgeROI = tag.getCannySubImage();
 
 	// TODO: constant/setting for axis border
+	// TODO: add sanity checks
 	const cv::Mat ellipseMask = candidate.getEllipse().getMask(cv::Size(10, 10));
 	cv::Mat equalizedRoi;
 	roi.copyTo(equalizedRoi, ellipseMask);
@@ -259,7 +235,6 @@ std::vector<PipelineGrid> GridFitter::fitGrid(const Tag& tag, const TagCandidate
 	// get initial candidates using brute force search over small number of
 	// rotations and position offsets
 	candidate_set gridCandidates = getInitialCandidates(binarizedROI, edgeROI, ellipse_orig, roi);
-	std::cout << gridCandidates.size() << std::endl;
 
 #ifdef DEBUG_GRIDFITTER
 	visualizeDebug(gridCandidates, roi, roiSize, tag, binarizedROI, "candidate", _settings.get_gradient_num_initial());
@@ -368,34 +343,38 @@ void GridFitter::GradientDescent::optimize()
         double error = evaluateCandidate(grid, _roi, _binarizedRoi, _edgeRoi, _settings);
         storeConfig(error, config);
 
+		candidate_set bestGridsForCandidate;
+		bestGridsForCandidate.insert(candidate);
+
 		// gradient descent
 		while ((error > _settings.get_gradient_error_threshold()) && (iteration < _settings.get_gradient_max_iterations())) {
 			double const initerror = error;
 
-			std::tie(error, config) = step(config, error, SCALE);
-			std::tie(error, config) = step(config, error, POSX);
-			std::tie(error, config) = step(config, error, POSY);
-			std::tie(error, config) = step(config, error, ANGLE_X);
-			std::tie(error, config) = step(config, error, ANGLE_Y);
-			std::tie(error, config) = step(config, error, ANGLE_Z);
+			std::tie(error, config) = step(bestGridsForCandidate, config, error, SCALE);
+			std::tie(error, config) = step(bestGridsForCandidate, config, error, POSX);
+			std::tie(error, config) = step(bestGridsForCandidate, config, error, POSY);
+			std::tie(error, config) = step(bestGridsForCandidate, config, error, ANGLE_X);
+			std::tie(error, config) = step(bestGridsForCandidate, config, error, ANGLE_Y);
+			std::tie(error, config) = step(bestGridsForCandidate, config, error, ANGLE_Z);
 
             ++iteration;
 			// abort gradient descent if error measurement did not improve by
 			// a significant amount during the last six steps
-			// TODO: bestGrid should be specific to current candidate!
-			assert(!_bestGrids.empty());
-			if (std::abs(initerror - _bestGrids.begin()->error) < 0.001) break;
+			assert(!bestGridsForCandidate.empty());
+			if ((initerror - bestGridsForCandidate.begin()->error) < 0.001) break;
 
 			// instead of continuing the next iteration with the result of the
 			// last step, use the best currently found config from now on.
-			error  = _bestGrids.begin()->error;
-			config = _bestGrids.begin()->config;
+			error  = bestGridsForCandidate.begin()->error;
+			config = bestGridsForCandidate.begin()->config;
 		}
+		assert(!bestGridsForCandidate.empty());
+		storeConfig(bestGridsForCandidate.begin()->error, bestGridsForCandidate.begin()->config);
         ++candidate_it;
 	}
 }
 
-std::pair<double, PipelineGrid::gridconfig_t> GridFitter::GradientDescent::step(PipelineGrid::gridconfig_t const& config, double error, const GridFitter::GradientDescent::StepParameter param)
+std::pair<double, PipelineGrid::gridconfig_t> GridFitter::GradientDescent::step(candidate_set &bestGrids, PipelineGrid::gridconfig_t const& config, double error, const GridFitter::GradientDescent::StepParameter param)
 {
 	// when adjusting one of the position parameters, we can not adjust the step
 	// size based on the difference between of the errors and the learning rate
@@ -465,10 +444,10 @@ std::pair<double, PipelineGrid::gridconfig_t> GridFitter::GradientDescent::step(
 			PipelineGrid newGrid(newConfig);
 			newError = evaluateCandidate(newGrid, _roi, _binarizedRoi, _edgeRoi, _settings);
 
-			storeConfig(newError, newConfig);
+			bestGrids.insert({newError, newConfig});
 			return {newError, newConfig};
 		} else if (newError < error) {
-			storeConfig(newError, newConfig);
+			bestGrids.insert({newError, newConfig});
 			return {newError, newConfig};
 		}
 	}
@@ -492,7 +471,6 @@ double GridFitter::variance_twopass_calculator_t::getNormalizedVariance() const
 
 	double sum = 0.;
 	for (const uint8_t value : _values) {
-		std::cout << std::to_string(value) << std::endl;
 		sum += (static_cast<double>(value) - mean) * (static_cast<double>(value) - mean);
 	}
 
