@@ -712,11 +712,11 @@ static const std::string ALPHA = "ALPHA";
 }
 
 namespace Defaults {
-static const double ERR_FUNC_ALPHA_INNER = 500.0;
-static const double ERR_FUNC_ALPHA_OUTER = 100.0;
-static const double ERR_FUNC_ALPHA_VARIANCE = 0.8;
-static const double ERR_FUNC_ALPHA_OUTER_EDGE = 5.0;
-static const double ERR_FUNC_ALPHA_INNER_EDGE = 10.0;
+static const double ERR_FUNC_ALPHA_INNER = 1.0;
+static const double ERR_FUNC_ALPHA_OUTER = 1.0;
+static const double ERR_FUNC_ALPHA_VARIANCE = 1.0;
+static const double ERR_FUNC_ALPHA_OUTER_EDGE = 1.0;
+static const double ERR_FUNC_ALPHA_INNER_EDGE = 1.0;
 
 static const int ADAPTIVE_BLOCK_SIZE = 23;
 static const double ADAPTIVE_C = 3;
