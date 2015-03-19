@@ -17,7 +17,7 @@
 #include "source/utility/CvHelper.h"
 #include "source/utility/util.h"
 
-//#define DEBUG_GRIDFITTER
+#define DEBUG_GRIDFITTER
 
 namespace pipeline {
 GridFitter::GridFitter()
@@ -99,7 +99,7 @@ cv::Mat GridFitter::calculateHistogram(const cv::Mat& roi, const Ellipse& ellips
     return histImg;
 }
 
-void GridFitter::visualizeDebug(std::multiset<candidate_t> const& bestGrids, const cv::Size2i roiSize, const Tag& tag, cv::Mat const& binarizedROI, std::string winName)
+void GridFitter::visualizeDebug(std::multiset<candidate_t> const& grids, const cv::Mat& roi, const cv::Size2i roiSize, const Tag& tag, cv::Mat const& binarizedROI, std::string winName, const size_t numBest)
 {
     cv::Mat binarizedROICpy;
     cv::cvtColor(binarizedROI, binarizedROICpy, CV_GRAY2BGR);
@@ -107,17 +107,22 @@ void GridFitter::visualizeDebug(std::multiset<candidate_t> const& bestGrids, con
     cv::Mat cannyImg;
     cv::cvtColor(tag.getCannySubImage(), cannyImg, CV_GRAY2BGR);
 
-    const size_t to = std::min(_settings.get_gradient_num_results(), bestGrids.size());
+	cv::Mat roiCpy;
+	cv::cvtColor(roi, roiCpy, CV_GRAY2BGR);
+
+	const size_t to = std::min(grids.size(), numBest);
+	std::cout << numBest << std::endl;
     size_t idx = 0;
-    for (candidate_t const& candidate : bestGrids) {
+	for (candidate_t const& candidate : grids) {
         std::vector<cv::Mat> images;
 
         PipelineGrid grid(candidate.config);
 
-        images.push_back(tag.getOrigSubImage());
+		images.push_back(tag.getOrigSubImage());
+		images.push_back(roiCpy);
 
         cv::Mat origCopy;
-        tag.getOrigSubImage().copyTo(origCopy);
+		roiCpy.copyTo(origCopy);
         pipeline::Ellipse const& ell = tag.getCandidates().front().getEllipse();
         cv::ellipse(origCopy, ell.getCen(), ell.getAxis(), ell.getAngle(), 0, 360, cv::Scalar(0, 255, 0), 2);
         images.push_back(origCopy);
@@ -131,7 +136,7 @@ void GridFitter::visualizeDebug(std::multiset<candidate_t> const& bestGrids, con
         images.push_back(blendedBin);
 
         cv::Mat blended;
-        cv::addWeighted(tag.getOrigSubImage(), 0.8, grid.getProjectedImage(roiSize), 0.2, 0.0, blended);
+		cv::addWeighted(tag.getOrigSubImage(), 0.8, grid.getProjectedImage(roiSize), 0.2, 0.0, blended);
         images.push_back(blended);
 
         cv::Mat cannyBlended;
@@ -139,21 +144,45 @@ void GridFitter::visualizeDebug(std::multiset<candidate_t> const& bestGrids, con
         images.push_back(cannyBlended);
 
         cv::Mat origCopyOverlay;
-        tag.getOrigSubImage().copyTo(origCopyOverlay);
+		roiCpy.copyTo(origCopyOverlay);
         grid.drawContours(origCopyOverlay, 0.5);
         images.push_back(origCopyOverlay);
 
         const auto canvas = CvHelper::makeCanvas(images, images[0].rows + 10, 1);
 
-        std::string title(winName + " (error: " + std::to_string(candidate.error) + ")");
+		std::string title(winName + " " + std::to_string(idx) + " (error: " + std::to_string(candidate.error) + ")");
         cv::namedWindow(title);
         cv::imshow(title, canvas);
+
+//		cv::Mat histImg = calculateHistogram(tag.getOrigSubImage(), ell);
+
+//		cv::Mat equalizedImg;
+//		cv::Mat roiToEqualize = tag.getOrigSubImage();
+//		cv::cvtColor(roiToEqualize, roiToEqualize, CV_BGR2GRAY);
+//		cv::Mat ellRoi;
+//		roiToEqualize.copyTo(ellRoi, ell.getMask(cv::Size(10, 10)));
+//		cv::equalizeHist(ellRoi, equalizedImg);
+
+//		cv::Mat histEqualizedImg = calculateHistogram(equalizedImg, ell);
+//		cv::cvtColor(equalizedImg, equalizedImg, CV_GRAY2BGR);
+
+//		std::string histogramTitle(title + " (histogram)");
+//		cv::namedWindow(histogramTitle);
+//		cv::imshow(histogramTitle, histImg);
+
+//		std::string histogramEqualizedTitle(title + " (histogram equalized)");
+//		cv::namedWindow(histogramEqualizedTitle);
+//		cv::imshow(histogramEqualizedTitle, histEqualizedImg);
+
+//		std::string equalizedTitle(title + " (equalized)");
+//		cv::namedWindow(equalizedTitle);
+//		cv::imshow(equalizedTitle, equalizedImg);
 
         ++idx;
         if (idx == to) break;
     }
 
-    if (!bestGrids.empty()) {
+	if (!grids.empty()) {
         bool cont = true;
         while (cont) {
             const char c = cv::waitKey();
@@ -192,9 +221,9 @@ GridFitter::candidate_set GridFitter::getInitialCandidates(const cv::Mat &binari
                     candidatesForRotation.insert({error, grid.getConfig()});
                 }
             }
-        }
-		// for each rotation, insert the best candiate into gridCandidates
-        gridCandidates.insert(*candidatesForRotation.begin());
+			// for each rotation and ellipse candidate, insert the best candiate into gridCandidates
+			gridCandidates.insert(*candidatesForRotation.begin());
+		}
     }
 
 	return gridCandidates;
@@ -202,6 +231,10 @@ GridFitter::candidate_set GridFitter::getInitialCandidates(const cv::Mat &binari
 
 std::vector<PipelineGrid> GridFitter::fitGrid(const Tag& tag, const TagCandidate &candidate)
 {
+#ifdef DEBUG_GRIDFITTER
+	cv::destroyAllWindows();
+#endif
+
 	const Ellipse& ellipse_orig = candidate.getEllipse();
 
     // region of interest of tag candidate
@@ -217,9 +250,20 @@ std::vector<PipelineGrid> GridFitter::fitGrid(const Tag& tag, const TagCandidate
 
     const cv::Mat& edgeROI = tag.getCannySubImage();
 
+	// TODO: constant/setting for axis border
+	const cv::Mat ellipseMask = candidate.getEllipse().getMask(cv::Size(10, 10));
+	cv::Mat equalizedRoi;
+	roi.copyTo(equalizedRoi, ellipseMask);
+	cv::equalizeHist(equalizedRoi, roi);
+
 	// get initial candidates using brute force search over small number of
 	// rotations and position offsets
 	candidate_set gridCandidates = getInitialCandidates(binarizedROI, edgeROI, ellipse_orig, roi);
+	std::cout << gridCandidates.size() << std::endl;
+
+#ifdef DEBUG_GRIDFITTER
+	visualizeDebug(gridCandidates, roi, roiSize, tag, binarizedROI, "candidate", _settings.get_gradient_num_initial());
+#endif
 
 	// optimize best candidates using gradient descent
 	GradientDescent optimizer(gridCandidates, roi, binarizedROI, edgeROI, _settings);
@@ -231,8 +275,7 @@ std::vector<PipelineGrid> GridFitter::fitGrid(const Tag& tag, const TagCandidate
     std::cout << "min initial candidate error: " << gridCandidates.begin()->error << std::endl;
     std::cout << "min final candidate error: " << bestGrids.begin()->error << std::endl;
 
-    visualizeDebug(gridCandidates, roiSize, tag, binarizedROI, "initial fit");
-    visualizeDebug(bestGrids, roiSize, tag, binarizedROI, "best fit");
+	visualizeDebug(bestGrids, roi, roiSize, tag, binarizedROI, "best fit", _settings.get_gradient_num_results());
 #endif
 
 	// return the settings.numResults best candidates
@@ -264,136 +307,40 @@ double GridFitter::evaluateCandidate(PipelineGrid& grid, cv::Mat const& roi, cv:
 	if (boundingBox.x + boundingBox.width >= roi.rows ||
 		boundingBox.y + boundingBox.height >= roi.cols) return std::numeric_limits<double>::max();
 
+	enum ROI {
+		BINARY = 0,
+		GRAYSCALE
+	};
+
+	static const ROI roiKind = ROI::GRAYSCALE;
+
+	const cv::Mat& selectedRoi = roiKind == ROI::BINARY ? binarizedROI : roi;
+
 	{
-		error_counter_t<expected_white_error_fun_t> errorFun(binarizedROI);
+		error_counter_t<expected_white_error_fun_t> errorFun(selectedRoi);
 		errorFun = grid.processInnerWhiteRingCoordinates(std::move(errorFun));
-		error += errorFun.getNormalizedError();
+		error += errorFun.getNormalizedError() * settings.get_err_func_alpha_inner();
 	}
 
 	{
-		error_counter_t<expected_black_error_fun_t> errorFun(binarizedROI);
+		error_counter_t<expected_black_error_fun_t> errorFun(selectedRoi);
 		errorFun = grid.processInnerBlackRingCoordinates(std::move(errorFun));
-		error += errorFun.getNormalizedError();
+		error += errorFun.getNormalizedError() * settings.get_err_func_alpha_inner();
 	}
 
 	for (size_t cellIdx = 0; cellIdx < Grid::NUM_MIDDLE_CELLS; ++cellIdx) {
-		variance_online_calculator_t errorFun(binarizedROI);
+		variance_online_calculator_t errorFun(selectedRoi);
 		errorFun = grid.processGridCellCoordinates(cellIdx, std::move(errorFun));
-		error += errorFun.getNormalizedVariance() / Grid::NUM_MIDDLE_CELLS;
+		error += (errorFun.getNormalizedVariance() / Grid::NUM_MIDDLE_CELLS) * settings.get_err_func_alpha_variance();
 	}
 
 	{
-		error_counter_t<expected_white_error_fun_t> errorFun(binarizedROI);
+		error_counter_t<expected_white_error_fun_t> errorFun(selectedRoi);
 		errorFun = grid.processOuterRingCoordinates(std::move(errorFun));
-		error += errorFun.getNormalizedError();
+		error += errorFun.getNormalizedError() * settings.get_err_func_alpha_outer();
 	}
 
 	error /= 4.;
-
-//    // define region of interest based on bounding box of grid candidate.
-//    // from now on, we do all calculations on this roi to speed up all
-//    // computations that have to iterate over the (sub)image
-//    cv::Mat subROI;
-//    subROI = roi(boundingBox);
-
-//    // region of interest of binarized and edge image
-//    cv::Mat subBinarized = binarizedROI(boundingBox);
-//    cv::Mat subEdges     = edgeROI(boundingBox);
-
-//    // get coordinates of current grid configuration
-//    const PipelineGrid::coordinates_t& outerRingCoordinates  = grid.processOuterRingCoordinates();
-//    const PipelineGrid::coordinates_t& innerWhiteCoordinates = grid.processInnerWhiteRingCoordinates();
-//    const PipelineGrid::coordinates_t& innerBlackCoordinates = grid.processInnerBlackRingCoordinates();
-
-//    // compare outer circle
-//    size_t outerCircleError = 0;
-//    for (const cv::Point2i coords : outerRingCoordinates.areaCoordinates) {
-//        const uint8_t value = subBinarized.at<uint8_t>(coords - boundingBox.tl());
-//        // no branching => better performance
-//        outerCircleError += 255 - value;
-//    }
-//    if (outerRingCoordinates.areaCoordinates.size())
-//        error += settings.get_err_func_alpha_outer() * (outerCircleError / outerRingCoordinates.areaCoordinates.size()) / 255.;
-
-//    size_t outerCircleEdgeError = 0;
-//    for (const cv::Point2i coords : outerRingCoordinates.edgeCoordinates) {
-//        const uint8_t value      = subEdges.at<uint8_t>(coords - boundingBox.tl());
-//        outerCircleEdgeError += 255 - value;
-//    }
-//    if (outerRingCoordinates.edgeCoordinates.size())
-//        error += settings.get_err_func_alpha_outer_edge() * (outerCircleEdgeError / outerRingCoordinates.edgeCoordinates.size()) / 255.;
-
-//    // compare inner white semicircle
-//    size_t innerWhiteError = 0;
-//    for (const cv::Point2i coords : innerWhiteCoordinates.areaCoordinates) {
-//        const uint8_t value      = subBinarized.at<uint8_t>(coords - boundingBox.tl());
-//        innerWhiteError += 255 - value;
-//    }
-//    if (innerWhiteCoordinates.areaCoordinates.size())
-//        error += settings.get_err_func_alpha_inner() * (innerWhiteError / innerWhiteCoordinates.areaCoordinates.size()) / 255.;
-
-//    // compare inner black semicircle
-//    size_t innerBlackError = 0;
-//    for (const cv::Point2i coords : innerBlackCoordinates.areaCoordinates) {
-//        const uint8_t value      = subBinarized.at<uint8_t>(coords - boundingBox.tl());
-//        innerBlackError += value;
-//    }
-//    if (innerBlackCoordinates.areaCoordinates.size())
-//        error += settings.get_err_func_alpha_inner() * (innerBlackError / innerBlackCoordinates.areaCoordinates.size()) / 255;
-
-//	// at the moment, there is no datastructure containg only the coordinates
-//	// between the two inner semicircles. they can be calculated by doing a
-//	// set intersection of the coordinates of the two semicircles, but this is
-//	// very slow.
-//    // TODO: more efficient implementation for this!
-////    auto vectorCmp = [&](const cv::Point2i& first, const cv::Point2i second) {
-////        if (first.x != second.x) return first.x < second.x;
-////        return first.y < second.y;
-////    };
-////    std::vector<cv::Point2i> blackCoordinates = innerBlackCoordinates.edgeCoordinates;
-////    std::sort(blackCoordinates.begin(), blackCoordinates.end(), vectorCmp);
-////    std::vector<cv::Point2i> whiteCoordinates = innerWhiteCoordinates.edgeCoordinates;
-////    std::sort(whiteCoordinates.begin(), whiteCoordinates.end(), vectorCmp);
-
-////    std::vector<cv::Point2i> intersection;
-////    std::set_intersection(blackCoordinates.begin(), blackCoordinates.end(),
-////                          whiteCoordinates.begin(), whiteCoordinates.end(),
-////                          std::back_inserter(intersection), vectorCmp);
-////    size_t innerEdgeError = 0;
-////    for (const cv::Point2i coords : intersection) {
-////        const uint8_t value      = subEdges.at<uint8_t>(coords - boundingBox.tl());
-////        innerEdgeError += value;
-////    }
-////    if (intersection.size())
-////        error += settings.alpha_inner_edge * (innerEdgeError / intersection.size()) / 255;
-
-//    // add variance of each grid cells to error
-//    for (size_t cellIdx = 0; cellIdx < Grid::NUM_MIDDLE_CELLS; ++cellIdx) {
-//        PipelineGrid::coordinates_t const& cellCoordinates = grid.processGridCellCoordinates(cellIdx);
-//        if (cellCoordinates.areaCoordinates.size() > 1) {
-//            // two-pass variance calculation. first pass calculates mean of
-//            // points in cell, second pass calculates variance based on mean.
-//            // TODO: evaluate whether a one-pass method significantly improves
-//            // performance and whether a more numerically stable algorithm is
-//            // required.
-//            // see: http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
-//            size_t sum = 0;
-//            for (const cv::Point2i coords : cellCoordinates.areaCoordinates) {
-//                const uint8_t value      = subBinarized.at<uint8_t>(coords);
-//                sum += value;
-//            }
-//            const double mean = static_cast<double>(sum) / static_cast<double>(cellCoordinates.areaCoordinates.size());
-
-//            double sum2 = 0;
-//            for (const cv::Point2i coords : cellCoordinates.areaCoordinates) {
-//                const double value       = static_cast<double>(subBinarized.at<uint8_t>(coords));
-//                sum2 += (value - mean) * (value - mean);
-//            }
-//            const double variance = (sum2 / (cellCoordinates.areaCoordinates.size() - 1));
-
-//            error += settings.get_err_func_alpha_variance() * (variance / 255.);
-//        }
-//    }
 
 	return error;
 }

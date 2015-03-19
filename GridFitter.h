@@ -14,49 +14,6 @@ class Ellipse;
 class Tag;
 class TagCandidate;
 
-typedef struct {
-	// error function weights
-	// TODO: individual error values should be scaled to [0, 1] to make the
-	// error weights more intuitive
-	// inner semicircles
-	double alpha_inner    = 500.0;
-	// outer circle
-	double alpha_outer    = 100.0;
-	// variance of grid cells
-	double alpha_variance = 0.8;
-	// outer border edge
-	double alpha_outer_edge = 5.0;
-	// line between inner semicircles
-	// not used at the moment
-	double alpha_inner_edge = 10.0;
-
-	// adaptive thresholding parameters
-	// size of neighbourhood area
-	int adaptiveBlockSize = 23;
-	// constant which is substracted from mean of neighborhood area
-	double adaptiveC      = 3;
-
-	// gradient descent parameters
-	// number of initial brute force results that are fed into the second
-	// (gradient descent) stage
-	size_t numInitial = 1;
-	// max number of results to return
-	size_t numResults = 1;
-
-	// stop gradient descent when error < errorThreshold
-	double errorThreshold = 0.2;
-	// stop gradient after maxIterations iterations
-	size_t maxIterations  = 100;
-
-	// step size for angles, position and scale
-	double eps_angle = 0.02;
-	int eps_pos      = 1;
-	double eps_scale = 0.1;
-
-	// learning rate
-	double alpha     = 0.01;
-} gridfitter_settings_t;
-
 class GridFitter {
 public:
 	GridFitter();
@@ -211,7 +168,7 @@ private:
 	/**
 	 * @brief visualizeDebug visualize best fit and intermediate results
 	 */
-	void visualizeDebug(const std::multiset<candidate_t>& bestGrids, const cv::Size2i roiSize, const Tag& tag, const cv::Mat& binarizedROI, std::string winName);
+	void visualizeDebug(const std::multiset<candidate_t>& bestGrids, const cv::Mat &roi, const cv::Size2i roiSize, const Tag& tag, const cv::Mat& binarizedROI, std::string winName, const size_t numBest);
 
 	template <typename ErrorCounterFun>
 	class error_counter_t {

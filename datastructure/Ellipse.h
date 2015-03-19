@@ -32,7 +32,7 @@ public:
 	void setVote(int vote) {  _vote = vote; }
 
 	// TODO: add caching
-	const cv::Mat getMask() const;
+	const cv::Mat getMask(const cv::Size axisBorder = cv::Size(0, 0)) const;
 
 	explicit Ellipse();
 	explicit Ellipse(int vote, cv::Point2i center, cv::Size axis_length, double angle, cv::Size roiSize);

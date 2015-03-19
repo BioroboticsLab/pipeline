@@ -21,13 +21,13 @@ Ellipse::Ellipse(int vote, cv::Point2i center, cv::Size axis_length, double angl
 	, _roiSize(roiSize)
 { }
 
-const cv::Mat Ellipse::getMask() const
+const cv::Mat Ellipse::getMask(const cv::Size axisBorder) const
 {
 	static const cv::Scalar COLOR_WHITE(255);
 
 	// 8 bit grayscale
 	cv::Mat mask(_roiSize, CV_8UC1, cv::Scalar(0));
-	cv::ellipse(mask, _cen, _axis, _angle, 0, 360, COLOR_WHITE, -1);
+	cv::ellipse(mask, _cen, _axis + axisBorder, _angle, 0, 360, COLOR_WHITE, -1);
 
 	return mask;
 }
