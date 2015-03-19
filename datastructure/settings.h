@@ -575,7 +575,7 @@ static const std::string CANNY_MEAN_MAX = "CANNY_MEAN_MAX";
 /**
  * size constraints
  */
->>>>>>> opt_recognizer
+
 static const std::string MIN_MAJOR_AXIS = "MIN_MAJOR_AXIS";
 static const std::string MAX_MAJOR_AXIS = "MAX_MAJOR_AXIS";
 static const std::string MIN_MINOR_AXIS = "MIN_MINOR_AXIS";
@@ -660,20 +660,20 @@ public:
 		_addEntry(
 
 				setting_entry(EllipseFitter::Params::CANNY_INITIAL_HIGH,
-						Recognizer::Defaults::CANNY_INITIAL_HIGH));
+						EllipseFitter::Defaults::CANNY_INITIAL_HIGH));
 
 		_addEntry(
 				setting_entry(EllipseFitter::Params::CANNY_VALUES_DISTANCE,
-						Recognizer::Defaults::CANNY_VALUES_DISTANCE));
+						EllipseFitter::Defaults::CANNY_VALUES_DISTANCE));
 
 
 		_addEntry(
 				setting_entry(EllipseFitter::Params::CANNY_MEAN_MIN,
-						Recognizer::Defaults::CANNY_MEAN_MIN));
+						EllipseFitter::Defaults::CANNY_MEAN_MIN));
 
 		_addEntry(
 				setting_entry(EllipseFitter::Params::CANNY_MEAN_MAX,
-						Recognizer::Defaults::CANNY_MEAN_MAX));
+						EllipseFitter::Defaults::CANNY_MEAN_MAX));
 
 
 		_addEntry(
@@ -703,8 +703,8 @@ public:
 						EllipseFitter::Defaults::THRESHOLD_BEST_VOTE));
 
 		_addEntry(
-						setting_entry(Recognizer::Params::USE_XIE_AS_FALLBACK,
-								Recognizer::Defaults::USE_XIE_AS_FALLBACK));
+						setting_entry(EllipseFitter::Params::USE_XIE_AS_FALLBACK,
+								EllipseFitter::Defaults::USE_XIE_AS_FALLBACK));
 
 	}
 };

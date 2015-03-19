@@ -29,6 +29,9 @@ struct compareVote {
 }
 
 namespace pipeline {
+
+#define DEBUG_MODE_ELLIPSEFITTER_XIE
+
 EllipseFitter::EllipseFitter() {
 #ifdef PipelineStandalone
 	this->loadConfigVars(config::DEFAULT_ELLIPSEFITTER_CONFIG);
@@ -45,6 +48,162 @@ EllipseFitter::EllipseFitter(std::string configFile) {
     this->loadConfigVars(configFile);
 }
 #endif
+
+
+void EllipseFitter::detectEllipse(Tag &tag) {
+
+	const cv::Mat& subImage = tag.getOrigSubImage();
+	const cv::Mat cannyImage = computeCannyEdgeMap(subImage);
+
+	tag.setCannySubImage(cannyImage);
+
+#ifdef DEBUG_MODE_ELLIPSEFITTER
+	//cv::destroyAllWindows();
+
+/*	cv::namedWindow("Canny",cv::WINDOW_NORMAL);
+		cv::imshow("Canny", cannyImage);
+		cv::waitKey(0);
+
+		cv::namedWindow("Original", cv::WINDOW_NORMAL);
+		cv::imshow("Original", subImage);
+		cv::waitKey(0);*/
+#endif
+
+
+
+		std::vector<Ellipse> candidates;
+
+		std::vector<std::vector<cv::Point> > contours;
+
+			std::vector<cv::Vec4i> hierarchy;
+			cv::Mat subroiTest = cannyImage.clone();
+			cv::cvtColor(subroiTest, subroiTest, cv::COLOR_GRAY2BGR);
+		cv::findContours(cannyImage, contours, hierarchy,
+				CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE, cv::Point(0, 0));
+
+			/// Find the rotated rectangles and ellipses for each contour
+
+			std::vector<cv::RotatedRect> minEllipse(contours.size()+1);
+			std::vector<std::vector<cv::Point> > hulls(contours.size()+1) ;
+
+			std::vector<cv::Point> merged_contour_points;
+
+
+			for (size_t i = 0; i < contours.size(); i++) {
+				std::vector<cv::Point> hull;
+				if(contours[i].size() > 5){
+					//cv::convexHull(contours[i],hulls[i]);
+					minEllipse[i] = fitEllipse(contours[i]);
+
+				}
+				for (size_t j = 0; j < contours[i].size(); j++) {
+												    merged_contour_points.push_back(contours[i][j]);
+												  }
+
+			}
+
+
+			/// Draw  ellipses of the contours
+			cv::Mat drawing;
+			cv::Scalar color;
+
+			for( size_t i = 0; i< contours.size(); i++ )
+			     {
+
+
+				cv::RotatedRect ell = minEllipse[i];
+				Ellipse new_ell = Ellipse();
+
+
+
+				cv::Size s = cv::Size(static_cast<int>(ell.size.width)/2 +1, static_cast<int>(ell.size.height)/2 +1);
+				new_ell.setAxis(s);
+				new_ell.setCen(ell.center);
+				new_ell.setAngle(ell.angle);
+
+
+				///check for the right features to be a comb
+				if ((ell.size.width >= this->_settings.get_min_major_axis()
+						&& ell.size.width >= this->_settings.get_min_minor_axis())
+						&&
+						(ell.size.height <= this->_settings.get_max_major_axis()
+												&& ell.size.width <= this->_settings.get_max_minor_axis())) {
+					color= 	cv::Scalar (0,0,255);
+					new_ell.setVote(calcScore(new_ell,cannyImage));
+					candidates.push_back(new_ell);
+
+
+				}else{
+#ifdef DEBUG_MODE_ELLIPSEFITTER
+				color = 	cv::Scalar  (255,0,0);
+					new_ell.setVote(0);
+#endif
+				}
+
+#ifdef DEBUG_MODE_ELLIPSEFITTER
+				ellipse(subroiTest, new_ell.getCen(), new_ell.getAxis(), new_ell.getAngle(), 0, 360,
+													color);
+
+#endif
+				}
+#ifdef DEBUG_MODE_ELLIPSEFITTER
+			cv::namedWindow("All", cv::WINDOW_NORMAL);
+			cv::imshow("All", subroiTest);
+			cv::waitKey();
+			std::vector<cv::Vec3f> circles;
+#endif
+
+
+
+			 const size_t num = std::min<size_t>(3, candidates.size());
+#ifdef DEBUG_MODE_ELLIPSEFITTER
+
+	/*for (size_t i = 0; i < candidates.size(); ++i) {
+		Ellipse const& ell = candidates[i];
+		if ((i >= num) || (ell.getVote() < _settings.get_threshold_vote())) {
+
+			visualizeEllipse(tag, ell, "ignored_ellipse ");
+		}
+	}*/
+
+#endif
+	// remove remaining candidates
+	candidates.erase(candidates.begin() + num, candidates.end());
+	// remove all candidates with vote < RECOGNIZER_THRESHOLD_VOTE
+	candidates.erase(
+			std::remove_if(candidates.begin(), candidates.end(),
+					[&](Ellipse& ell) {return ell.getVote() < _settings.get_threshold_vote();}),
+			candidates.end());
+	// add remaining candidates to tag
+	for (Ellipse const& ell : candidates) {
+#ifdef DEBUG_MODE_ELLIPSEFITTER
+
+		std::cout << "Add Ellipse With Vote " << ell.getVote() << std::endl;
+
+		visualizeEllipse(tag, ell, "added_ellipse");
+
+#endif
+		tag.addCandidate(TagCandidate(ell));
+	}
+	if (tag.getCandidates().empty()) {
+		if(this->_settings.get_use_xie_as_fallback()){
+		std::cout<< "start Xie-Detection" << std::endl;
+		detectXieEllipse(tag);
+		}else{
+			tag.setValid(false);
+		}
+	}
+#ifdef PipelineStandalone
+	if (config::DEBUG_MODE_RECOGNIZER_IMAGE) {
+		cv::destroyAllWindows();
+	}
+	if (config::DEBUG_MODE_RECOGNIZER) {
+		std::cout << "Found " << tag.getCandidates().size()
+		<< " ellipse candidates for Tag " << tag.getId() << std::endl;
+	}
+#endif
+}
+
 
 /**
  * @param tag for which ellipses should be detected
@@ -248,27 +407,94 @@ void EllipseFitter::visualizeEllipse(Tag const& tag, Ellipse const& ell, std::st
     cv::waitKey();
 }
 
-cv::Mat EllipseFitter::computeCannyEdgeMap(cv::Mat const& grayImage) {
-    cv::Mat localGrayImage = grayImage.clone();
-
-    cv::GaussianBlur(localGrayImage, localGrayImage, cv::Size(3, 3), 0, 0,
-      cv::BORDER_DEFAULT);
+int EllipseFitter::calcScore(Ellipse ell, cv::Mat canny){
 
 
-    cv::Mat cannyEdgeMap;
-	Canny(localGrayImage, cannyEdgeMap, static_cast<double>(this->_settings.get_canny_threshold_low()),
-			static_cast<double>(this->_settings.get_canny_threshold_high()));
-#ifdef PipelineStandalone
-    if (config::DEBUG_MODE_ELLIPSEFITTER_IMAGE) {
-		cv::namedWindow("Canny", cv::WINDOW_AUTOSIZE);
-		cv::imshow("Canny", cannyEdgeMap);
-		cv::waitKey(0);
-		cv::destroyWindow("Canny");
-    }
+	cv::Mat score_mat,score_mat_cp, canny_cp;
+	canny_cp = canny.clone();
+	cv::Mat mask = cv::Mat(canny.rows, canny.cols, canny.type());
+
+	mask.setTo(cv::Scalar(0,0,0));
+
+
+	ellipse(mask, ell.getCen(), cv::Size(ell.getAxis().width +2,ell.getAxis().height+2) , ell.getAngle(), 0, 360,
+				cv::Scalar(255, 255, 255), 3);
+
+
+		cv::normalize(mask,mask,0,1,cv::NORM_MINMAX);
+		cv::normalize(canny_cp,canny_cp,0,1, cv::NORM_MINMAX);
+
+cv::bitwise_and(canny_cp,mask, score_mat);
+cv::normalize(score_mat,score_mat_cp,0,255, cv::NORM_MINMAX);
+
+#ifdef DEBUG_MODE_ELLIPSEFITTER
+		cv::namedWindow("result", cv::WINDOW_NORMAL);
+			cv::imshow("result", score_mat_cp);
+			cv::waitKey();
 #endif
 
-    return cannyEdgeMap;
+	 cv::Scalar score = cv::sum(score_mat);
+
+	 return static_cast<int>(score.val[0]*100);
+
+
+
 }
+
+cv::Mat EllipseFitter::computeCannyEdgeMap(cv::Mat const& grayImage) {
+	cv::Mat localGrayImage = grayImage.clone();
+
+	cv::GaussianBlur(localGrayImage, localGrayImage, cv::Size(3, 3), 0, 0,
+			cv::BORDER_DEFAULT);
+
+	cv::Mat cannyEdgeMap;
+
+	double low=static_cast<double>(this->_settings.get_canny_initial_high()- this->_settings.get_canny_values_distance());
+	double high = static_cast<double>(this->_settings.get_canny_initial_high());
+
+
+	double average_old = -1, average_old_2 =-1;
+	double min_mean = static_cast<double>(this->_settings.get_canny_mean_min());;
+	double max_mean = static_cast<double>(this->_settings.get_canny_mean_max());;
+
+		canny:
+		cv::Canny(localGrayImage, cannyEdgeMap,low, high);
+
+		cv::Scalar mean = cv::mean(cannyEdgeMap);
+		double average_value = mean.val[0];
+		//std::cout << "canny mean " << mean.val[0] << " "<< std::endl;
+
+
+		if (average_old_2 != average_value ||  average_old == average_old_2 ) {
+
+			if (average_value < min_mean) {
+				if(low > 0)
+				low-=5;
+				if(high > 0)
+				high-=5;
+				average_old_2 = average_old;
+				average_old = average_value;
+
+					//std::cout << "new values " << high << " " <<low << std::endl;
+
+				goto canny;
+			} else if (average_value > max_mean) {
+				if(low < 255)
+				low+= 5;
+				if(high < 255)
+				high+=5;
+				average_old_2 = average_old;
+				average_old = average_value;
+				//std::cout << "new values " << high << " " <<low << std::endl;
+				goto canny;
+			}
+		}
+
+
+
+	return cannyEdgeMap;
+}
+
 
 std::vector<Tag> EllipseFitter::process(std::vector<Tag>&& taglist) {
     static const size_t numThreads = std::thread::hardware_concurrency() ?
