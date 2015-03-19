@@ -193,14 +193,11 @@ void EllipseFitter::detectEllipse(Tag &tag) {
 			tag.setValid(false);
 		}
 	}
-#ifdef PipelineStandalone
-	if (config::DEBUG_MODE_RECOGNIZER_IMAGE) {
-		cv::destroyAllWindows();
-	}
-	if (config::DEBUG_MODE_RECOGNIZER) {
+#ifdef DEBUG_MODE_ELLIPSEFITTER
+
 		std::cout << "Found " << tag.getCandidates().size()
 		<< " ellipse candidates for Tag " << tag.getId() << std::endl;
-	}
+
 #endif
 }
 
@@ -349,13 +346,14 @@ foundEllipse:
     // beginning of the list
     std::partial_sort(candidates.begin(), candidates.begin() + num,
       candidates.end(), compareVote {});
+
 #ifdef PipelineStandalone
     if (config::DEBUG_MODE_ELLIPSEFITTER) {
         for (size_t i = 0; i < candidates.size(); ++i) {
             Ellipse const& ell = candidates[i];
 			if ((i >= num) || (ell.getVote() < _settings.threshold_vote)) {
                 if (config::DEBUG_MODE_ELLIPSEFITTER) {
-                    std::cout << "Ignore Ellipse With Vote " << ell.getVote() << std::endl;
+                	 std::cout << "Ignore Ellipse With Vote " << ell.getVote() << std::endl;
                     if (config::DEBUG_MODE_ELLIPSEFITTER_IMAGE) {
                         visualizeEllipse(tag, ell, "ignored_ellipse");
                     }
@@ -372,9 +370,10 @@ foundEllipse:
       candidates.end());
     // add remaining candidates to tag
     for (Ellipse const& ell : candidates) {
+    	 std::cout << "Add Ellipse With Vote " << ell.getVote() << std::endl;
 #ifdef PipelineStandalone
         if (config::DEBUG_MODE_ELLIPSEFITTER) {
-            std::cout << "Add Ellipse With Vote " << ell.getVote() << std::endl;
+
             if (config::DEBUG_MODE_ELLIPSEFITTER_IMAGE) {
                 visualizeEllipse(tag, ell, "added_ellipse");
             }
@@ -497,6 +496,13 @@ cv::Mat EllipseFitter::computeCannyEdgeMap(cv::Mat const& grayImage) {
 
 
 std::vector<Tag> EllipseFitter::process(std::vector<Tag>&& taglist) {
+#ifdef DEBUG_MODE_ELLIPSEFITTER
+	for (Tag& tag : taglist) {
+	         detectEllipse(tag);
+	    }
+#endif
+
+#ifndef DEBUG_MODE_ELLIPSEFITTER
     static const size_t numThreads = std::thread::hardware_concurrency() ?
                 std::thread::hardware_concurrency() * 2 : 1;
     ThreadPool pool(numThreads);
@@ -504,10 +510,11 @@ std::vector<Tag> EllipseFitter::process(std::vector<Tag>&& taglist) {
     for (Tag& tag : taglist) {
         results.emplace_back(
             pool.enqueue([&] {
-                detectXieEllipse(tag);
+                detectEllipse(tag);
             }));
     }
     for (auto && result : results) result.get();
+#endif
     return std::move(taglist);
 }
 
