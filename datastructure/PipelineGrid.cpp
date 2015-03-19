@@ -184,11 +184,6 @@ double PipelineGrid::compare(const PipelineGrid &to) const
 	const auto R = CvHelper::rotationMatrix(this->_angle_z, this->_angle_y, this->_angle_x);
 	const auto R2 = CvHelper::rotationMatrix(to.getZRotation(), to.getYRotation(), to.getXRotation());
 
-	// multiply element-wise (dot-product) and sum up all elements
-	// max should be 3 when all three base vectors point in the same directions
-	// divide by 3, thus max is 1, min is -1
-	double d2 = cv::sum( R.mul(R2) )[0] / 3;
-
 	auto CP = R.mul(R2);
 
 	double cp1 = cv::sum( CP.col(0) )[0];
