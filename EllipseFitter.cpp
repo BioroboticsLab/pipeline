@@ -30,7 +30,7 @@ struct compareVote {
 
 namespace pipeline {
 
-#define DEBUG_MODE_ELLIPSEFITTER_XIE
+//#define DEBUG_MODE_ELLIPSEFITTER_XIE
 
 EllipseFitter::EllipseFitter() {
 #ifdef PipelineStandalone
@@ -93,7 +93,7 @@ void EllipseFitter::detectEllipse(Tag &tag) {
 				std::vector<cv::Point> hull;
 				if(contours[i].size() > 5){
 					//cv::convexHull(contours[i],hulls[i]);
-					minEllipse[i] = fitEllipse(contours[i]);
+					minEllipse[i] = cv::fitEllipse(contours[i]);
 
 				}
 				for (size_t j = 0; j < contours[i].size(); j++) {
@@ -114,13 +114,14 @@ void EllipseFitter::detectEllipse(Tag &tag) {
 				cv::RotatedRect ell = minEllipse[i];
 				Ellipse new_ell = Ellipse();
 
+				const int width  = static_cast<int>(ell.size.width) / 2 + 1;
+				const int height = static_cast<int>(ell.size.height) / 2 + 1;
 
+				const cv::Size s(std::max(width, height), std::min(width, height));
 
-				cv::Size s = cv::Size(static_cast<int>(ell.size.width)/2 +1, static_cast<int>(ell.size.height)/2 +1);
 				new_ell.setAxis(s);
 				new_ell.setCen(ell.center);
 				new_ell.setAngle(ell.angle);
-
 
 				///check for the right features to be a comb
 				if ((ell.size.width >= this->_settings.get_min_major_axis()
@@ -187,7 +188,9 @@ void EllipseFitter::detectEllipse(Tag &tag) {
 	}
 	if (tag.getCandidates().empty()) {
 		if(this->_settings.get_use_xie_as_fallback()){
+#ifdef DEBUG_MODE_ELLIPSEFITTER
 		std::cout<< "start Xie-Detection" << std::endl;
+#endif
 		detectXieEllipse(tag);
 		}else{
 			tag.setValid(false);
@@ -370,7 +373,9 @@ foundEllipse:
       candidates.end());
     // add remaining candidates to tag
     for (Ellipse const& ell : candidates) {
-    	 std::cout << "Add Ellipse With Vote " << ell.getVote() << std::endl;
+#ifdef DEBUG_MODE_ELLIPSEFITTER
+		 std::cout << "Add Ellipse With Vote " << ell.getVote() << std::endl;
+#endif
 #ifdef PipelineStandalone
         if (config::DEBUG_MODE_ELLIPSEFITTER) {
 
