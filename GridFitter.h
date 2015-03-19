@@ -31,10 +31,10 @@ typedef struct {
 	double alpha_inner_edge = 10.0;
 
 	// adaptive thresholding parameters
-	// size of neighbourhood area
-	int adaptiveBlockSize = 23;
-	// constant which is substracted from mean of neighborhood area
-	double adaptiveC      = 3;
+    // size of neighbourhood area
+    int adaptiveBlockSize = 23;
+    // constant which is substracted from mean of neighborhood area
+    double adaptiveC      = 3;
 
 	// gradient descent parameters
 	// number of initial brute force results that are fed into the second
@@ -44,7 +44,7 @@ typedef struct {
 	size_t numResults = 1;
 
 	// stop gradient descent when error < errorThreshold
-	double errorThreshold = 0.2;
+	double errorThreshold = 80.;
 	// stop gradient after maxIterations iterations
 	size_t maxIterations  = 100;
 
@@ -96,10 +96,10 @@ private:
 	class GradientDescent {
 	public:
 		GradientDescent(const candidate_set& initialCandidates,
-						const cv::Mat& roi,
-						const cv::Mat& binarizedRoi,
+		                const cv::Mat& roi,
+		                const cv::Mat& binarizedRoi,
 						const cv::Mat& edgeRoi,
-						settings::gridfitter_settings_t& settings);
+		                settings::gridfitter_settings_t& settings);
 
 		/**
 		 * @brief optimize tries to improve the fit of the given initial
@@ -116,9 +116,6 @@ private:
 
 	private:
 		const candidate_set& _initialCandidates;
-
-
-
 		settings::gridfitter_settings_t& _settings;
 
 
@@ -129,7 +126,6 @@ private:
 		const cv::Mat& _binarizedRoi;
 		// edge image of region of interest
 		const cv::Mat& _edgeRoi;
-
 
 		// contains the settings.maxResults (or less) best grid candiates.
 		// candiates should only be inserted using the storeConfig() method.
@@ -162,6 +158,9 @@ private:
 
 	settings::gridfitter_settings_t _settings;
 
+
+
+
 	/**
 	 * @brief fitGrid try to find the best match for the current candidate
 	 * @param tag contains the region of interest of the candiate
@@ -177,14 +176,14 @@ private:
 	 * 2) for the settings.numInitial candidates, try to improve the fit using
 	 * a gradient descent. return the settings.numResults best grid candiates.
 	 */
-	std::vector<PipelineGrid> fitGrid(const Tag &tag, TagCandidate const& candidate);
+		 std::vector<PipelineGrid> fitGrid(const Tag &tag, TagCandidate const& candidate);
 
 	/**
 	 * @brief getInitialCandidates brute force search for grid candidates
 	 * @return set containing the settings.numInitial best candidates (but
 	 * not more than one per rotation)
 	 */
-	candidate_set getInitialCandidates(cv::Mat const& binarizedROI, const cv::Mat& edgeROI, const Ellipse& ellipse_orig, cv::Mat const& roi);
+candidate_set getInitialCandidates(cv::Mat const& binarizedROI, const cv::Mat& edgeROI, const Ellipse& ellipse_orig, cv::Mat const& roi);
 
 	/**
 	 * @brief evaluateCandidate calculate error for given grid candidate
@@ -201,100 +200,16 @@ private:
 	 * edges between the grid and be be (the outer edge of the outer ring) and
 	 * the line between the two inner semicircles to always exist.
 	 */
-	static double evaluateCandidate (PipelineGrid& grid, const cv::Mat& roi, const cv::Mat& binarizedROI, const cv::Mat& edgeROI, settings::gridfitter_settings_t& settings);
+static double evaluateCandidate (PipelineGrid& grid, const cv::Mat& roi, const cv::Mat& binarizedROI, const cv::Mat& edgeROI, settings::gridfitter_settings_t& settings);
 
 	/**
 	 * @brief calculateHistogram can be used for debug purposes
 	 */
-	cv::Mat calculateHistogram(const cv::Mat& roi, const Ellipse& ellipse_orig) const;
+    cv::Mat calculateHistogram(const cv::Mat& roi, const Ellipse& ellipse_orig) const;
 
 	/**
 	 * @brief visualizeDebug visualize best fit and intermediate results
 	 */
-	void visualizeDebug(const std::multiset<candidate_t>& bestGrids, const cv::Size2i roiSize, const Tag& tag, const cv::Mat& binarizedROI, std::string winName);
-
-	template <typename ErrorCounterFun>
-	class error_counter_t {
-	public:
-		explicit error_counter_t(const cv::Mat& roi)
-			: _roi(roi), _errorSum(0), _pixelNum(0)
-		{}
-
-		inline void operator()(cv::Point coords)
-		{
-			const uint8_t value = _roi.get().template at<uint8_t>(coords);
-			_errorSum += errorFun(value);
-			++_pixelNum;
-		}
-
-		inline double getNormalizedError() const
-		{
-			return static_cast<double>(_errorSum) / (static_cast<double>(_pixelNum) * 255.);
-		}
-
-	private:
-		ErrorCounterFun errorFun;
-		std::reference_wrapper<const cv::Mat> _roi;
-		size_t _errorSum;
-		size_t _pixelNum;
-	};
-
-	struct expected_white_error_fun_t {
-		inline uint8_t operator()(const uint8_t value) { return 255 - value; }
-	};
-
-	struct expected_black_error_fun_t {
-		inline uint8_t operator()(const uint8_t value) { return value - 255; }
-	};
-
-	// http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Two-pass_algorithm
-	class variance_twopass_calculator_t {
-	public:
-		explicit variance_twopass_calculator_t(const cv::Mat& roi)
-			: _roi(roi), _pixelNum(0), _sum(0)
-		{}
-
-		inline void operator()(cv::Point coords)
-		{
-			const uint8_t value = _roi.get().template at<uint8_t>(coords);
-			++_pixelNum;
-			_sum += value;
-			_values.push_back(value);
-		}
-
-		double getNormalizedVariance() const;
-
-	private:
-		std::reference_wrapper<const cv::Mat> _roi;
-		std::vector<uint8_t> _values;
-		size_t _pixelNum;
-		size_t _sum;
-	};
-
-	// http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Online_algorithm
-	class variance_online_calculator_t {
-	public:
-		explicit variance_online_calculator_t(const cv::Mat& roi)
-			: _roi(roi), _pixelNum(0), _mean(0.), _m2(0.)
-		{}
-
-		inline void operator()(cv::Point coords)
-		{
-			const double value = _roi.get().template at<uint8_t>(coords);
-			++_pixelNum;
-			const double delta = value - _mean;
-			_mean += (delta / _pixelNum);
-			_m2   += delta * (value - _mean);
-		}
-
-		inline double getNormalizedVariance() const;
-
-	private:
-		std::reference_wrapper<const cv::Mat> _roi;
-		std::vector<uint8_t> _values;
-		size_t _pixelNum;
-		double _mean;
-		double _m2;
-	};
+    void visualizeDebug(const std::multiset<candidate_t>& bestGrids, const cv::Size2i roiSize, const Tag& tag, const cv::Mat& binarizedROI, std::string winName);
 };
 }

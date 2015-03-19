@@ -562,46 +562,71 @@ namespace EllipseFitter {
 namespace Params {
 static const std::string BASE = "BEESBOOKPIPELINE.ELLIPSEFITTER.";
 static const std::string BASE_STANDALONE = "ELLIPSEFITTER.";
-static const std::string CANNY_THRESHOLD_LOW = "CANNY_THRESHOLD_LOW";
-static const std::string CANNY_THRESHOLD_HIGH = "CANNY_THRESHOLD_HIGH";
+
+
+/**
+ * canny edge detection
+ */
+static const std::string CANNY_INITIAL_HIGH = "CANNY_INITIAL_HIGH";
+static const std::string CANNY_VALUES_DISTANCE = "CANNY_VALUES_DISTANCE";
 static const std::string CANNY_MEAN_MIN = "CANNY_MEAN_MIN";
 static const std::string CANNY_MEAN_MAX = "CANNY_MEAN_MAX";
+
+/**
+ * size constraints
+ */
+>>>>>>> opt_recognizer
 static const std::string MIN_MAJOR_AXIS = "MIN_MAJOR_AXIS";
 static const std::string MAX_MAJOR_AXIS = "MAX_MAJOR_AXIS";
 static const std::string MIN_MINOR_AXIS = "MIN_MINOR_AXIS";
 static const std::string MAX_MINOR_AXIS = "MAX_MINOR_AXIS";
+
+/**
+ * voting
+ */
 static const std::string THRESHOLD_EDGE_PIXELS = "THRESHOLD_EDGE_PIXELS";
 static const std::string THRESHOLD_VOTE = "THRESHOLD_VOTE";
 static const std::string THRESHOLD_BEST_VOTE = "THRESHOLD_BEST_VOTE";
+
+static const std::string USE_XIE_AS_FALLBACK = "USE_XIE_AS_FALLBACK";
+
 }
 namespace Defaults {
-static const int CANNY_THRESHOLD_LOW = 70;
-static const int CANNY_THRESHOLD_HIGH = 90;
+
+static const int CANNY_INITIAL_HIGH = 90;
+static const int CANNY_VALUES_DISTANCE = 20;
 static const int CANNY_MEAN_MIN = 12;
 static const int CANNY_MEAN_MAX = 15;
+
+
 static const int MIN_MAJOR_AXIS = 42;
 static const int MAX_MAJOR_AXIS = 54;
 static const int MIN_MINOR_AXIS = 30;
 static const int MAX_MINOR_AXIS = 54;
+
 static const int THRESHOLD_EDGE_PIXELS = 25;
 static const int THRESHOLD_VOTE = 1800;
 static const int THRESHOLD_BEST_VOTE = 3000;
+static const bool USE_XIE_AS_FALLBACK = true;
 }
 }
 class ellipsefitter_settings_t: public settings_abs {
 public:
-	int get_canny_threshold_low() {
-		return this->_getValue<int>(EllipseFitter::Params::CANNY_THRESHOLD_LOW);
+
+	int get_canny_initial_high() {
+		return this->_getValue<int>(EllipseFitter::Params::CANNY_INITIAL_HIGH);
 	}
-	int get_canny_threshold_high() {
-		return this->_getValue<int>(EllipseFitter::Params::CANNY_THRESHOLD_HIGH);
+	int get_canny_values_distance() {
+		return this->_getValue<int>(EllipseFitter::Params::CANNY_VALUES_DISTANCE);
 	}
-    int get_canny_mean_min() {
-            return this->_getValue<int>(EllipseFitter::Params::CANNY_MEAN_MIN);
-    }
-    int get_canny_mean_max() {
-            return this->_getValue<int>(EllipseFitter::Params::CANNY_MEAN_MAX);
-    }
+
+	int get_canny_mean_min() {
+		return this->_getValue<int>(EllipseFitter::Params::CANNY_MEAN_MIN);
+	}
+	int get_canny_mean_max() {
+		return this->_getValue<int>(EllipseFitter::Params::CANNY_MEAN_MAX);
+	}
+
 	int get_min_major_axis() {
 		return this->_getValue<int>(EllipseFitter::Params::MIN_MAJOR_AXIS);
 	}
@@ -624,23 +649,32 @@ public:
 		return this->_getValue<int>(EllipseFitter::Params::THRESHOLD_BEST_VOTE);
 	}
 
+	bool get_use_xie_as_fallback(){
+		return this->_getValue<bool>(EllipseFitter::Params::USE_XIE_AS_FALLBACK);
+	}
+
 	ellipsefitter_settings_t() {
 
 		_base = EllipseFitter::Params::BASE_STANDALONE;
 
 		_addEntry(
-				setting_entry(EllipseFitter::Params::CANNY_THRESHOLD_LOW,
-						EllipseFitter::Defaults::CANNY_THRESHOLD_LOW));
+
+				setting_entry(EllipseFitter::Params::CANNY_INITIAL_HIGH,
+						Recognizer::Defaults::CANNY_INITIAL_HIGH));
 
 		_addEntry(
-				setting_entry(EllipseFitter::Params::CANNY_THRESHOLD_HIGH,
-						EllipseFitter::Defaults::CANNY_THRESHOLD_HIGH));
-        _addEntry(
-                setting_entry(EllipseFitter::Params::CANNY_MEAN_MIN,
-                              EllipseFitter::Defaults::CANNY_MEAN_MIN));
-        _addEntry(
-                setting_entry(EllipseFitter::Params::CANNY_MEAN_MAX,
-                              EllipseFitter::Defaults::CANNY_MEAN_MAX));
+				setting_entry(EllipseFitter::Params::CANNY_VALUES_DISTANCE,
+						Recognizer::Defaults::CANNY_VALUES_DISTANCE));
+
+
+		_addEntry(
+				setting_entry(EllipseFitter::Params::CANNY_MEAN_MIN,
+						Recognizer::Defaults::CANNY_MEAN_MIN));
+
+		_addEntry(
+				setting_entry(EllipseFitter::Params::CANNY_MEAN_MAX,
+						Recognizer::Defaults::CANNY_MEAN_MAX));
+
 
 		_addEntry(
 				setting_entry(EllipseFitter::Params::MIN_MAJOR_AXIS,
@@ -667,6 +701,10 @@ public:
 		_addEntry(
 				setting_entry(EllipseFitter::Params::THRESHOLD_BEST_VOTE,
 						EllipseFitter::Defaults::THRESHOLD_BEST_VOTE));
+
+		_addEntry(
+						setting_entry(Recognizer::Params::USE_XIE_AS_FALLBACK,
+								Recognizer::Defaults::USE_XIE_AS_FALLBACK));
 
 	}
 };
