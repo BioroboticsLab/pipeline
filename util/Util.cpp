@@ -16,6 +16,7 @@ std::array<PipelineGrid::gridconfig_t, 2> gridCandidatesFromEllipse(const pipeli
     const double theta_rad    = angle * CV_PI / 180.;
     const double minor        = axes.height;
     const double major        = axes.width;
+	assert(minor < major);
     const double ellipse_roll = std::acos(minor / major);
 
     // TODO: quick and dirty hack to estimate actual grid radius
@@ -39,6 +40,8 @@ std::array<PipelineGrid::gridconfig_t, 2> gridCandidatesFromEllipse(const pipeli
 
         const cv::Point2i shiftedCen(static_cast<int>(cen.x + base_proj[0] * std::sin(roll) * major / Grid::FOCAL_LENGTH),
                                      static_cast<int>(cen.y + base_proj[1] * std::sin(roll) * major / Grid::FOCAL_LENGTH));
+		assert(shiftedCen.x > 0);
+		assert(shiftedCen.y > 0);
 
         return PipelineGrid::gridconfig_t { shiftedCen, radius, angle_z, angle_y, angle_x };
     };
