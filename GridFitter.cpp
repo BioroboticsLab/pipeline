@@ -326,6 +326,8 @@ GridFitter::GradientDescent::GradientDescent(const GridFitter::candidate_set &in
     , _roi(roi)
     , _binarizedRoi(binarizedRoi)
     , _edgeRoi(edgeRoi)
+	, _random_device()
+	, _random_engine(_random_device())
 {}
 
 void GridFitter::GradientDescent::optimize()
@@ -346,22 +348,29 @@ void GridFitter::GradientDescent::optimize()
 		candidate_set bestGridsForCandidate;
 		bestGridsForCandidate.insert(candidate);
 
+		std::array<StepParameter, 6> parameters { SCALE, POSX, POSY, ANGLE_X, ANGLE_Y, ANGLE_Z };
+
 		// gradient descent
+		size_t numWithoutImprovement = 0;
 		while ((error > _settings.get_gradient_error_threshold()) && (iteration < _settings.get_gradient_max_iterations())) {
 			double const initerror = error;
 
-			std::tie(error, config) = step(bestGridsForCandidate, config, error, SCALE);
-			std::tie(error, config) = step(bestGridsForCandidate, config, error, POSX);
-			std::tie(error, config) = step(bestGridsForCandidate, config, error, POSY);
-			std::tie(error, config) = step(bestGridsForCandidate, config, error, ANGLE_X);
-			std::tie(error, config) = step(bestGridsForCandidate, config, error, ANGLE_Y);
-			std::tie(error, config) = step(bestGridsForCandidate, config, error, ANGLE_Z);
+			// shuffle order of parameters
+			std::shuffle(parameters.begin(), parameters.end(), _random_engine);
+			for (const StepParameter param : parameters) {
+				std::tie(error, config) = step(bestGridsForCandidate, config, error, param);
+			}
 
 			++iteration;
 			// abort gradient descent if error measurement did not improve by
 			// a significant amount during the last six steps
 			assert(!bestGridsForCandidate.empty());
-			if ((initerror - bestGridsForCandidate.begin()->error) < 0.001) break;
+			if ((initerror - bestGridsForCandidate.begin()->error) < 0.0001) {
+				++numWithoutImprovement;
+				if (numWithoutImprovement >= 5) break;
+			} else {
+				numWithoutImprovement = 0;
+			}
 
 			// instead of continuing the next iteration with the result of the
 			// last step, use the best currently found config from now on.

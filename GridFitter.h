@@ -96,6 +96,9 @@ private:
 			SCALE
 		};
 
+		std::random_device _random_device;
+		std::mt19937 _random_engine;
+
 		/**
 		 * @brief step a single gradient descent step
 		 * @param config previous grid config
