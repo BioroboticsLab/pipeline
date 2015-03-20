@@ -94,14 +94,20 @@ void PipelineGrid::drawContours(cv::Mat& img, const double transparency, const c
 		cv::Mat subimage      = img( cv::Rect(subimage_origin, subimage_end) );
 		cv::Mat subimage_copy = subimage.clone();
 
+		const auto drawIfValid = [&](std::vector<cv::Point> const& contour, cv::Scalar const& color) {
+			if (contour.size() >= 2) {
+				CvHelper::drawPolyline(subimage_copy, contour, color, false, subimage_center);
+			}
+		};
+
 		for (size_t i = INDEX_MIDDLE_CELLS_BEGIN; i < INDEX_MIDDLE_CELLS_BEGIN + NUM_MIDDLE_CELLS; ++i)
 		{
-			CvHelper::drawPolyline(subimage_copy, _coordinates2D, i, white, false, subimage_center);
+			drawIfValid(_coordinates2D[i], white);
 		}
 
-		CvHelper::drawPolyline(subimage_copy, _coordinates2D, INDEX_OUTER_WHITE_RING,       color, false, subimage_center);
-		CvHelper::drawPolyline(subimage_copy, _coordinates2D, INDEX_INNER_WHITE_SEMICIRCLE, white,      false, subimage_center);
-		CvHelper::drawPolyline(subimage_copy, _coordinates2D, INDEX_INNER_BLACK_SEMICIRCLE, black,      false, subimage_center);
+		drawIfValid(_coordinates2D[INDEX_OUTER_WHITE_RING], color);
+		drawIfValid(_coordinates2D[INDEX_INNER_WHITE_SEMICIRCLE], white);
+		drawIfValid(_coordinates2D[INDEX_INNER_BLACK_SEMICIRCLE], black);
 
 		cv::addWeighted(subimage_copy, transparency, subimage, 1.0 - transparency, 0.0, subimage);
 	}
