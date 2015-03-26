@@ -68,6 +68,7 @@ public:
 	cv::Rect getBoundingBox() const { return Grid::getBoundingBox(); }
 
 	idarray_t const& getIdArray() const { return Grid::getIdArray(); }
+	void setIdArray(idarray_t const& array) { _ID = array; }
 
 	double compare(const PipelineGrid &to) const;
 
