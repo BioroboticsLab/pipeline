@@ -109,32 +109,25 @@ void EllipseFitter::detectEllipse(Tag &tag) {
 
 	for( size_t i = 0; i< contours.size(); i++ )
 	{
-
-
 		cv::RotatedRect ell = minEllipse[i];
-		Ellipse new_ell = Ellipse();
 
 		const int width  = static_cast<int>(ell.size.width) / 2 + 1;
 		const int height = static_cast<int>(ell.size.height) / 2 + 1;
 
 		const cv::Size s(std::max(width, height), std::min(width, height));
 
-		new_ell.setAxis(s);
-		new_ell.setCen(ell.center);
-		new_ell.setAngle(ell.angle);
+		Ellipse new_ell(0, ell.center, s, ell.angle, subImage.size());
 
 		///check for the right features to be a comb
-		if ((ell.size.width >= this->_settings.get_min_major_axis()
-		     && ell.size.width >= this->_settings.get_min_minor_axis())
-		    &&
-		    (ell.size.height <= this->_settings.get_max_major_axis()
-		     && ell.size.width <= this->_settings.get_max_minor_axis())) {
+		if ((ell.size.width >= _settings.get_min_major_axis() &&
+		     ell.size.width >= _settings.get_min_minor_axis()) &&
+		    (ell.size.height <= _settings.get_max_major_axis() &&
+		     ell.size.width  <= _settings.get_max_minor_axis()))
+		{
 			color= 	cv::Scalar (0,0,255);
 			new_ell.setVote(calcScore(new_ell,cannyImage));
 			candidates.push_back(new_ell);
-
-
-		}else{
+		} else {
 #ifdef DEBUG_MODE_ELLIPSEFITTER
 			color = 	cv::Scalar  (255,0,0);
 			new_ell.setVote(0);
