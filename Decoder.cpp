@@ -81,7 +81,7 @@ std::vector<decoding_t> Decoder::getDecodings(const Tag &tag, TagCandidate &cand
 			const double distanceBlack = distanceCalculator.getDistanceBlack();
 			const double distanceWhite = distanceCalculator.getDistanceWhite();
 
-			if (distanceBlack < distanceWhite) {
+			if (distanceWhite < distanceBlack) {
 				decoding.set(idx, true);
 			}
 		}
