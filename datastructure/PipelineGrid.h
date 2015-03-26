@@ -42,6 +42,12 @@ public:
 	template <typename Func>
 	Func processGridCellCoordinates(const size_t idx, Func coordinateFunction);
 
+	template <typename Func>
+	Func processOuterRingEdgeCoordinates(Func coordinateFunction) const;
+
+	template <typename Func>
+	Func processInnerLineCoordinates(Func coordinateFunction) const;
+
 	// legacy code
 	const std::vector<cv::Point2i> getOuterRingEdgeCoordinates();
 
@@ -101,6 +107,12 @@ private:
 	// given index
 	template <typename Func>
 	std::pair<coordinates_t, Func> calculatePolygonCoordinates(const size_t idx, Func coordinateFunction);
+
+	template <typename Func>
+	Func processEdgeCoordinates(const size_t idx, Func coordinateFunction) const;
+
+	template <typename Func>
+	Func processLineCoordinates(const cv::Point start, const cv::Point end, Func coordinateFunction) const;
 
 	// resets the coordinate caches. has to be called after a change of
 	// orientation or scale but not after a position change.
