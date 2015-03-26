@@ -347,7 +347,7 @@ foundEllipse:
 	if (config::DEBUG_MODE_ELLIPSEFITTER) {
 		for (size_t i = 0; i < candidates.size(); ++i) {
 			Ellipse const& ell = candidates[i];
-			if ((i >= num) || (ell.getVote() < _settings.threshold_vote)) {
+			if ((i >= num) || (ell.getVote() < _settings.get_threshold_vote())) {
 				if (config::DEBUG_MODE_ELLIPSEFITTER) {
 					std::cout << "Ignore Ellipse With Vote " << ell.getVote() << std::endl;
 					if (config::DEBUG_MODE_ELLIPSEFITTER_IMAGE) {
