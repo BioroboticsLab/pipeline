@@ -197,6 +197,12 @@ private:
 		    : _roi(roi), _errorSum(0), _pixelNum(0)
 		{}
 
+		error_counter_t(const error_counter_t&) = delete;
+		error_counter_t& operator=(const error_counter_t&) = delete;
+
+		error_counter_t(error_counter_t&&) = default;
+		error_counter_t& operator=(error_counter_t&&) = default;
+
 		inline void operator()(cv::Point coords)
 		{
 			const uint8_t value = _roi.get().template at<uint8_t>(coords);
@@ -223,6 +229,12 @@ private:
 		    , _expectedX(0), _expectedY(0)
 		    , _errorSum(0), _pixelNum(0)
 		{}
+
+		sobel_error_counter_t(const sobel_error_counter_t&) = delete;
+		sobel_error_counter_t& operator=(const sobel_error_counter_t&) = delete;
+
+		sobel_error_counter_t(sobel_error_counter_t&&) = default;
+		sobel_error_counter_t& operator=(sobel_error_counter_t&&) = default;
 
 		inline void operator()(cv::Point coords)
 		{
@@ -270,6 +282,12 @@ private:
 		    : _roi(roi), _pixelNum(0), _sum(0)
 		{}
 
+		variance_twopass_calculator_t(const variance_twopass_calculator_t&) = delete;
+		variance_twopass_calculator_t& operator=(const variance_twopass_calculator_t&) = delete;
+
+		variance_twopass_calculator_t(variance_twopass_calculator_t&&) = default;
+		variance_twopass_calculator_t& operator=(variance_twopass_calculator_t&&) = default;
+
 		inline void operator()(cv::Point coords)
 		{
 			const uint8_t value = _roi.get().template at<uint8_t>(coords);
@@ -293,6 +311,11 @@ private:
 		explicit variance_online_calculator_t(const cv::Mat& roi)
 		    : _roi(roi), _pixelNum(0), _mean(0.), _m2(0.)
 		{}
+
+		variance_online_calculator_t& operator=(variance_online_calculator_t&&) = default;
+		variance_online_calculator_t(variance_online_calculator_t&&) = default;
+		variance_online_calculator_t& operator=(const variance_online_calculator_t&) = delete;
+		variance_online_calculator_t(const variance_online_calculator_t&) = delete;
 
 		inline void operator()(cv::Point coords)
 		{

@@ -55,6 +55,23 @@ cv::Mat PipelineGrid::getProjectedImage(const cv::Size2i size) const
 
 void PipelineGrid::draw(cv::Mat& img)
 {
+	class area_fill_t {
+	public:
+		area_fill_t(cv::Mat& img, const uint8_t color)
+		    : _img(img), _color(color)
+		{}
+
+		inline void operator()(const cv::Point coord) {
+			_img.get().at<uint8_t>(coord) = _color;
+		}
+
+		void setColor(const uint8_t color) { _color = color; }
+
+	private:
+		std::reference_wrapper<cv::Mat> _img;
+		uint8_t _color;
+	};
+
 	assert(img.channels() == 1);
 
 	static const uint8_t COLOR_OUTER       = 200;
@@ -63,19 +80,19 @@ void PipelineGrid::draw(cv::Mat& img)
 	static const uint8_t COLOR_CELL_WHITE  = 220;
 	static const uint8_t COLOR_CELL_BLACK  = 60;
 
-	auto fill = [&](const cv::Point2i& coord, const uint8_t color) { img.at<uint8_t>(coord) = color; };
+	area_fill_t fillFun(img, COLOR_INNER_WHITE);
+	fillFun = processInnerWhiteRingCoordinates(std::move(fillFun));
 
-	processInnerWhiteRingCoordinates([&](const cv::Point2i& coord) { fill(coord, COLOR_INNER_WHITE); });
-	processInnerBlackRingCoordinates([&](const cv::Point2i& coord) { fill(coord, COLOR_INNER_BLACK); });
+	fillFun.setColor(COLOR_INNER_BLACK);
+	fillFun = processInnerBlackRingCoordinates(std::move(fillFun));
 
 	for (size_t idx = 0; idx < Grid::NUM_MIDDLE_CELLS; ++idx) {
-		processGridCellCoordinates(idx, [&](const cv::Point2i& coord) {
-			const uint8_t color = idx % 2 ? COLOR_CELL_WHITE : COLOR_CELL_BLACK;
-			fill(coord, color);
-		});
+		fillFun.setColor(idx % 2 ? COLOR_CELL_WHITE : COLOR_CELL_BLACK);
+		fillFun = processGridCellCoordinates(idx, std::move(fillFun));
 	}
 
-	processOuterRingCoordinates([&](const cv::Point2i& coord) { fill(coord, COLOR_OUTER); });
+	fillFun.setColor(COLOR_OUTER);
+	fillFun = processOuterRingCoordinates(std::move(fillFun));
 }
 
 void PipelineGrid::drawContours(cv::Mat& img, const double transparency, const cv::Vec3b& color) const

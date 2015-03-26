@@ -31,22 +31,22 @@ public:
 	gridconfig_t getConfig() const;
 
 	template <typename Func>
-	Func processOuterRingCoordinates(Func coordinateFunction);
+	Func processOuterRingCoordinates(Func&& coordinateFunction);
 
 	template <typename Func>
-	Func processInnerWhiteRingCoordinates(Func coordinateFunction);
+	Func processInnerWhiteRingCoordinates(Func&& coordinateFunction);
 
 	template <typename Func>
-	Func processInnerBlackRingCoordinates(Func coordinateFunction);
+	Func processInnerBlackRingCoordinates(Func&& coordinateFunction);
 
 	template <typename Func>
-	Func processGridCellCoordinates(const size_t idx, Func coordinateFunction);
+	Func processGridCellCoordinates(const size_t idx, Func&& coordinateFunction);
 
 	template <typename Func>
-	Func processOuterRingEdgeCoordinates(Func coordinateFunction) const;
+	Func processOuterRingEdgeCoordinates(Func&& coordinateFunction) const;
 
 	template <typename Func>
-	Func processInnerLineCoordinates(Func coordinateFunction) const;
+	Func processInnerLineCoordinates(Func&& coordinateFunction) const;
 
 	// legacy code
 	const std::vector<cv::Point2i> getOuterRingEdgeCoordinates();
@@ -101,18 +101,34 @@ private:
 	// convenience function to avoid code duplication, either return the already
 	// cached coordinates or calculates the coordinates and then returns them
 	template <typename Func>
-	Func processCoordinates(cached_coordinates_t& coordinates, const size_t idx, Func coordinateFunction);
+	Func processCoordinates(cached_coordinates_t& coordinates, const size_t idx, Func&& coordinateFunction);
+
+	template <typename Func>
+	struct polygon_coords_return_t {
+		polygon_coords_return_t(coordinates_t&& coordinates, Func&& coordinateFunction)
+		    : coordinates(std::move(coordinates))
+		    , coordinateFunction(std::move(coordinateFunction)) {}
+
+		polygon_coords_return_t(const polygon_coords_return_t&) = delete;
+		polygon_coords_return_t& operator=(const polygon_coords_return_t&) = delete;
+
+		polygon_coords_return_t(polygon_coords_return_t&&) = default;
+		polygon_coords_return_t& operator=(polygon_coords_return_t&&) = default;
+
+		coordinates_t coordinates;
+		Func coordinateFunction;
+	};
 
 	// calculates the rasterized coordinates of the (convex) polygon with the
 	// given index
 	template <typename Func>
-	std::pair<coordinates_t, Func> calculatePolygonCoordinates(const size_t idx, Func coordinateFunction);
+	polygon_coords_return_t<Func> calculatePolygonCoordinates(const size_t idx, Func&& coordinateFunction);
 
 	template <typename Func>
-	Func processEdgeCoordinates(const size_t idx, Func coordinateFunction) const;
+	Func processEdgeCoordinates(const size_t idx, Func&& coordinateFunction) const;
 
 	template <typename Func>
-	Func processLineCoordinates(const cv::Point start, const cv::Point end, Func coordinateFunction) const;
+	Func processLineCoordinates(const cv::Point start, const cv::Point end, Func&& coordinateFunction) const;
 
 	// resets the coordinate caches. has to be called after a change of
 	// orientation or scale but not after a position change.
@@ -130,6 +146,12 @@ private:
 		    , _idImageOffset(idImageOffset)
 		    , _gridCenter(gridCenter)
 		{}
+
+		cacheSetter(const cacheSetter&) = delete;
+		cacheSetter& operator=(const cacheSetter&) = delete;
+
+		cacheSetter(cacheSetter&&) = default;
+		cacheSetter& operator=(cacheSetter&&) = default;
 
 		inline void operator()(cv::Point coords) {
 			// TODO: maybe speed up using raw pointer access
@@ -154,6 +176,12 @@ private:
 		explicit cacheSetterOuter(const size_t idx, cv::Mat& idImage, PipelineGrid::coordinates_t& coordinateCache, Func& coordinateFunction, const cv::Point2i& idImageOffset, const cv::Point2i gridCenter)
 		    : cacheSetter<Func>(idx, idImage, coordinateCache, coordinateFunction, idImageOffset, gridCenter)
 		{}
+
+		cacheSetterOuter(const cacheSetterOuter&) = delete;
+		cacheSetterOuter& operator=(const cacheSetterOuter&) = delete;
+
+		cacheSetterOuter(cacheSetterOuter&&) = default;
+		cacheSetterOuter& operator=(cacheSetterOuter&&) = default;
 
 		inline void operator()(cv::Point coords) {
 			uint8_t value = this->_idImage.get().template at<uint8_t>(coords - this->_idImageOffset.get());

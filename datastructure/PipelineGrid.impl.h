@@ -6,7 +6,7 @@
 #include "PipelineGrid.h"
 
 template <typename Func>
-Func PipelineGrid::processOuterRingCoordinates(Func coordinateFunction) {
+Func PipelineGrid::processOuterRingCoordinates(Func&& coordinateFunction) {
 	static_assert(Grid::NUM_MIDDLE_CELLS > 0, "Grid must have at least one cell");
 
 	if (!_innerWhiteRingCoordinates ||
@@ -18,42 +18,42 @@ Func PipelineGrid::processOuterRingCoordinates(Func coordinateFunction) {
 		throw std::runtime_error("Outer ring coordinates must be calculated after other coordinates");
 	}
 
-	return processCoordinates(_outerRingCoordinates, INDEX_OUTER_WHITE_RING, coordinateFunction);
+	return processCoordinates(_outerRingCoordinates, INDEX_OUTER_WHITE_RING, std::move(coordinateFunction));
 }
 
 template <typename Func>
-Func PipelineGrid::processInnerWhiteRingCoordinates(Func coordinateFunction) {
-	return processCoordinates(_innerWhiteRingCoordinates, INDEX_INNER_WHITE_SEMICIRCLE, coordinateFunction);
+Func PipelineGrid::processInnerWhiteRingCoordinates(Func&& coordinateFunction) {
+	return processCoordinates(_innerWhiteRingCoordinates, INDEX_INNER_WHITE_SEMICIRCLE, std::move(coordinateFunction));
 }
 
 template <typename Func>
-Func PipelineGrid::processInnerBlackRingCoordinates(Func coordinateFunction) {
-	return processCoordinates(_innerBlackRingCoordinates, INDEX_INNER_BLACK_SEMICIRCLE, coordinateFunction);
+Func PipelineGrid::processInnerBlackRingCoordinates(Func&& coordinateFunction) {
+	return processCoordinates(_innerBlackRingCoordinates, INDEX_INNER_BLACK_SEMICIRCLE, std::move(coordinateFunction));
 }
 
 template <typename Func>
-Func PipelineGrid::processGridCellCoordinates(const size_t idx, Func coordinateFunction) {
-	return processCoordinates(_gridCellCoordinates[idx], idx + Grid::INDEX_MIDDLE_CELLS_BEGIN, coordinateFunction);
+Func PipelineGrid::processGridCellCoordinates(const size_t idx, Func&& coordinateFunction) {
+	return std::move(processCoordinates(_gridCellCoordinates[idx], idx + Grid::INDEX_MIDDLE_CELLS_BEGIN, std::move(coordinateFunction)));
 }
 
 template <typename Func>
-Func PipelineGrid::processCoordinates(cached_coordinates_t& coordinates, const size_t idx, Func coordinateFunction) {
+Func PipelineGrid::processCoordinates(cached_coordinates_t& coordinates, const size_t idx, Func&& coordinateFunction) {
 	// if already in cache, apply functor to previously cached coordinates
 	if (coordinates) {
 		for (cv::Point2i const& point : coordinates.get().areaCoordinates) {
 			coordinateFunction(point);
 		}
-		return coordinateFunction;
+		return std::move(coordinateFunction);
 	}
 
-	std::pair<coordinates_t, Func> result = calculatePolygonCoordinates(idx, coordinateFunction);
-	coordinates = result.first;
+	PipelineGrid::polygon_coords_return_t<Func> result = calculatePolygonCoordinates(idx, std::move(coordinateFunction));
+	coordinates = std::move(result.coordinates);
 
-	return result.second;
+	return std::move(result.coordinateFunction);
 }
 
 template <typename Func>
-std::pair<PipelineGrid::coordinates_t, Func> PipelineGrid::calculatePolygonCoordinates(const size_t idx, Func coordinateFunction)
+PipelineGrid::polygon_coords_return_t<Func> PipelineGrid::calculatePolygonCoordinates(const size_t idx, Func&& coordinateFunction)
 {
 	coordinates_t coordinates;
 
@@ -68,11 +68,11 @@ std::pair<PipelineGrid::coordinates_t, Func> PipelineGrid::calculatePolygonCoord
 		            std::move(cacheFun), heyho::no_boundaries_tag(), _coordinates2D[idx], 8);
 	}
 
-	return { coordinates, coordinateFunction };
+	return PipelineGrid::polygon_coords_return_t<Func>(std::move(coordinates), std::move(coordinateFunction));
 }
 
 template <typename Func>
-Func PipelineGrid::processLineCoordinates(const cv::Point start, const cv::Point end, Func coordinateFunction) const
+Func PipelineGrid::processLineCoordinates(const cv::Point start, const cv::Point end, Func&& coordinateFunction) const
 {
 	static const int connectivity = 8;
 
@@ -100,7 +100,7 @@ Func PipelineGrid::processLineCoordinates(const cv::Point start, const cv::Point
 }
 
 template <typename Func>
-Func PipelineGrid::processInnerLineCoordinates(Func coordinateFunction) const
+Func PipelineGrid::processInnerLineCoordinates(Func&& coordinateFunction) const
 {
 	const cv::Point start = _coordinates2D[INDEX_INNER_LINE].back();
 	const cv::Point end   = _coordinates2D[INDEX_INNER_LINE].front();
@@ -111,7 +111,7 @@ Func PipelineGrid::processInnerLineCoordinates(Func coordinateFunction) const
 }
 
 template <typename Func>
-Func PipelineGrid::processEdgeCoordinates(const size_t idx, Func coordinateFunction) const
+Func PipelineGrid::processEdgeCoordinates(const size_t idx, Func&& coordinateFunction) const
 {
 	const std::vector<cv::Point>& container = _coordinates2D[idx];
 	assert(container.size() >= 2);
@@ -131,7 +131,7 @@ Func PipelineGrid::processEdgeCoordinates(const size_t idx, Func coordinateFunct
 
 
 template <typename Func>
-Func PipelineGrid::processOuterRingEdgeCoordinates(Func coordinateFunction) const
+Func PipelineGrid::processOuterRingEdgeCoordinates(Func&& coordinateFunction) const
 {
 	coordinateFunction = processEdgeCoordinates(INDEX_OUTER_WHITE_RING, std::move(coordinateFunction));
 
