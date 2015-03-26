@@ -50,6 +50,28 @@ private:
 	// associated error, therefore we have to use a multiset
 	typedef std::multiset<candidate_t> candidate_set;
 
+	settings::gridfitter_settings_t _settings;
+
+	// cached settings
+	typedef struct {
+		double err_func_alpha_inner;
+		double err_func_alpha_outer;
+		double err_func_alpha_variance;
+		double err_func_alpha_inner_edge;
+		double err_func_alpha_outer_edge;
+		size_t gradient_num_initial;
+		size_t gradient_num_results;
+		double gradient_error_threshold;
+		double gradient_max_iterations;
+		double alpha;
+		double eps_scale;
+		double eps_angle;
+		int eps_pos;
+	} settings_cache_t;
+
+	settings_cache_t _settings_cache;
+	void cacheSettings();
+
 	class GradientDescent {
 	public:
 		GradientDescent(const candidate_set& initialCandidates,
@@ -57,7 +79,7 @@ private:
 		                const cv::Mat& binarizedRoi,
 		                const cv::Mat& edgeRoiX,
 		                const cv::Mat& edgeRoiY,
-		                settings::gridfitter_settings_t& settings);
+		                const settings_cache_t& settings);
 
 		/**
 		 * @brief optimize tries to improve the fit of the given initial
@@ -75,7 +97,7 @@ private:
 	private:
 		const candidate_set& _initialCandidates;
 
-		settings::gridfitter_settings_t& _settings;
+		const settings_cache_t& _settings;
 
 		// region of interest grayscale image
 		const cv::Mat& _roi;
@@ -117,8 +139,6 @@ private:
 		void storeConfig(const double error, const PipelineGrid::gridconfig_t &config);
 	};
 
-	settings::gridfitter_settings_t _settings;
-
 	/**
 	 * @brief fitGrid try to find the best match for the current candidate
 	 * @param tag contains the region of interest of the candiate
@@ -158,7 +178,7 @@ private:
 	 * edges between the grid and be be (the outer edge of the outer ring) and
 	 * the line between the two inner semicircles to always exist.
 	 */
-	static double evaluateCandidate (PipelineGrid& grid, const cv::Mat& roi, const cv::Mat& binarizedROI, const cv::Mat& sobelXRoi, const cv::Mat &sobelYRoi, settings::gridfitter_settings_t &settings);
+	static double evaluateCandidate (PipelineGrid& grid, const cv::Mat& roi, const cv::Mat& binarizedROI, const cv::Mat& sobelXRoi, const cv::Mat &sobelYRoi, settings_cache_t const& settings);
 
 	/**
 	 * @brief calculateHistogram can be used for debug purposes
