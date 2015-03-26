@@ -50,7 +50,7 @@ void GridFitter::cacheSettings()
 
 std::vector<Tag> GridFitter::process(std::vector<Tag> &&taglist)
 {
-#if defined(DEBUG_GRIDFITTER) || !defined(NDEBUG)
+#if defined(DEBUG_GRIDFITTER) || !defined(NDEBUG) || defined(PipelineStandalone)
 	// run GridFitter in a single thread when debugging is enabled to get
 	// better and more consistent stack traces etc.
 	for (Tag& tag : taglist) {
