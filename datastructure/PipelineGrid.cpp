@@ -78,10 +78,25 @@ void PipelineGrid::draw(cv::Mat& img)
 	processOuterRingCoordinates([&](const cv::Point2i& coord) { fill(coord, COLOR_OUTER); });
 }
 
-void PipelineGrid::drawContours(cv::Mat& img, const double transparency, const cv::Scalar color) const
+void PipelineGrid::drawContours(cv::Mat& img, const double transparency, const cv::Vec3b& color) const
 {
-	static const cv::Scalar white(255, 255, 255);
-	static const cv::Scalar black(0, 0, 0);
+	assert(img.channels() == 3);
+
+	class edge_fill_t {
+	public:
+		edge_fill_t(cv::Mat& img, const cv::Vec3b color, const cv::Point offset) : _img(img), _color(color), _offset(offset) {}
+
+		inline void operator()(const cv::Point coord) {
+			_img.get().at<cv::Vec3b>(coord - _offset) = _color;
+		}
+
+		inline void setExpectedSobelGradient(const double, const double) const {}
+
+	private:
+		std::reference_wrapper<cv::Mat> _img;
+		cv::Vec3b _color;
+		cv::Point _offset;
+	};
 
 	const int radius = static_cast<int>(std::ceil(_radius));
 	const cv::Point subimage_origin( std::max(       0, _center.x - radius), std::max(       0, _center.y - radius) );
@@ -90,24 +105,25 @@ void PipelineGrid::drawContours(cv::Mat& img, const double transparency, const c
 	// draw only if subimage has a valid size (i.e. width & height > 0)
 	if (subimage_origin.x < subimage_end.x && subimage_origin.y < subimage_end.y)
 	{
-		const cv::Point subimage_center( std::min(radius, _center.x), std::min(radius, _center.y) );
 		cv::Mat subimage      = img( cv::Rect(subimage_origin, subimage_end) );
 		cv::Mat subimage_copy = subimage.clone();
 
-		const auto drawIfValid = [&](std::vector<cv::Point> const& contour, cv::Scalar const& color) {
-			if (contour.size() >= 2) {
-				CvHelper::drawPolyline(subimage_copy, contour, color, false, subimage_center);
+		const auto drawIfValid = [&](const size_t idx, cv::Vec3b const& color) {
+			edge_fill_t fillFun(subimage_copy, color, subimage_origin);
+
+			if (_coordinates2D[idx].size() >= 2) {
+				fillFun = processEdgeCoordinates(idx, std::move(fillFun));
 			}
 		};
 
 		for (size_t i = INDEX_MIDDLE_CELLS_BEGIN; i < INDEX_MIDDLE_CELLS_BEGIN + NUM_MIDDLE_CELLS; ++i)
 		{
-			drawIfValid(_coordinates2D[i], white);
+			drawIfValid(i, color);
 		}
 
-		drawIfValid(_coordinates2D[INDEX_OUTER_WHITE_RING], color);
-		drawIfValid(_coordinates2D[INDEX_INNER_WHITE_SEMICIRCLE], white);
-		drawIfValid(_coordinates2D[INDEX_INNER_BLACK_SEMICIRCLE], black);
+		drawIfValid(INDEX_OUTER_WHITE_RING, color);
+		drawIfValid(INDEX_INNER_WHITE_SEMICIRCLE, color);
+		drawIfValid(INDEX_INNER_BLACK_SEMICIRCLE, color);
 
 		cv::addWeighted(subimage_copy, transparency, subimage, 1.0 - transparency, 0.0, subimage);
 	}
