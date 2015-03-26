@@ -207,6 +207,9 @@ void EllipseFitter::detectXieEllipse(Tag &tag) {
 	const double ellipsefitter_min_major = _settings.get_min_major_axis();
 	const double ellipsefitter_min_minor = _settings.get_min_minor_axis();
 
+	const int threshold_edge_pixels = _settings.get_threshold_edge_pixels();
+	const int threshold_best_vote   = _settings.get_threshold_best_vote();
+
 	const cv::Mat& subImage  = tag.getOrigSubImage();
 	const cv::Mat cannyImage = computeCannyEdgeMap(subImage);
 
@@ -280,7 +283,7 @@ void EllipseFitter::detectXieEllipse(Tag &tag) {
 					const auto max_ind = std::distance(accu.begin(), max_it);
 					int vote_minor     = *max_it;
 
-					if (vote_minor >= _settings.get_threshold_edge_pixels()) {
+					if (vote_minor >= threshold_edge_pixels) {
 						// (11) save ellipse parameters
 						const cv::Point2i cen(cvRound(centerx), cvRound(centery));
 						const cv::Size axis(cvRound(a), max_ind);
@@ -294,7 +297,7 @@ void EllipseFitter::detectXieEllipse(Tag &tag) {
 
 						if (candidates.size() == 0) {
 							candidates.emplace_back(vote_minor, cen, axis, angle, tag.getBox().size());
-							if (vote_minor >= _settings.get_threshold_best_vote()) {
+							if (vote_minor >= threshold_best_vote) {
 								goto foundEllipse;
 							}
 						}
@@ -318,7 +321,7 @@ void EllipseFitter::detectXieEllipse(Tag &tag) {
 							if (idx == candidates.size() - 1) {
 								candidates.emplace_back(vote_minor, cen, axis, angle, tag.getBox().size());
 
-								if (vote_minor >= _settings.get_threshold_best_vote()) {
+								if (vote_minor >= threshold_best_vote) {
 									goto foundEllipse;
 								}
 							}
