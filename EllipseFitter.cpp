@@ -494,13 +494,11 @@ canny:
 
 
 std::vector<Tag> EllipseFitter::process(std::vector<Tag>&& taglist) {
-#ifdef DEBUG_MODE_ELLIPSEFITTER
+#if defined(DEBUG_MODE_ELLIPSEFITTER) || defined(PipelineStandalone)
 	for (Tag& tag : taglist) {
 		detectEllipse(tag);
 	}
-#endif
-
-#ifndef DEBUG_MODE_ELLIPSEFITTER
+#else
 	static const size_t numThreads = std::thread::hardware_concurrency() ?
 	            std::thread::hardware_concurrency() * 2 : 1;
 	ThreadPool pool(numThreads);
