@@ -498,7 +498,7 @@ canny:
 
 
 std::vector<Tag> EllipseFitter::process(std::vector<Tag>&& taglist) {
-#if defined(DEBUG_MODE_ELLIPSEFITTER) || defined(PipelineStandalone)
+#if defined(DEBUG_MODE_ELLIPSEFITTER) || !defined(NDEBUG) || defined(PipelineStandalone)
 	for (Tag& tag : taglist) {
 		detectEllipse(tag);
 	}
