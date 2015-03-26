@@ -5,14 +5,6 @@
 
 namespace pipeline {
 
-Ellipse::Ellipse()
-    : _vote(0)
-    , _cen()
-    , _axis()
-    , _angle(0)
-    , _roiSize(cv::Size(0, 0))
-{ }
-
 Ellipse::Ellipse(int vote, cv::Point2i center, cv::Size axis_length, double angle, cv::Size roiSize)
     : _vote(vote)
     , _cen(center)
