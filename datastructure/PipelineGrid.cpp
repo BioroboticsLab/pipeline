@@ -120,9 +120,6 @@ void PipelineGrid::setCenter(cv::Point center)
 			for (cv::Point& point : coordinates.get().areaCoordinates) {
 				point = point - _center + center;
 			}
-			for (cv::Point& point : coordinates.get().edgeCoordinates) {
-				point = point - _center + center;
-			}
 		}
 	};
 

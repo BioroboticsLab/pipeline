@@ -12,8 +12,6 @@ public:
 		// rasterized coordinates of an grid area (outer ring etc.) for the
 		// current grid configuration
 		std::vector<cv::Point2i> areaCoordinates;
-		// rasterized coordinates of the outer edges of the area
-		std::vector<cv::Point2i> edgeCoordinates;
 	} coordinates_t;
 
 	typedef struct {
