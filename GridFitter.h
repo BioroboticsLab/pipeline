@@ -199,7 +199,7 @@ private:
 	};
 
 	struct expected_black_error_fun_t {
-		inline uint8_t operator()(const uint8_t value) { return value - 255; }
+		inline uint8_t operator()(const uint8_t value) { return value; }
 	};
 
 	// http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Two-pass_algorithm
