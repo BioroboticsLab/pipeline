@@ -55,7 +55,8 @@ private:
 		GradientDescent(const candidate_set& initialCandidates,
 		                const cv::Mat& roi,
 		                const cv::Mat& binarizedRoi,
-		                const cv::Mat& edgeRoi,
+		                const cv::Mat& edgeRoiX,
+		                const cv::Mat& edgeRoiY,
 		                settings::gridfitter_settings_t& settings);
 
 		/**
@@ -81,7 +82,8 @@ private:
 		// binarized region of interest
 		const cv::Mat& _binarizedRoi;
 		// edge image of region of interest
-		const cv::Mat& _edgeRoi;
+		const cv::Mat& _edgeRoiX;
+		const cv::Mat& _edgeRoiY;
 
 		// contains the settings.maxResults (or less) best grid candiates.
 		// candiates should only be inserted using the storeConfig() method.
@@ -139,7 +141,7 @@ private:
 	 * @return set containing the settings.numInitial best candidates (but
 	 * not more than one per rotation)
 	 */
-	candidate_set getInitialCandidates(cv::Mat const& binarizedROI, const cv::Mat& edgeROI, const Ellipse& ellipse_orig, cv::Mat const& roi);
+	candidate_set getInitialCandidates(cv::Mat const& binarizedROI, const cv::Mat& sobelXRoi, const cv::Mat &sobelYRoi, const Ellipse& ellipse_orig, cv::Mat const& roi);
 
 	/**
 	 * @brief evaluateCandidate calculate error for given grid candidate
@@ -156,7 +158,7 @@ private:
 	 * edges between the grid and be be (the outer edge of the outer ring) and
 	 * the line between the two inner semicircles to always exist.
 	 */
-	static double evaluateCandidate (PipelineGrid& grid, const cv::Mat& roi, const cv::Mat& binarizedROI, const cv::Mat& edgeROI, settings::gridfitter_settings_t& settings);
+	static double evaluateCandidate (PipelineGrid& grid, const cv::Mat& roi, const cv::Mat& binarizedROI, const cv::Mat& sobelXRoi, const cv::Mat &sobelYRoi, settings::gridfitter_settings_t &settings);
 
 	/**
 	 * @brief calculateHistogram can be used for debug purposes
@@ -166,7 +168,7 @@ private:
 	/**
 	 * @brief visualizeDebug visualize best fit and intermediate results
 	 */
-	void visualizeDebug(const std::multiset<candidate_t>& bestGrids, const cv::Mat &roi, const cv::Size2i roiSize, const Tag& tag, const cv::Mat& binarizedROI, std::string winName, const size_t numBest);
+	void visualizeDebug(const std::multiset<candidate_t>& bestGrids, const cv::Mat &roi, const cv::Size2i roiSize, const cv::Mat& edgeRoiX, const cv::Mat& edgeRoiY, const Tag& tag, const cv::Mat& binarizedROI, std::string winName, const size_t numBest);
 
 	template <typename ErrorCounterFun>
 	class error_counter_t {
@@ -190,6 +192,45 @@ private:
 	private:
 		ErrorCounterFun errorFun;
 		std::reference_wrapper<const cv::Mat> _roi;
+		size_t _errorSum;
+		size_t _pixelNum;
+	};
+
+	class sobel_error_counter_t {
+	public:
+		explicit sobel_error_counter_t(const cv::Mat& sobelX, const cv::Mat& sobelY)
+		    : _sobelX(sobelX), _sobelY(sobelY)
+		    , _expectedX(0), _expectedY(0)
+		    , _errorSum(0), _pixelNum(0)
+		{}
+
+		inline void operator()(cv::Point coords)
+		{
+			const uint8_t dx = _sobelX.get().template at<uint8_t>(coords);
+			const uint8_t dy = _sobelY.get().template at<uint8_t>(coords);
+
+			_errorSum += std::abs(static_cast<int16_t>(dx) - static_cast<int16_t>(_expectedX));
+			_errorSum += std::abs(static_cast<int16_t>(dy) - static_cast<int16_t>(_expectedY));
+
+			_pixelNum += 2;
+		}
+
+		inline void setExpectedSobelGradient(const uint8_t dx, const uint8_t dy)
+		{
+			_expectedX = dx;
+			_expectedY = dy;
+		}
+
+		inline double getNormalizedError() const
+		{
+			return static_cast<double>(_errorSum) / (static_cast<double>(_pixelNum) * 255.);
+		}
+
+	private:
+		std::reference_wrapper<const cv::Mat> _sobelX;
+		std::reference_wrapper<const cv::Mat> _sobelY;
+		uint8_t _expectedX;
+		uint8_t _expectedY;
 		size_t _errorSum;
 		size_t _pixelNum;
 	};
