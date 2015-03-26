@@ -5,7 +5,7 @@
  *      Author: mareikeziese
  */
 
-#include <tracking/algorithm/BeesBook/BeesBookImgAnalysisTracker/pipeline/Preprocessor.h>
+#include "Preprocessor.h"
 
 namespace pipeline {
 /**************************************
