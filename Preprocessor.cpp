@@ -277,7 +277,7 @@ void Preprocessor::_filterCombs(cv::Mat& sobel) {
 
 #ifdef PipelineStandalone
 	if (config::DEBUG_MODE_LOCALIZER_IMAGE) {
-		cv::namedWindow("binarized Image with combs", WINDOW_NORMAL);
+		cv::namedWindow("binarized Image with combs", cv::WINDOW_NORMAL);
 		cv::imshow("binarized Image with combs", threshold_image);
 		cv::waitKey(0);
 
@@ -340,7 +340,7 @@ void Preprocessor::_filterCombs(cv::Mat& sobel) {
 		//}
 #ifdef PipelineStandalone
 		if (config::DEBUG_MODE_LOCALIZER_IMAGE) {
-			cv::namedWindow("Image without combs", WINDOW_NORMAL);
+			cv::namedWindow("Image without combs", cv::WINDOW_NORMAL);
 			cv::imshow("Image without combs", sobel);
 			cv::waitKey(0);
 
