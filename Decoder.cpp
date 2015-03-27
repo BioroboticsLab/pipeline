@@ -6,7 +6,9 @@
 #include "datastructure/TagCandidate.h"
 #include "util/ThreadPool.h"
 
-#define DEBUG_DECODER
+#include "datastructure/PipelineGrid.impl.h"
+
+//#define DEBUG_DECODER
 
 namespace pipeline {
 

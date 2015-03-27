@@ -1,17 +1,8 @@
 #pragma once
 
-#include <fstream>
-#include <iostream>
-#include <math.h>
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
 #include <opencv2/opencv.hpp>
-#include <stdio.h>
-#include <unistd.h>
 #include <vector>
 
-#include "datastructure/Tag.h"
-#include "datastructure/Ellipse.h"
 #include "datastructure/settings.h"
 
 #ifdef PipelineStandalone
@@ -20,9 +11,10 @@
 #include <boost/property_tree/ptree.hpp>
 #endif
 
-
 namespace pipeline {
 
+class Tag;
+class Ellipse;
 
 class EllipseFitter {
 private:

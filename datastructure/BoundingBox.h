@@ -16,7 +16,6 @@
 #include <boost/serialization/vector.hpp>
 #endif
 
-
 namespace pipeline {
 class BoundingBox {
 private:

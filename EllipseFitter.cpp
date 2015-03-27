@@ -7,6 +7,8 @@
 
 #include "EllipseFitter.h"
 
+#include "datastructure/Tag.h"
+#include "datastructure/Ellipse.h"
 #include "util/ThreadPool.h"
 
 namespace {

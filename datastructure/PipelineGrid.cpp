@@ -5,6 +5,8 @@
 
 #include "source/utility/CvHelper.h"
 
+#include "PipelineGrid.impl.h"
+
 namespace {
 static const cv::Scalar whiteC1(255);
 static const cv::Scalar blackC1(0);

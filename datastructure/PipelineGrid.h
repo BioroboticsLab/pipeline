@@ -191,5 +191,3 @@ private:
 		}
 	};
 };
-
-#include "PipelineGrid.impl.h"

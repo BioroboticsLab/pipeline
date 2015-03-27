@@ -3,8 +3,6 @@
 #include <set>
 #include <vector>
 
-#include "source/tracking/algorithm/BeesBook/Common/Grid.h"
-
 #include "datastructure/PipelineGrid.h"
 #include "datastructure/settings.h"
 

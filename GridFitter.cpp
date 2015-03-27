@@ -17,7 +17,7 @@
 #include "source/utility/CvHelper.h"
 #include "source/utility/util.h"
 
-//#define DEBUG_GRIDFITTER
+#include "datastructure/PipelineGrid.impl.h"
 
 namespace pipeline {
 GridFitter::GridFitter()
