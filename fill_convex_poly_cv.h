@@ -24,6 +24,13 @@ namespace heyho {
 	 *
 	 * The polygon is cropped by the rectangle cv::Rect(cv::Point(0,0), size).
 	 *
+	 * @about This function's code is a modified version of open cv's cv::fillConvecPoly:
+	 *  * all macros have been replaced by (templatized) functions
+	 *  * cv::Mat and cv::Mat::type() specific code has been replaced by calls to a functor and "drawing" boundaries (cv::Size)
+	 *  * removed shift param
+	 *  * removed anti-aliased lines
+	 *  * added consts
+	 *
 	 * @param size       cropping dimensions
 	 * @param points     points that span the polygon
 	 * @param f          some functor or function
