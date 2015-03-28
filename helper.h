@@ -42,6 +42,9 @@ namespace heyho {
 	 */
 	struct no_boundaries_tag {};
 
+
+	enum class line_connectivity : int {four_connected = 4, eight_connected = 8};
+
 	/**
 	 * Stores a reference to a cv::Mat and a pixel.
 	 *
