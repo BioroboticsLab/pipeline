@@ -21,12 +21,12 @@ namespace heyho {
 	/**
 	 * Calls f with every Point of the convex polygon spanned by points exactly one time.
 	 *
-	 * The polygon is cropped by the rectangle cv::Rect(cv::Point(0,0), size).
+	 * The polygon is cropped by the provided boundaries.
 	 *
-	 * @param size          cropping dimensions
+	 * @param f             some functor or function
+	 * @param boundaries    cropping dimensions
 	 * @param begin         iterator to the polygon's first point
 	 * @param end           iterator behind the polygon's last point
-	 * @param f             some functor or function
 	 * @param connectivity  line connectivity : 4 or 8
 	 *
 	 * @tparam LINE_IT class that iterates over the pixels connecting to points
@@ -38,14 +38,14 @@ namespace heyho {
 	 *
 	 * general idea:
 	 * -------------
-	 * 1. find points with smallest (top) and largest (bottom) y-coordiante
+	 * 1. find points with smallest (top) and largest (bottom) y-coordinate
 	 * 2. follow the poly-lines connecting top and bottom in clockwise & counterclockwise direction and draw horizontal lines
 	 *
 	 * how it's done:
 	 * --------------
 	 * - ring_iterator                is used to follow the polygon's points from top to bottom
 	 *                                in both clockwise and counterclockwise directions
-	 * - line_iterator                iterates over the pixels connecting to points
+	 * - LINE_IT                      iterates over the pixels connecting to points
 	 * - poly_line_iterator           uses both of them to iterate over all pixels connecting
 	 *                                multiple points
 	 * - poly_line_vertical_iterator  iterates over these pixels and ensures, that the y-coordinates
