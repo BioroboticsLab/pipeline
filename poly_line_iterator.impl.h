@@ -46,7 +46,7 @@ namespace heyho {
 				++m_points;
 				if (!m_points.end()) {
 					m_current_line = LINE_IT(no_boundaries_tag{}, prev_line_point, *m_points, m_connectivity);
-					// this isn't the first line --> skipt it's first pixel == previous line's last pixel
+					// this isn't the first line --> skip it's first pixel == previous line's last pixel
 					++m_current_line;
 				}
 			}
