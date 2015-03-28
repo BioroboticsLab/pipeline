@@ -64,9 +64,9 @@ namespace heyho {
 		 * This can be generalized by simply switching x and y if 1 < slope < infinity.
 		 *
 		 * In order to avoid confusion, movements along the x- and y-axis are referred to
-		 * as "fast" and "slow" depending on the the slope:
-		 *    - For a small  slope line x is in/decremented in every step and y only if a certain error is reached.
-		 *    - For a large  slope line y is changed in every step.
+		 * as "fast" and "slow" depending on the slope:
+		 *    - For a small slope line x is in/decremented in every step and y only if a certain error is reached.
+		 *    - For a large slope line y is changed in every step.
 		 * This directions is referred to as "fast".
 		 *
 		 */
