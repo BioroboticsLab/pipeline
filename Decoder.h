@@ -5,6 +5,8 @@
 #include "datastructure/Tag.h"
 #include "datastructure/TagCandidate.h"
 
+#include "util/Util.h"
+
 namespace pipeline {
 
 typedef struct {
@@ -22,6 +24,8 @@ private:
 	decoder_settings_t _settings;
 
 	std::vector<decoding_t> getDecodings(pipeline::Tag const& tag, TagCandidate &candidate) const;
+
+	void visualizeDebug(pipeline::Tag const& tag, PipelineGrid &grid, const decoding_t &decoding) const;
 
 	class mean_calculator_t {
 	public:

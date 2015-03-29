@@ -5,6 +5,7 @@
 #include "datastructure/Tag.h"
 #include "datastructure/TagCandidate.h"
 #include "util/ThreadPool.h"
+#include "source/utility/CvHelper.h"
 
 #include "datastructure/PipelineGrid.impl.h"
 
@@ -92,9 +93,62 @@ std::vector<decoding_t> Decoder::getDecodings(const Tag &tag, TagCandidate &cand
 				decoding.set(idx, true);
 			}
 		}
+
+#ifdef DEBUG_DECODER
+		visualizeDebug(tag, grid, decoding);
+#endif
+
 		decodings.push_back(decoding);
 	}
 	return decodings;
+}
+
+void Decoder::visualizeDebug(const Tag &tag, PipelineGrid &grid, pipeline::decoding_t const& decoding) const
+{
+	grid.setCenter(grid.getCenter() - tag.getBox().tl());
+
+	cv::Mat roi = tag.getOrigSubImage();
+	cv::Size roiSize = roi.size();
+
+	std::vector<cv::Mat> images;
+
+	images.push_back(tag.getOrigSubImage());
+
+	images.push_back(grid.getProjectedImage(roiSize));
+
+	cv::Mat blended;
+	cv::addWeighted(tag.getOrigSubImage(), 0.8, grid.getProjectedImage(roiSize), 0.2, 0.0, blended);
+	images.push_back(blended);
+
+	cv::Mat origCopyOverlay;
+	tag.getOrigSubImage().copyTo(origCopyOverlay);
+	grid.drawContours(origCopyOverlay, 0.5);
+	images.push_back(origCopyOverlay);
+
+	cv::Mat test(roiSize, CV_8UC1, cv::Scalar::all(0));
+	grid.draw(test, boost::make_optional(decoding));
+	cv::Mat testCpy;
+	cv::cvtColor(test, testCpy, CV_GRAY2BGR);
+	images.push_back(testCpy);
+
+	const auto canvas = CvHelper::makeCanvas(images, images[0].rows + 10, 1);
+
+	grid.setCenter(grid.getCenter() + tag.getBox().tl());
+
+	std::string title("decoding: " + decoding.to_string());
+	cv::namedWindow(title);
+	cv::imshow(title, canvas);
+
+	bool cont = true;
+	while (cont) {
+		const char c = cv::waitKey();
+		if (c == 'd') {
+			cv::destroyAllWindows();
+			cont = false;
+		} else if (c == 'c') {
+			cont = false;
+		}
+	}
 }
 
 double Decoder::getMeanIntensity(const cv::Mat &image, const PipelineGrid::coordinates_t &coords, const cv::Point& offset) const
