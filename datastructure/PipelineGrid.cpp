@@ -201,7 +201,7 @@ cv::Rect PipelineGrid::getPolygonBoundingBox(size_t idx)
 		maxy = std::max(maxy, point.y);
 	}
 
-	return {minx - _boundingBox.tl().x, miny - _boundingBox.tl().y, maxx - minx, maxy - miny};
+	return {minx - _boundingBox.tl().x, miny - _boundingBox.tl().y, maxx - minx + 1, maxy - miny + 1};
 }
 
 void PipelineGrid::resetCache()
