@@ -85,9 +85,6 @@ std::vector<Tag> GridFitter::process(std::vector<Tag> &&taglist)
 	for (auto && result : results) result.get();
 #endif
 
-	// remove tags without any fitted grids
-	taglist.erase(std::remove_if(taglist.begin(), taglist.end(), [](Tag& tag) { return !tag.isValid(); }), taglist.end());
-
 	return std::move(taglist);
 }
 
