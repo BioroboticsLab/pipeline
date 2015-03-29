@@ -23,11 +23,15 @@ void Decoder::loadSettings(decoder_settings_t &&settings)
 std::vector<Tag> Decoder::process(std::vector<Tag> &&taglist)
 {
 #ifdef DEBUG_DECODER
-	static const size_t numThreads = 1;
+	for (Tag& tag : taglist) {
+		for (TagCandidate& candidate : tag.getCandidates()) {
+			std::vector<decoding_t> decodings = getDecodings(tag, candidate);
+			candidate.setDecodings(std::move(decodings));
+		}
+	}
 #else
 	static const size_t numThreads = std::thread::hardware_concurrency() ?
 	            std::thread::hardware_concurrency() * 2 : 1;
-#endif
 	ThreadPool pool(numThreads);
 
 	std::vector<std::future<void>> results;
@@ -42,6 +46,7 @@ std::vector<Tag> Decoder::process(std::vector<Tag> &&taglist)
 	}
 
 	for (auto && result : results) result.get();
+#endif
 
 	return std::move(taglist);
 }
