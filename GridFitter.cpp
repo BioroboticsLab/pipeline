@@ -215,9 +215,9 @@ GridFitter::candidate_set GridFitter::getInitialCandidates(const cv::Mat &binari
 		// get the best candidates for the current rotation
 		candidate_set candidatesForRotation;
 		// estimate grid parameters from ellipse -> two possible candidates
-		const std::array<PipelineGrid::gridconfig_t, 2> configCandidates =
+		const std::array<Util::gridconfig_t, 2> configCandidates =
 		        Util::gridCandidatesFromEllipse(ellipse_orig, rotation);
-		for (PipelineGrid::gridconfig_t const& config : configCandidates) {
+		for (Util::gridconfig_t const& config : configCandidates) {
 			PipelineGrid grid(config);
 			for (const int pos_x_offset : initial_position_offsets) {
 				for (const int pos_y_offset : initial_position_offsets) {
@@ -304,7 +304,7 @@ std::vector<PipelineGrid> GridFitter::fitGrid(const Tag& tag, const TagCandidate
 		const size_t to = std::min(_settings.get_gradient_num_results(), bestGrids.size());
 		size_t idx = 0;
 		for (candidate_t const& gridCandidate : bestGrids) {
-			PipelineGrid::gridconfig_t const& config = gridCandidate.config;
+			Util::gridconfig_t const& config = gridCandidate.config;
 			results.emplace_back(config.center + tag.getBox().tl(), config.radius, config.angle_z, config.angle_y, config.angle_x);
 
 			++idx;
@@ -396,11 +396,11 @@ void GridFitter::GradientDescent::optimize()
 	// iterate over the settings.numInitial best initial candidates
 	for (size_t idx = 0; idx < num; ++idx) {
 		candidate_t candidate = *candidate_it;
-		const PipelineGrid::gridconfig_t& initial_config = candidate.config;
+		const Util::gridconfig_t& initial_config = candidate.config;
 
 		size_t iteration = 0;
 		PipelineGrid grid(initial_config);
-		PipelineGrid::gridconfig_t config = initial_config;
+		Util::gridconfig_t config = initial_config;
 		double error = evaluateCandidate(grid, _roi, _binarizedRoi, _edgeRoiX, _edgeRoiY, _settings);
 		storeConfig(error, config);
 
@@ -442,7 +442,7 @@ void GridFitter::GradientDescent::optimize()
 	}
 }
 
-std::pair<double, PipelineGrid::gridconfig_t> GridFitter::GradientDescent::step(candidate_set &bestGrids, PipelineGrid::gridconfig_t const& config, double error, const GridFitter::GradientDescent::StepParameter param)
+std::pair<double, Util::gridconfig_t> GridFitter::GradientDescent::step(candidate_set &bestGrids, Util::gridconfig_t const& config, double error, const GridFitter::GradientDescent::StepParameter param)
 {
 	// when adjusting one of the position parameters, we can not adjust the step
 	// size based on the difference between of the errors and the learning rate
@@ -460,7 +460,7 @@ std::pair<double, PipelineGrid::gridconfig_t> GridFitter::GradientDescent::step(
 	const double eps_angle = _settings.eps_angle;
 
 	for (int direction : directions) {
-		PipelineGrid::gridconfig_t newConfig(config);
+		Util::gridconfig_t newConfig(config);
 		// adjust parameter
 		switch (param) {
 		case SCALE:
@@ -522,7 +522,7 @@ std::pair<double, PipelineGrid::gridconfig_t> GridFitter::GradientDescent::step(
 	return {error, config};
 }
 
-void GridFitter::GradientDescent::storeConfig(const double error, const PipelineGrid::gridconfig_t& config)
+void GridFitter::GradientDescent::storeConfig(const double error, const Util::gridconfig_t& config)
 {
 	_bestGrids.insert({error, config});
 

@@ -5,9 +5,11 @@
 #include "source/utility/CvHelper.h"
 #include "source/utility/util.h"
 
+#include "source/tracking/algorithm/BeesBook/Common/Grid.h"
+
 namespace Util {
 
-std::array<PipelineGrid::gridconfig_t, 2> gridCandidatesFromEllipse(const pipeline::Ellipse& ellipse, const double rotation)
+std::array<gridconfig_t, 2> gridCandidatesFromEllipse(const pipeline::Ellipse& ellipse, const double rotation)
 {
 	const cv::Point2i& cen = ellipse.getCen();
 	const cv::Size2i& axes = ellipse.getAxis();
@@ -43,7 +45,7 @@ std::array<PipelineGrid::gridconfig_t, 2> gridCandidatesFromEllipse(const pipeli
 		assert(shiftedCen.x > 0);
 		assert(shiftedCen.y > 0);
 
-		return PipelineGrid::gridconfig_t { shiftedCen, radius, angle_z, angle_y, angle_x };
+		return gridconfig_t { shiftedCen, radius, angle_z, angle_y, angle_x };
 	};
 
 	return {getGrid(ellipse_roll), getGrid(-ellipse_roll)};

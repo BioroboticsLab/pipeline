@@ -6,6 +6,8 @@
 
 #include "source/tracking/algorithm/BeesBook/Common/Grid.h"
 
+#include "../util/Util.h"
+
 class PipelineGrid : private Grid {
 public:
 	typedef struct {
@@ -14,21 +16,13 @@ public:
 		std::vector<cv::Point2i> areaCoordinates;
 	} coordinates_t;
 
-	typedef struct {
-		cv::Point2i center;
-		double radius;
-		double angle_z;
-		double angle_y;
-		double angle_x;
-	} gridconfig_t;
-
 	static const uint8_t NOID = 255;
 
 	explicit PipelineGrid(cv::Point2i center, double radius, double angle_z, double angle_y, double angle_x);
-	explicit PipelineGrid(gridconfig_t const& config);
+	explicit PipelineGrid(Util::gridconfig_t const& config);
 	virtual ~PipelineGrid() {}
 
-	gridconfig_t getConfig() const;
+	Util::gridconfig_t getConfig() const;
 
 	template <typename Func>
 	Func processOuterRingCoordinates(Func&& coordinateFunction);

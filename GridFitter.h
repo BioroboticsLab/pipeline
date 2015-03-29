@@ -31,7 +31,7 @@ private:
 	// and scale) and the corresponding error
 	struct candidate_t {
 		double error;
-		PipelineGrid::gridconfig_t config;
+		Util::gridconfig_t config;
 
 		// comparison operators for std::set/multiset support
 		bool operator<(const candidate_t& other) const {
@@ -127,14 +127,14 @@ private:
 		 * @param error errors associated with previous config
 		 * @param param which parameter to change in current step
 		 */
-		std::pair<double, PipelineGrid::gridconfig_t> step(candidate_set& bestGrids, const PipelineGrid::gridconfig_t &config, double error, const StepParameter param);
+		std::pair<double, Util::gridconfig_t> step(candidate_set& bestGrids, const Util::gridconfig_t &config, double error, const StepParameter param);
 
 		/**
 		 * @brief storeConfig store a config in _bestGrids
 		 * stores to given config and associated error in _bestGrids and removes
 		 * the worst config iff _bestGrids.size() > settings.maxResults
 		 */
-		void storeConfig(const double error, const PipelineGrid::gridconfig_t &config);
+		void storeConfig(const double error, const Util::gridconfig_t &config);
 	};
 
 	/**

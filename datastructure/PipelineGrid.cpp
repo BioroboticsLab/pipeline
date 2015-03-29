@@ -18,7 +18,7 @@ PipelineGrid::PipelineGrid(cv::Point2i center, double radius, double angle_z, do
 	resetCache();
 }
 
-PipelineGrid::PipelineGrid(const PipelineGrid::gridconfig_t& config)
+PipelineGrid::PipelineGrid(const Util::gridconfig_t& config)
     : PipelineGrid(config.center, config.radius, config.angle_z,
                    config.angle_y, config.angle_x)
 {}
@@ -197,7 +197,7 @@ void PipelineGrid::resetCache()
 	_idImage = cv::Mat(_boundingBox.size(), CV_8UC1, cv::Scalar(NOID));
 }
 
-PipelineGrid::gridconfig_t PipelineGrid::getConfig() const
+Util::gridconfig_t PipelineGrid::getConfig() const
 {
 	return {_center, _radius / FOCAL_LENGTH, _angle_z, _angle_y, _angle_x};
 }
