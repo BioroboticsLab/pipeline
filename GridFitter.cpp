@@ -145,7 +145,7 @@ void GridFitter::visualizeDebug(std::multiset<candidate_t> const& grids, const c
 
 		cv::Mat origCopy;
 		roiCpy.copyTo(origCopy);
-		pipeline::Ellipse const& ell = tag.getCandidates().front().getEllipse();
+		pipeline::Ellipse const& ell = tag.getCandidatesConst().front().getEllipse();
 		cv::ellipse(origCopy, ell.getCen(), ell.getAxis(), ell.getAngle(), 0, 360, cv::Scalar(0, 255, 0), 2);
 		images.push_back(origCopy);
 
