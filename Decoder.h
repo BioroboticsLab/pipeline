@@ -33,6 +33,8 @@ private:
 		    : _roi(roi), _roiOffset(roiOffset), _sum(0), _pixelNum(0) {}
 
 		inline void operator()(const cv::Point coords) {
+			assert(Util::pointInBounds(_roi.get().size(), coords - _roiOffset));
+
 			const uint8_t value = _roi.get().template at<uint8_t>(coords - _roiOffset);
 			_sum += value;
 			++_pixelNum;
@@ -55,6 +57,8 @@ private:
 		    : _roi(roi), _roiOffset(roiOffset), _meanBlack(meanBlack), _meanWhite(meanWhite), _distanceSumBlack(0.), _distanceSumWhite(0.), _pixelNum(0) {}
 
 		inline void operator()(const cv::Point coords) {
+			assert(Util::pointInBounds(_roi.get().size(), coords - _roiOffset));
+
 			const double value = static_cast<double>(_roi.get().template at<uint8_t>(coords - _roiOffset));
 
 			_distanceSumBlack += std::abs(value - _meanBlack);

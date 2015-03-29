@@ -203,6 +203,8 @@ private:
 
 		inline void operator()(cv::Point coords)
 		{
+			assert(Util::pointInBounds(_roi.get().size(), coords));
+
 			const uint8_t value = _roi.get().template at<uint8_t>(coords);
 			_errorSum += errorFun(value);
 			++_pixelNum;
@@ -236,6 +238,9 @@ private:
 
 		inline void operator()(cv::Point coords)
 		{
+			assert(Util::pointInBounds(_sobelX.get().size(), coords));
+			assert(Util::pointInBounds(_sobelY.get().size(), coords));
+
 			const uint8_t dx = _sobelX.get().template at<uint8_t>(coords);
 			const uint8_t dy = _sobelY.get().template at<uint8_t>(coords);
 
@@ -288,6 +293,8 @@ private:
 
 		inline void operator()(cv::Point coords)
 		{
+			assert(Util::pointInBounds(_roi.get().size(), coords));
+
 			const uint8_t value = _roi.get().template at<uint8_t>(coords);
 			++_pixelNum;
 			_sum += value;
@@ -317,6 +324,8 @@ private:
 
 		inline void operator()(cv::Point coords)
 		{
+			assert(Util::pointInBounds(_roi.get().size(), coords));
+
 			const double value = _roi.get().template at<uint8_t>(coords);
 			++_pixelNum;
 			const double delta = value - _mean;
