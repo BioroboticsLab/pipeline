@@ -1,12 +1,17 @@
 #pragma once
 
 #include <array>
+#include <bitset>
 
 #include <boost/optional.hpp>
 
 #include "source/tracking/algorithm/BeesBook/Common/Grid.h"
 
 #include "../util/Util.h"
+
+namespace pipeline {
+typedef std::bitset<Grid::NUM_MIDDLE_CELLS> decoding_t;
+}
 
 class PipelineGrid : private Grid {
 public:
@@ -47,7 +52,7 @@ public:
 
 	// TODO: maybe merge different draw functions
 	cv::Mat getProjectedImage(const cv::Size2i size) const;
-	void draw(cv::Mat& img);
+	void draw(cv::Mat& img, boost::optional<pipeline::decoding_t> decoding = boost::optional<pipeline::decoding_t>());
 	void drawContours(cv::Mat& img, const double transparency, const cv::Vec3b &color = cv::Vec3b(255, 255, 255)) const;
 
 	void setXRotation(double angle) { Grid::setXRotation(angle); resetCache(); }
@@ -164,6 +169,7 @@ private:
 		cv::Point2i _idImageOffset;
 		cv::Point2i _gridCenter;
 	};
+
 
 	template<typename Func>
 	class cacheSetterOuter : private cacheSetter<Func>
