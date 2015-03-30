@@ -8,7 +8,7 @@
 #include "../datastructure/util.h"
 #endif
 
-#include "source/tracking/algorithm/BeesBook/Common/Grid.h"
+#include "../datastructure/Grid.h"
 
 namespace Util {
 

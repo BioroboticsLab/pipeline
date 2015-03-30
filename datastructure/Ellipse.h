@@ -6,7 +6,8 @@
 namespace pipeline {
 
 class Ellipse {
-private:
+
+public:
 	// number of edge pixels supporting this ellipse
 	int _vote;
 	// this ellipse' center pixel
@@ -18,7 +19,7 @@ private:
 	// dimensions of ROI
 	cv::Size _roiSize;
 
-public:
+
 	double getAngle() const       { return _angle; }
 	void   setAngle(double angle) { _angle = angle; }
 

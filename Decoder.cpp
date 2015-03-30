@@ -5,11 +5,11 @@
 #include "datastructure/Tag.h"
 #include "datastructure/TagCandidate.h"
 #include "util/ThreadPool.h"
-#include "source/utility/CvHelper.h"
+#include "../utility/CvHelper.h"
 
 #include "datastructure/PipelineGrid.impl.h"
 
-//#define DEBUG_DECODER
+// #define DEBUG_DECODER
 
 namespace pipeline {
 
