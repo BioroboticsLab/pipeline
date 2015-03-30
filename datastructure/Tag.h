@@ -5,14 +5,10 @@
 #include <opencv2/core/core.hpp> // cv::Mat, cv::Rect
 
 #include "TagCandidate.h"
+#include "serialization.hpp"
 
-#ifdef PipelineStandalone
-#include <boost/archive/text_iarchive.hpp>
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/serialization/vector.hpp>
 
-using namespace boost;
-#endif
+
 
 namespace pipeline {
 class Tag {
@@ -30,13 +26,30 @@ private:
 	//there may be multiple ellipses and grids for this location, so there is a list of candidates
 	std::vector<TagCandidate> _candidates;
 
-#ifdef PipelineStandalone
 	//needed to serialize all the private members
 	friend class boost::serialization::access;
 
 	//needed to serialize class implicit
-	template<class Archive> void serialize(Archive & ar, const unsigned int version);
-#endif
+	template<class Archive>
+	void serialize(Archive & ar, const unsigned int version) {
+	    ar & this->_id;
+	    ar & this->_valid;
+	    ar & this->_box;
+	    ar & this->_candidates;
+
+	}
+
+	 //prototype of save_construct_data for non-default constructor
+	        template<class Archive> friend
+	            void boost::serialization::save_construct_data(Archive & ar,
+	                          pipeline::Tag * t, const unsigned int file_version);
+
+	        //prototype of load_construct_data for non-default constructor
+	        template<class Archive> friend
+	            void boost::serialization::load_construct_data(Archive & ar,
+	            		 pipeline::Tag * t, const unsigned int file_version);
+
+
 
 public:
 	explicit Tag(cv::Rect rec, int _id);
@@ -63,4 +76,33 @@ public:
 };
 
 bool operator<(const Tag& lhs, const Tag& rhs);
+
 }
+
+BOOST_CLASS_EXPORT_KEY(pipeline::Tag)
+
+
+namespace boost { namespace serialization {
+template<class Archive>
+inline void save_construct_data(
+    Archive & ar, const pipeline::Tag * t, const unsigned long int file_version
+){
+    // save data required to construct instance
+    ar << t->getId();
+    ar << t->getBox();
+
+}
+
+template<class Archive>
+inline void load_construct_data(
+    Archive & ar, pipeline::Tag * t, const unsigned long int file_version
+){
+    // retrieve data from archive required to construct new instance
+	cv::Rect box;
+	int id;
+    ar >> id;
+    ar >> box;
+    // invoke inplace constructor to initialize instance of PipelineGrid
+    ::new(t)pipeline::Tag(box,id);
+}
+}}

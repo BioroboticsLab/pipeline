@@ -10,6 +10,10 @@ const double Grid::FOCAL_LENGTH       = 2.0;
 
 const Grid::coordinates3D_t Grid::_coordinates3D = Grid::generate_3D_base_coordinates();
 
+/**
+ * hack, to make s
+ */
+
 Grid::Grid(cv::Point2i center, double radius, double angle_z, double angle_y, double angle_x)
 	: _coordinates2D(NUM_CELLS)
 	, _center(center)
