@@ -9,7 +9,6 @@
 
 #include <opencv2/highgui/highgui.hpp>
 
-#include "datastructure/BoundingBox.h"
 #include "datastructure/Tag.h"
 
 /**

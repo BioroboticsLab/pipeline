@@ -87,10 +87,21 @@ void Tag::setBox(const cv::Rect& box) {
 **************************************/
 
 #ifdef PipelineStandalone
+<<<<<<< HEAD
 template<class Archive>
 void Tag::serialize(Archive & ar, const unsigned int version) {
 	ar & this->id & this->_valid;
 }
+=======
+// TODO: FIXME!
+/*template<class Archive>
+void Tag::serialize(Archive & ar, const unsigned int version) {
+    ar & this->_id;
+    ar & this->_valid;
+    ar & this->_;
+    ar & this->_valid;
+}*/
+>>>>>>> 59045fe... things..
 #endif
 
 void Tag::addCandidate(TagCandidate c){

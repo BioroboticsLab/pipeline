@@ -5,7 +5,7 @@
 
 #include <boost/optional.hpp>
 
-#include "source/tracking/algorithm/BeesBook/Common/Grid.h"
+#include "Grid.h"
 
 #include "../util/Util.h"
 
