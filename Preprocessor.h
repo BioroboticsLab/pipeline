@@ -6,9 +6,6 @@
 
 #include "datastructure/settings.h"
 
-#ifdef PipelineStandalone
-#include "../config.h"
-#endif
 
 namespace pipeline {
 

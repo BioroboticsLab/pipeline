@@ -4,7 +4,11 @@
 
 #include <boost/optional.hpp>
 
-#include "source/tracking/algorithm/BeesBook/Common/Grid.h"
+#ifdef PipelineStandalone
+// TODO: FIXME!
+#include "CvHelper.h"
+#include "Grid.h"
+#endif
 
 class PipelineGrid : private Grid {
 public:
@@ -138,7 +142,7 @@ private:
 	class cacheSetter
 	{
 	public:
-		explicit cacheSetter(const size_t idx, cv::Mat& idImage, PipelineGrid::coordinates_t& coordinateCache, Func& coordinateFunction, const cv::Point2i& idImageOffset, const cv::Point2i& gridCenter)
+		explicit cacheSetter(const size_t idx, cv::Mat& idImage, PipelineGrid::coordinates_t& coordinateCache, Func& coordinateFunction, const cv::Point2i idImageOffset, const cv::Point2i gridCenter)
 		    : _idx(idx)
 		    , _idImage(idImage)
 		    , _coordinateCache(coordinateCache)
@@ -155,9 +159,18 @@ private:
 
 		inline void operator()(cv::Point coords) {
 			// TODO: maybe speed up using raw pointer access
-			_idImage.get().template at<uint8_t>(coords - _idImageOffset.get()) = _idx;
-			_coordinateCache.get().areaCoordinates.push_back(coords + _gridCenter.get());
-			(_coordinateFunction.get())(coords + _gridCenter.get());
+			//std::cout << coords << std::endl;
+			const cv::Point idImageCoords(coords - _idImageOffset);
+			if (idImageCoords.x >= 0 && idImageCoords.y >= 0 &&
+			    idImageCoords.x < _idImage.get().size().width &&
+			    idImageCoords.y < _idImage.get().size().height)
+			{
+				_idImage.get().template at<uint8_t>(idImageCoords) = _idx;
+				_coordinateCache.get().areaCoordinates.push_back(coords + _gridCenter);
+				(_coordinateFunction.get())(coords + _gridCenter);
+			} else {
+				assert(false);
+			}
 		}
 
 	protected:
@@ -165,8 +178,8 @@ private:
 		std::reference_wrapper<cv::Mat> _idImage;
 		std::reference_wrapper<PipelineGrid::coordinates_t> _coordinateCache;
 		std::reference_wrapper<Func> _coordinateFunction;
-		std::reference_wrapper<const cv::Point2i> _idImageOffset;
-		std::reference_wrapper<const cv::Point2i> _gridCenter;
+		cv::Point2i _idImageOffset;
+		cv::Point2i _gridCenter;
 	};
 
 	template<typename Func>
@@ -184,9 +197,15 @@ private:
 		cacheSetterOuter& operator=(cacheSetterOuter&&) = default;
 
 		inline void operator()(cv::Point coords) {
-			uint8_t value = this->_idImage.get().template at<uint8_t>(coords - this->_idImageOffset.get());
-			if (value == PipelineGrid::NOID) {
-				cacheSetter<Func>::operator ()(coords);
+			const cv::Point idImageCoords(coords - this->_idImageOffset);
+			if (idImageCoords.x >= 0 && idImageCoords.y >= 0 &&
+			    idImageCoords.x < this->_idImage.get().size().width &&
+			    idImageCoords.y < this->_idImage.get().size().height)
+			{
+				uint8_t value = this->_idImage.get().template at<uint8_t>(idImageCoords);
+				if (value == PipelineGrid::NOID) {
+					cacheSetter<Func>::operator ()(coords);
+				}
 			}
 		}
 	};

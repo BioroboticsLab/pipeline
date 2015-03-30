@@ -29,9 +29,15 @@ private:
 		    : _roi(roi), _roiOffset(roiOffset), _sum(0), _pixelNum(0) {}
 
 		inline void operator()(const cv::Point coords) {
-			const uint8_t value = _roi.get().template at<uint8_t>(coords - _roiOffset);
-			_sum += value;
-			++_pixelNum;
+			const cv::Point roiCoords(coords - _roiOffset);
+			if (roiCoords.x >= 0 && roiCoords.y >= 0 &&
+			    roiCoords.x < this->_roi.get().size().width &&
+			    roiCoords.y < this->_roi.get().size().height)
+			{
+				const uint8_t value = _roi.get().template at<uint8_t>(roiCoords);
+				_sum += value;
+				++_pixelNum;
+			}
 		}
 
 		inline double getMean() const {
@@ -51,12 +57,18 @@ private:
 		    : _roi(roi), _roiOffset(roiOffset), _meanBlack(meanBlack), _meanWhite(meanWhite), _distanceSumBlack(0.), _distanceSumWhite(0.), _pixelNum(0) {}
 
 		inline void operator()(const cv::Point coords) {
-			const double value = static_cast<double>(_roi.get().template at<uint8_t>(coords - _roiOffset));
+			const cv::Point roiCoords(coords - _roiOffset);
+			if (roiCoords.x >= 0 && roiCoords.y >= 0 &&
+			    roiCoords.x < this->_roi.get().size().width &&
+			    roiCoords.y < this->_roi.get().size().height)
+			{
+				const double value = static_cast<double>(_roi.get().template at<uint8_t>(roiCoords));
 
-			_distanceSumBlack += std::abs(value - _meanBlack);
-			_distanceSumWhite += std::abs(value - _meanWhite);
+				_distanceSumBlack += std::abs(value - _meanBlack);
+				_distanceSumWhite += std::abs(value - _meanWhite);
 
-			++_pixelNum;
+				++_pixelNum;
+			}
 		}
 
 		inline double getDistanceBlack() const {

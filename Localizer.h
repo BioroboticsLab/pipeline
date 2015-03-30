@@ -4,11 +4,7 @@
 
 #include "datastructure/settings.h"
 
-#ifdef PipelineStandalone
-#include "../config.h"
-#include <boost/property_tree/ini_parser.hpp>
-#include <boost/property_tree/ptree.hpp>
-#endif
+
 
 namespace pipeline {
 
@@ -27,9 +23,6 @@ private:
 	cv::Mat highlightTags(const cv::Mat &grayImage) ;
 	std::vector<Tag> locateTagCandidates(cv::Mat blobImage, cv::Mat cannyEdgeMap, cv::Mat grayImage);
 
-#ifdef PipelineStandalone
-	void loadConfigVars(const std::string &filename);
-#endif
 
 public:
 	Localizer();

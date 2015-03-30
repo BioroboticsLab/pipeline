@@ -274,7 +274,7 @@ static const unsigned int COMB_DIFF_SIZE = 15;
 static const unsigned int COMB_LINE_WIDTH = 9;
 static const unsigned int COMB_LINE_COLOR = 0;
 
-static const bool HONEY_ENABLED = false;
+static const bool HONEY_ENABLED = true;
 static const double HONEY_STD_DEV = 0;
 static const unsigned int HONEY_FRAME_SIZE = 30;
 static const double HONEY_AVERAGE_VALUE = 80;
@@ -605,7 +605,7 @@ static const int MIN_MINOR_AXIS = 30;
 static const int MAX_MINOR_AXIS = 54;
 
 static const int THRESHOLD_EDGE_PIXELS = 25;
-static const int THRESHOLD_VOTE = 1800;
+static const int THRESHOLD_VOTE = 1000;
 static const int THRESHOLD_BEST_VOTE = 3000;
 static const bool USE_XIE_AS_FALLBACK = true;
 }
@@ -751,24 +751,24 @@ static const std::string ALPHA = "ALPHA";
 
 namespace Defaults {
 static const double ERR_FUNC_ALPHA_INNER = 1.0;
-static const double ERR_FUNC_ALPHA_OUTER = 1.0;
-static const double ERR_FUNC_ALPHA_VARIANCE = 1.0;
+static const double ERR_FUNC_ALPHA_OUTER = 2.0;
+static const double ERR_FUNC_ALPHA_VARIANCE = 2.0;
 static const double ERR_FUNC_ALPHA_OUTER_EDGE = 1.0;
-static const double ERR_FUNC_ALPHA_INNER_EDGE = 1.0;
+static const double ERR_FUNC_ALPHA_INNER_EDGE = 4.0;
 
 static const int ADAPTIVE_BLOCK_SIZE = 23;
 static const double ADAPTIVE_C = 3;
 
 static const size_t GRADIENT_NUM_INITIAL = 6;
-static const size_t GRADIENT_NUM_RESULTS = 1;
+static const size_t GRADIENT_NUM_RESULTS = 3;
 
-static const double GRADIENT_ERROR_THRESHOLD = 0.1;
+static const double GRADIENT_ERROR_THRESHOLD = 0.01;
 static const size_t GRADIENT_MAX_ITERATIONS = 100;
 
-static const double EPS_ANGLE = 0.02;
+static const double EPS_ANGLE = 0.01;
 static const int EPS_POS = 1;
-static const double EPS_SCALE = 0.1;
-static const double ALPHA = 0.01;
+static const double EPS_SCALE = 0.01;
+static const double ALPHA = 1;
 }
 }
 class gridfitter_settings_t: public settings_abs {

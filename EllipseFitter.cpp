@@ -53,6 +53,8 @@ EllipseFitter::EllipseFitter(std::string configFile) {
 
 
 void EllipseFitter::detectEllipse(Tag &tag) {
+	detectXieEllipse(tag);
+	return;
 
 	const cv::Mat& subImage = tag.getOrigSubImage();
 	const cv::Mat cannyImage = computeCannyEdgeMap(subImage);
@@ -505,7 +507,7 @@ std::vector<Tag> EllipseFitter::process(std::vector<Tag>&& taglist) {
 		detectEllipse(tag);
 	}
 #else
-	static const size_t numThreads = std::thread::hardware_concurrency() ?
+static const size_t numThreads = std::thread::hardware_concurrency() ?
 	            std::thread::hardware_concurrency() * 2 : 1;
 	ThreadPool pool(numThreads);
 	std::vector < std::future < void >> results;
@@ -522,27 +524,28 @@ std::vector<Tag> EllipseFitter::process(std::vector<Tag>&& taglist) {
 
 #ifdef PipelineStandalone
 void EllipseFitter::loadConfigVars(std::string filename) {
-	boost::property_tree::ptree pt;
-	boost::property_tree::ini_parser::read_ini(filename, pt);
+	// TODO FIXME!
+//    boost::property_tree::ptree pt;
+//    boost::property_tree::ini_parser::read_ini(filename, pt);
 
-	_settings.max_major_axis =
-	        pt.get<int>(config::APPlICATION_ENVIROMENT + ".max_major_axis");
-	_settings.min_major_axis =
-	        pt.get<int>(config::APPlICATION_ENVIROMENT + ".min_major_axis");
-	_settings.max_minor_axis =
-	        pt.get<int>(config::APPlICATION_ENVIROMENT + ".max_minor_axis");
-	_settings.min_minor_axis =
-	        pt.get<int>(config::APPlICATION_ENVIROMENT + ".min_minor_axis");
-	_settings.threshold_edge_pixels =
-	        pt.get<int>(config::APPlICATION_ENVIROMENT + ".threshold_edge_pixels");
-	_settings.threshold_vote =
-	        pt.get<int>(config::APPlICATION_ENVIROMENT + ".threshold_vote");
-	_settings.threshold_best_vote =
-	        pt.get<int>(config::APPlICATION_ENVIROMENT + ".threshold_best_vote");
-	_settings.canny_threshold_high =
-	        pt.get<int>(config::APPlICATION_ENVIROMENT + ".canny_threshold_low");
-	_settings.canny_threshold_low =
-	        pt.get<int>(config::APPlICATION_ENVIROMENT + ".canny_threshold_high");
+//	_settings.max_major_axis =
+//		pt.get<int>(config::APPlICATION_ENVIROMENT + ".max_major_axis");
+//	_settings.min_major_axis =
+//		pt.get<int>(config::APPlICATION_ENVIROMENT + ".min_major_axis");
+//	_settings.max_minor_axis =
+//		pt.get<int>(config::APPlICATION_ENVIROMENT + ".max_minor_axis");
+//	_settings.min_minor_axis =
+//		pt.get<int>(config::APPlICATION_ENVIROMENT + ".min_minor_axis");
+//	_settings.threshold_edge_pixels =
+//		pt.get<int>(config::APPlICATION_ENVIROMENT + ".threshold_edge_pixels");
+//	_settings.threshold_vote =
+//		pt.get<int>(config::APPlICATION_ENVIROMENT + ".threshold_vote");
+//	_settings.threshold_best_vote =
+//		pt.get<int>(config::APPlICATION_ENVIROMENT + ".threshold_best_vote");
+//	_settings.canny_threshold_high =
+//		pt.get<int>(config::APPlICATION_ENVIROMENT + ".canny_threshold_low");
+//	_settings.canny_threshold_low =
+//		pt.get<int>(config::APPlICATION_ENVIROMENT + ".canny_threshold_high");
 }
 #endif
 

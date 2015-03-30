@@ -33,16 +33,9 @@ namespace pipeline {
 **************************************/
 
 Localizer::Localizer() {
-#ifdef PipelineStandalone
-	loadConfigVars(config::DEFAULT_LOCALIZER_CONFIG);
-#endif
+
 }
 
-#ifdef PipelineStandalone
-Localizer::Localizer(const std::string &configFile) {
-	loadConfigVars(configFile);
-}
-#endif
 
 Localizer::~Localizer() {}
 
@@ -85,8 +78,6 @@ void Localizer::setThresholdImage(const cv::Mat& thresholdImage) {
 
 std::vector<Tag> Localizer::process(cv::Mat &&originalImage, cv::Mat &&preprocessedImage){
 
-
-
 	// and then locate the tags using the sobel map
 	this->blob_ = this->computeBlobs(preprocessedImage);
 
@@ -96,6 +87,8 @@ std::vector<Tag> Localizer::process(cv::Mat &&originalImage, cv::Mat &&preproces
 	std::vector<Tag> taglist= this->locateTagCandidates(this->blob_, this->canny_map_,originalImage);
 
 	return taglist;
+
+
 }
 
 /**
@@ -128,12 +121,12 @@ cv::Mat Localizer::highlightTags(const cv::Mat &grayImage)  {
 	image.copyTo(imageCopy);
 
 #ifdef PipelineStandalone
-	if (config::DEBUG_MODE_LOCALIZER) {
+	#ifdef DEBUG_LOCALIZER
 		cv::namedWindow("binarized Image", cv::WINDOW_AUTOSIZE);
 		cv::imshow("binarized Image", imageCopy);
 		cv::waitKey(0);
 		cv::destroyWindow("binarized Image");
-	}
+#endif
 #endif
 
 	cv::Mat imageCopy2 = binarizedImage.clone();
@@ -148,12 +141,12 @@ cv::Mat Localizer::highlightTags(const cv::Mat &grayImage)  {
 	           this->_settings.get_first_dilation_num_iterations());
 
 #ifdef PipelineStandalone
-	if (config::DEBUG_MODE_LOCALIZER) {
+	#ifdef DEBUG_LOCALIZER
 		cv::namedWindow("First Dilate", cv::WINDOW_AUTOSIZE);
 		cv::imshow("First Dilate", imageCopy);
 		cv::waitKey(0);
 		cv::destroyWindow("First Dilate");
-	}
+#endif
 #endif
 
 	//erosion
@@ -165,12 +158,12 @@ cv::Mat Localizer::highlightTags(const cv::Mat &grayImage)  {
 	cv::erode(imageCopy, imageCopy, erodedImage);
 
 #ifdef PipelineStandalone
-	if (config::DEBUG_MODE_LOCALIZER) {
+	#ifdef DEBUG_LOCALIZER
 		cv::namedWindow("First Erode", cv::WINDOW_AUTOSIZE);
 		cv::imshow("First Erode", imageCopy);
 		cv::waitKey(0);
 		cv::destroyWindow("First Erode");
-	}
+#endif
 #endif
 
 	dilatedImage = cv::getStructuringElement(cv::MORPH_ELLIPSE,
@@ -181,12 +174,12 @@ cv::Mat Localizer::highlightTags(const cv::Mat &grayImage)  {
 	cv::dilate(imageCopy, imageCopy, dilatedImage);
 
 #ifdef PipelineStandalone
-	if (config::DEBUG_MODE_LOCALIZER) {
+	#ifdef DEBUG_LOCALIZER
 		cv::namedWindow("My Window", cv::WINDOW_AUTOSIZE);
 		cv::imshow("My Window", imageCopy);
 		cv::waitKey(0);
 		cv::destroyWindow("My Window");
-	}
+#endif
 #endif
 	return imageCopy;
 }
@@ -280,32 +273,6 @@ cv::Mat Localizer::computeBlobs(const cv::Mat &sobel)  {
 	return blob;
 }
 
-#ifdef PipelineStandalone
-/**
- * loads param from config
- *
- * @param filename absolute path to the config file
- */
-void Localizer::loadConfigVars(const std::string &filename) {
-	boost::property_tree::ptree pt;
-	boost::property_tree::ini_parser::read_ini(filename, pt);
-
-	_settings.binary_threshold =
-	        pt.get<int>(config::APPlICATION_ENVIROMENT + ".binary_threshold");
-	_settings.dilation_1_iteration_number =
-	        pt.get<int>(config::APPlICATION_ENVIROMENT + ".dilation_1_interation_number");
-	_settings.dilation_1_size =
-	        pt.get<int>(config::APPlICATION_ENVIROMENT + ".dilation_1_size");
-	_settings.erosion_size =
-	        pt.get<int>(config::APPlICATION_ENVIROMENT + ".erosion_size");
-	_settings.dilation_2_size =
-	        pt.get<int>(config::APPlICATION_ENVIROMENT + ".dilation_2_size");
-	_settings.max_tag_size =
-	        pt.get<int>(config::APPlICATION_ENVIROMENT + ".max_tag_size");
-	_settings.min_tag_size =
-	        pt.get<int>(config::APPlICATION_ENVIROMENT + ".min_tag_size");
-}
-#endif
 
 void Localizer::loadSettings(settings::localizer_settings_t &&settings)
 {

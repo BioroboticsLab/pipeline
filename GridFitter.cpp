@@ -4,6 +4,7 @@
 
 #include <iostream>
 
+
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -13,9 +14,13 @@
 #include "datastructure/PipelineGrid.h"
 #include "util/Util.h"
 #include "util/ThreadPool.h"
-#include "source/tracking/algorithm/BeesBook/Common/Grid.h"
-#include "source/utility/CvHelper.h"
-#include "source/utility/util.h"
+#include "datastructure/PipelineGrid.h"
+
+#ifdef PipelineStandalone
+// TODO: FIXME!
+#include "datastructure/CvHelper.h"
+#include "datastructure/util.h"
+#endif
 
 #include "datastructure/PipelineGrid.impl.h"
 

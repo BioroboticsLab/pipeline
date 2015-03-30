@@ -2,8 +2,11 @@
 
 #include <opencv2/opencv.hpp>
 
-#include "source/utility/CvHelper.h"
-#include "source/utility/util.h"
+#ifdef PipelineStandalone
+// TODO: FIXME!
+#include "../datastructure/CvHelper.h"
+#include "../datastructure/util.h"
+#endif
 
 namespace Util {
 
