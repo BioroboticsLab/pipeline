@@ -2,12 +2,13 @@
 #define ELLIPSE_H_
 
 #include <opencv2/core/core.hpp> // cv::Size, cv::Point, cv::Mat
+#include "serialization.hpp"
 
 namespace pipeline {
 
 class Ellipse {
 
-public:
+private:
 	// number of edge pixels supporting this ellipse
 	int _vote;
 	// this ellipse' center pixel
@@ -19,6 +20,23 @@ public:
 	// dimensions of ROI
 	cv::Size _roiSize;
 
+	//needed to serialize all the private members
+		friend class boost::serialization::access;
+
+		//needed to serialize class implicit
+
+		template<class Archive>
+		void serialize(Archive & ar, const unsigned int version) {
+		    ar & this->_angle;
+		    ar & this->_axis;
+		    ar & this->_cen;
+		    ar & this->_roiSize;
+		    ar & this->_vote;
+		}
+
+
+
+public:
 
 	double getAngle() const       { return _angle; }
 	void   setAngle(double angle) { _angle = angle; }
@@ -36,6 +54,7 @@ public:
 	const cv::Mat getMask(const cv::Size axisBorder = cv::Size(0, 0)) const;
 
 	explicit Ellipse(int vote, cv::Point2i center, cv::Size axis_length, double angle, cv::Size roiSize);
+	explicit Ellipse();
 };
 
 inline bool operator<(const Ellipse &lhs, const Ellipse &rhs) {

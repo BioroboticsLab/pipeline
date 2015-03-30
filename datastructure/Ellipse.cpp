@@ -4,6 +4,9 @@
 #include <stdexcept>                   // std::invalid argument
 
 namespace pipeline {
+Ellipse::Ellipse(){
+
+}
 
 Ellipse::Ellipse(int vote, cv::Point2i center, cv::Size axis_length, double angle, cv::Size roiSize)
     : _vote(vote)
@@ -23,5 +26,6 @@ const cv::Mat Ellipse::getMask(const cv::Size axisBorder) const
 
 	return mask;
 }
+
 
 }
