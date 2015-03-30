@@ -21,7 +21,7 @@ PipelineGrid::PipelineGrid(cv::Point2i center, double radius, double angle_z, do
 	resetCache();
 }
 
-PipelineGrid::PipelineGrid(const PipelineGrid::gridconfig_t& config)
+PipelineGrid::PipelineGrid(const Util::gridconfig_t& config)
     : PipelineGrid(config.center, config.radius, config.angle_z,
                    config.angle_y, config.angle_x)
 {}
@@ -58,22 +58,30 @@ cv::Mat PipelineGrid::getProjectedImage(const cv::Size2i size) const
 	return img;
 }
 
-void PipelineGrid::draw(cv::Mat& img)
+void PipelineGrid::draw(cv::Mat& img, boost::optional<pipeline::decoding_t> decoding)
 {
 	class area_fill_t {
 	public:
 		area_fill_t(cv::Mat& img, const uint8_t color)
-		    : _img(img), _color(color)
+		    : _img(img), _boundingBox(img.size()), _color(color)
 		{}
 
 		inline void operator()(const cv::Point coord) {
-			_img.get().at<uint8_t>(coord) = _color;
+			if (coord.x >= 0 && coord.y >= 0 && coord.x < _boundingBox.width && coord.y < _boundingBox.height) {
+				_img.get().at<uint8_t>(coord) = _color;
+			}
 		}
 
 		void setColor(const uint8_t color) { _color = color; }
 
+		area_fill_t& operator=(area_fill_t&&) = default;
+		area_fill_t(area_fill_t&&) = default;
+		area_fill_t& operator=(const area_fill_t&) = delete;
+		area_fill_t(const area_fill_t&) = delete;
+
 	private:
 		std::reference_wrapper<cv::Mat> _img;
+		cv::Size _boundingBox;
 		uint8_t _color;
 	};
 
@@ -92,7 +100,12 @@ void PipelineGrid::draw(cv::Mat& img)
 	fillFun = processInnerBlackRingCoordinates(std::move(fillFun));
 
 	for (size_t idx = 0; idx < Grid::NUM_MIDDLE_CELLS; ++idx) {
-		fillFun.setColor(idx % 2 ? COLOR_CELL_WHITE : COLOR_CELL_BLACK);
+		if (decoding) {
+			fillFun.setColor(decoding.get()[idx] ? COLOR_CELL_WHITE : COLOR_CELL_BLACK);
+
+		} else {
+			fillFun.setColor(idx % 2 ? COLOR_CELL_WHITE : COLOR_CELL_BLACK);
+		}
 		fillFun = processGridCellCoordinates(idx, std::move(fillFun));
 	}
 
@@ -106,16 +119,22 @@ void PipelineGrid::drawContours(cv::Mat& img, const double transparency, const c
 
 	class edge_fill_t {
 	public:
-		edge_fill_t(cv::Mat& img, const cv::Vec3b color, const cv::Point offset) : _img(img), _color(color), _offset(offset) {}
+		edge_fill_t(cv::Mat& img, const cv::Vec3b color, const cv::Point offset)
+		    : _img(img), _boundingBox(img.size()), _color(color), _offset(offset) {}
 
-		inline void operator()(const cv::Point coord) {
-			_img.get().at<cv::Vec3b>(coord - _offset) = _color;
+		inline void operator()(cv::Point coord) {
+			coord -= _offset;
+
+			if (coord.x >= 0 && coord.y >= 0 && coord.x < _boundingBox.width && coord.y < _boundingBox.height) {
+				_img.get().at<cv::Vec3b>(coord) = _color;
+			}
 		}
 
 		inline void setExpectedSobelGradient(const double, const double) const {}
 
 	private:
 		std::reference_wrapper<cv::Mat> _img;
+		cv::Size _boundingBox;
 		cv::Vec3b _color;
 		cv::Point _offset;
 	};
@@ -185,7 +204,7 @@ cv::Rect PipelineGrid::getPolygonBoundingBox(size_t idx)
 		maxy = std::max(maxy, point.y);
 	}
 
-	return {minx - _boundingBox.tl().x, miny - _boundingBox.tl().y, maxx - minx, maxy - miny};
+	return {minx - _boundingBox.tl().x, miny - _boundingBox.tl().y, maxx - minx + 1, maxy - miny + 1};
 }
 
 void PipelineGrid::resetCache()
@@ -200,7 +219,7 @@ void PipelineGrid::resetCache()
 	_idImage = cv::Mat(_boundingBox.size(), CV_8UC1, cv::Scalar(NOID));
 }
 
-PipelineGrid::gridconfig_t PipelineGrid::getConfig() const
+Util::gridconfig_t PipelineGrid::getConfig() const
 {
 	return {_center, _radius / FOCAL_LENGTH, _angle_z, _angle_y, _angle_x};
 }

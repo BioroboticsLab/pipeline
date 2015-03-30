@@ -42,7 +42,7 @@ public:
 	explicit Tag(cv::Rect rec, int _id);
 
 	std::vector<TagCandidate> &getCandidates();
-	const std::vector<TagCandidate> &getCandidates() const;
+	const std::vector<TagCandidate> &getCandidatesConst() const;
 	void setCandidates(std::vector<TagCandidate>&& candidates);
 	void addCandidate(TagCandidate c);
 

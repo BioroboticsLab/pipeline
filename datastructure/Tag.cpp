@@ -32,7 +32,7 @@ std::vector<TagCandidate>& Tag::getCandidates() {
 	return _candidates;
 }
 
-const std::vector<TagCandidate>& Tag::getCandidates() const {
+const std::vector<TagCandidate>& Tag::getCandidatesConst() const {
 	return _candidates;
 }
 

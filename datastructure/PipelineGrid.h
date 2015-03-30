@@ -1,14 +1,17 @@
 #pragma once
 
 #include <array>
+#include <bitset>
 
 #include <boost/optional.hpp>
 
-#ifdef PipelineStandalone
-// TODO: FIXME!
-#include "CvHelper.h"
-#include "Grid.h"
-#endif
+#include "source/tracking/algorithm/BeesBook/Common/Grid.h"
+
+#include "../util/Util.h"
+
+namespace pipeline {
+typedef std::bitset<Grid::NUM_MIDDLE_CELLS> decoding_t;
+}
 
 class PipelineGrid : private Grid {
 public:
@@ -18,21 +21,13 @@ public:
 		std::vector<cv::Point2i> areaCoordinates;
 	} coordinates_t;
 
-	typedef struct {
-		cv::Point2i center;
-		double radius;
-		double angle_z;
-		double angle_y;
-		double angle_x;
-	} gridconfig_t;
-
 	static const uint8_t NOID = 255;
 
 	explicit PipelineGrid(cv::Point2i center, double radius, double angle_z, double angle_y, double angle_x);
-	explicit PipelineGrid(gridconfig_t const& config);
+	explicit PipelineGrid(Util::gridconfig_t const& config);
 	virtual ~PipelineGrid() {}
 
-	gridconfig_t getConfig() const;
+	Util::gridconfig_t getConfig() const;
 
 	template <typename Func>
 	Func processOuterRingCoordinates(Func&& coordinateFunction);
@@ -57,7 +52,7 @@ public:
 
 	// TODO: maybe merge different draw functions
 	cv::Mat getProjectedImage(const cv::Size2i size) const;
-	void draw(cv::Mat& img);
+	void draw(cv::Mat& img, boost::optional<pipeline::decoding_t> decoding = boost::optional<pipeline::decoding_t>());
 	void drawContours(cv::Mat& img, const double transparency, const cv::Vec3b &color = cv::Vec3b(255, 255, 255)) const;
 
 	void setXRotation(double angle) { Grid::setXRotation(angle); resetCache(); }
@@ -158,19 +153,12 @@ private:
 		cacheSetter& operator=(cacheSetter&&) = default;
 
 		inline void operator()(cv::Point coords) {
+			assert(Util::pointInBounds(_idImage.get().size(), coords - _idImageOffset));
+
 			// TODO: maybe speed up using raw pointer access
-			//std::cout << coords << std::endl;
-			const cv::Point idImageCoords(coords - _idImageOffset);
-			if (idImageCoords.x >= 0 && idImageCoords.y >= 0 &&
-			    idImageCoords.x < _idImage.get().size().width &&
-			    idImageCoords.y < _idImage.get().size().height)
-			{
-				_idImage.get().template at<uint8_t>(idImageCoords) = _idx;
-				_coordinateCache.get().areaCoordinates.push_back(coords + _gridCenter);
-				(_coordinateFunction.get())(coords + _gridCenter);
-			} else {
-				assert(false);
-			}
+			_idImage.get().template at<uint8_t>(coords - _idImageOffset) = _idx;
+			_coordinateCache.get().areaCoordinates.push_back(coords + _gridCenter);
+			(_coordinateFunction.get())(coords + _gridCenter);
 		}
 
 	protected:
@@ -182,11 +170,12 @@ private:
 		cv::Point2i _gridCenter;
 	};
 
+
 	template<typename Func>
 	class cacheSetterOuter : private cacheSetter<Func>
 	{
 	public:
-		explicit cacheSetterOuter(const size_t idx, cv::Mat& idImage, PipelineGrid::coordinates_t& coordinateCache, Func& coordinateFunction, const cv::Point2i& idImageOffset, const cv::Point2i gridCenter)
+		explicit cacheSetterOuter(const size_t idx, cv::Mat& idImage, PipelineGrid::coordinates_t& coordinateCache, Func& coordinateFunction, const cv::Point2i idImageOffset, const cv::Point2i gridCenter)
 		    : cacheSetter<Func>(idx, idImage, coordinateCache, coordinateFunction, idImageOffset, gridCenter)
 		{}
 
@@ -197,15 +186,11 @@ private:
 		cacheSetterOuter& operator=(cacheSetterOuter&&) = default;
 
 		inline void operator()(cv::Point coords) {
-			const cv::Point idImageCoords(coords - this->_idImageOffset);
-			if (idImageCoords.x >= 0 && idImageCoords.y >= 0 &&
-			    idImageCoords.x < this->_idImage.get().size().width &&
-			    idImageCoords.y < this->_idImage.get().size().height)
-			{
-				uint8_t value = this->_idImage.get().template at<uint8_t>(idImageCoords);
-				if (value == PipelineGrid::NOID) {
-					cacheSetter<Func>::operator ()(coords);
-				}
+			assert(Util::pointInBounds(this->_idImage.get().size(), coords - this->_idImageOffset));
+
+			uint8_t value = this->_idImage.get().template at<uint8_t>(coords - this->_idImageOffset);
+			if (value == PipelineGrid::NOID) {
+				cacheSetter<Func>::operator ()(coords);
 			}
 		}
 	};
