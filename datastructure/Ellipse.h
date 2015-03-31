@@ -26,12 +26,12 @@ private:
 		//needed to serialize class implicit
 
 		template<class Archive>
-		void serialize(Archive & ar, const unsigned int version) {
-		    ar & BOOST_SERIALIZATION_NVP(this->_angle);
-		    ar & BOOST_SERIALIZATION_NVP(this->_axis);
-		    ar & BOOST_SERIALIZATION_NVP(this->_cen);
-		    ar & BOOST_SERIALIZATION_NVP(this->_roiSize);
-		    ar & BOOST_SERIALIZATION_NVP(this->_vote);
+		void serialize(Archive & ar, const unsigned int) {
+		    ar & BOOST_SERIALIZATION_NVP(_angle);
+		    ar & BOOST_SERIALIZATION_NVP(_axis);
+		    ar & BOOST_SERIALIZATION_NVP(_cen);
+		    ar & BOOST_SERIALIZATION_NVP(_roiSize);
+		    ar & BOOST_SERIALIZATION_NVP(_vote);
 		}
 
 

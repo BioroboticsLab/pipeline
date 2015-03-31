@@ -262,7 +262,7 @@ private:
 
 //need to split load/save to construct additionally data on load
 		template<class Archive>
-		void save(Archive & ar, const unsigned int version) const
+		void save(Archive & ar, const unsigned int) const
 		{
 		    // invoke serialization of the base class
 			ar << this->_angle_x;
@@ -273,7 +273,7 @@ private:
 		}
 
 		template<class Archive>
-		void load(Archive & ar, const unsigned int version)
+		void load(Archive & ar, const unsigned int)
 		{
 			ar >> this->_angle_x;
 					    ar >> this->_angle_y;
@@ -291,37 +291,15 @@ private:
 		){
 		    boost::serialization::split_member(ar, *this, file_version);
 		}
-
-
-		 //prototype of save_construct_data for non-default constructor
-		        template<class Archive> friend
-		            void boost::serialization::save_construct_data(Archive & ar,
-		                          PipelineGrid * g, const unsigned int file_version);
-
-		        //prototype of load_construct_data for non-default constructor
-		        template<class Archive> friend
-		            void boost::serialization::load_construct_data(Archive & ar,
-		            		PipelineGrid * g, const unsigned int file_version);
-
-
 };
 
 BOOST_CLASS_EXPORT_KEY(PipelineGrid)
 
 namespace boost {
 namespace serialization {
-template<class Archive>
- void save_construct_data(Archive & ar, const PipelineGrid * g, const unsigned long int file_version) {
-	// save data required to construct instance
-	/*ar << g->getCenter();
-	ar << g->getRadius();
-	ar << g->getXRotation();
-	ar << g->getYRotation();
-	ar << g->getZRotation();*/
-}
 
 template<class Archive>
- void load_construct_data(Archive & ar, PipelineGrid * g,unsigned int file_version) {
+ void load_construct_data(Archive &, PipelineGrid * g,unsigned int) {
 	// retrieve data from archive required to construct new instance
 	/*cv::Point2i center;
 	double radius, angle_z, angle_y, angle_x;
