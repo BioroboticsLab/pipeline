@@ -27,11 +27,11 @@ private:
 
 		template<class Archive>
 		void serialize(Archive & ar, const unsigned int version) {
-		    ar & this->_angle;
-		    ar & this->_axis;
-		    ar & this->_cen;
-		    ar & this->_roiSize;
-		    ar & this->_vote;
+		    ar & BOOST_SERIALIZATION_NVP(this->_angle);
+		    ar & BOOST_SERIALIZATION_NVP(this->_axis);
+		    ar & BOOST_SERIALIZATION_NVP(this->_cen);
+		    ar & BOOST_SERIALIZATION_NVP(this->_roiSize);
+		    ar & BOOST_SERIALIZATION_NVP(this->_vote);
 		}
 
 
