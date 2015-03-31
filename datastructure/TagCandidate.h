@@ -50,21 +50,11 @@ private:
 
 	friend class boost::serialization::access;
 	template<class Archive> void serialize(Archive & ar,
-			const unsigned int version) {
+			const unsigned int) {
 		ar & this->_ellipse;
 		ar & this->_decodings;
 		ar & this->_grids;
 	}
-
-	//prototype of save_construct_data for non-default constructor
-	template<class Archive> friend
-	void boost::serialization::save_construct_data(Archive & ar,
-			pipeline::TagCandidate * c, const unsigned int file_version);
-
-	//prototype of load_construct_data for non-default constructor
-	template<class Archive> friend
-	void boost::serialization::load_construct_data(Archive & ar,
-			pipeline::TagCandidate * c, const unsigned int file_version);
 };
 }
 
@@ -74,16 +64,8 @@ BOOST_CLASS_EXPORT_KEY(pipeline::TagCandidate)
 
 namespace boost { namespace serialization {
 template<class Archive>
-inline void save_construct_data(
-    Archive & ar, const pipeline::TagCandidate * c, const unsigned long int file_version
-){
-    // save data required to construct instance
-  //  ar << c->getEllipse();
-}
-
-template<class Archive>
 inline void load_construct_data(
-    Archive & ar, pipeline::TagCandidate * c,  unsigned  int file_version
+    Archive &, pipeline::TagCandidate * c,  unsigned  int
 ){
     // retrieve data from archive required to construct new instance
 	//pipeline::Ellipse e;

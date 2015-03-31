@@ -7,9 +7,6 @@
 #include "TagCandidate.h"
 #include "serialization.hpp"
 
-
-
-
 namespace pipeline {
 class Tag {
 private:
@@ -31,25 +28,12 @@ private:
 
 	//needed to serialize class implicit
 	template<class Archive>
-	void serialize(Archive & ar, const unsigned int version) {
+	void serialize(Archive & ar, const unsigned int) {
+	    ar & this->_box;
 	    ar & this->_id;
 	    ar & this->_valid;
-	    ar & this->_box;
 	    ar & this->_candidates;
-
 	}
-
-	 //prototype of save_construct_data for non-default constructor
-	        template<class Archive> friend
-	            void boost::serialization::save_construct_data(Archive & ar,
-	                          pipeline::Tag * t, const unsigned int file_version);
-
-	        //prototype of load_construct_data for non-default constructor
-	        template<class Archive> friend
-	            void boost::serialization::load_construct_data(Archive & ar,
-	            		 pipeline::Tag * t, const unsigned int file_version);
-
-
 
 public:
 	explicit Tag(cv::Rect rec, int _id);
@@ -83,20 +67,9 @@ BOOST_CLASS_EXPORT_KEY(pipeline::Tag)
 
 
 namespace boost { namespace serialization {
-template<class Archive>
-inline void save_construct_data(
-    Archive & ar, const pipeline::Tag * t, const unsigned long int file_version
-){
-    // save data required to construct instance
-   // ar << t->getId();
-    //ar << t->getBox();
-
-}
 
 template<class Archive>
-inline void load_construct_data(
-    Archive & ar, pipeline::Tag * t,  unsigned int file_version
-){
+inline void load_construct_data(Archive &, pipeline::Tag * t,  unsigned int) {
     // retrieve data from archive required to construct new instance
 /*	cv::Rect box;
 	int id;

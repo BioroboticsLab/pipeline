@@ -26,7 +26,7 @@ namespace serialization {
 
 // Rect (opencv)
 template<class Archive>
-void serialize(Archive &ar, cv::Rect_<int> &rec, const unsigned int version) {
+void serialize(Archive &ar, cv::Rect_<int> &rec, const unsigned int) {
 	ar & BOOST_SERIALIZATION_NVP(rec.height);
 	ar & BOOST_SERIALIZATION_NVP(rec.width);
 	ar & BOOST_SERIALIZATION_NVP(rec.x);
@@ -35,7 +35,7 @@ void serialize(Archive &ar, cv::Rect_<int> &rec, const unsigned int version) {
 
 // Point2i (opencv)
 template<class Archive>
-void serialize(Archive &ar, cv::Point2i &point, const unsigned int version) {
+void serialize(Archive &ar, cv::Point2i &point, const unsigned int) {
 	ar & BOOST_SERIALIZATION_NVP(point.x);
 	ar & BOOST_SERIALIZATION_NVP(point.y);
 }
@@ -43,14 +43,10 @@ void serialize(Archive &ar, cv::Point2i &point, const unsigned int version) {
 
 // Size (opencv)
 template<class Archive>
-void serialize(Archive &ar, cv::Size_<int>& size, const unsigned int version) {
+void serialize(Archive &ar, cv::Size_<int>& size, const unsigned int) {
 	ar & BOOST_SERIALIZATION_NVP(size.width);
 	ar & BOOST_SERIALIZATION_NVP(size.height);
 }
-
-
-
-
 
 
 }
