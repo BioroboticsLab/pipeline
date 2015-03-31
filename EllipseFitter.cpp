@@ -53,6 +53,8 @@ EllipseFitter::EllipseFitter(std::string configFile) {
 
 
 void EllipseFitter::detectEllipse(Tag &tag) {
+	detectXieEllipse(tag);
+	return;
 
 	const cv::Mat& subImage = tag.getOrigSubImage();
 	const cv::Mat cannyImage = computeCannyEdgeMap(subImage);
