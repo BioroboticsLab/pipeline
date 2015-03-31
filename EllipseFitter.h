@@ -39,15 +39,11 @@ private:
 	void detectEllipse(Tag &tag);
 
 #ifdef PipelineStandalone
-	void loadConfigVars(std::string filename);
 	void visualizeEllipse(Ellipse const& ell, std::string const& title);
 #endif
 
 public:
-	EllipseFitter();
-#ifdef PipelineStandalone
-	EllipseFitter(std::string configFile);
-#endif
+	EllipseFitter() {}
 	virtual ~EllipseFitter() {}
 
 	void loadSettings(settings::ellipsefitter_settings_t &&settings);
