@@ -5,7 +5,7 @@
 #include "datastructure/Tag.h"
 #include "datastructure/TagCandidate.h"
 #include "util/ThreadPool.h"
-#include "../utility/CvHelper.h"
+#include "source/utility/CvHelper.h"
 
 #include "datastructure/PipelineGrid.impl.h"
 

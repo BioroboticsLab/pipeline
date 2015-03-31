@@ -5,7 +5,7 @@
 #include "source/utility/CvHelper.h"
 #include "source/utility/util.h"
 
-#include "../datastructure/Grid.h"
+#include "source/tracking/algorithm/BeesBook/Common/Grid.h"
 
 namespace Util {
 

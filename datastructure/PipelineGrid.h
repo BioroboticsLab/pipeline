@@ -3,17 +3,12 @@
 #include <array>
 #include <bitset>
 
+#include <boost/serialization/export.hpp>
 #include <boost/optional.hpp>
-
-#include "Grid.h"
 
 #include "../util/Util.h"
 #include "serialization.hpp"
-
-#include <boost/serialization/export.hpp>
-
-
-
+#include "source/tracking/algorithm/BeesBook/Common/Grid.h"
 
 namespace pipeline {
 typedef std::bitset<Grid::NUM_MIDDLE_CELLS> decoding_t;
