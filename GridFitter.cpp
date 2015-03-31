@@ -417,7 +417,7 @@ void GridFitter::GradientDescent::optimize()
 			double const initerror = error;
 
 			// shuffle order of parameters
-			std::shuffle(parameters.begin(), parameters.end(), _random_engine);
+			//std::shuffle(parameters.begin(), parameters.end(), _random_engine);
 			for (const StepParameter param : parameters) {
 				std::tie(error, config) = step(bestGridsForCandidate, config, error, param);
 			}
