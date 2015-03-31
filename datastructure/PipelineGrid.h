@@ -25,14 +25,6 @@ public:
 		// rasterized coordinates of an grid area (outer ring etc.) for the
 		// current grid configuration
 		std::vector<cv::Point2i> areaCoordinates;
-		/*friend class boost::serialization::access;
-
-				//needed to serialize class implicit
-				template<class Archive>
-				void serialize(Archive & ar, const unsigned int version) {
-					ar & BOOST_SERIALIZATION_NVP(this->areaCoordinates);
-				}*/
-
 	} coordinates_t;
 
 	static const uint8_t NOID = 255;
@@ -125,7 +117,8 @@ public:
 	double compare(const PipelineGrid &to) const;
 
 private:
-
+	/* only use for deserialization purposes! */
+	explicit PipelineGrid() {}
 
 	// contains the cached coordinates of the current grid parameters
 	// or is invalid.
@@ -258,71 +251,38 @@ private:
 	};
 
 	//needed to serialize all the private members
-		friend class boost::serialization::access;
+	friend class boost::serialization::access;
 
-//need to split load/save to construct additionally data on load
-		template<class Archive>
-		void save(Archive & ar, const unsigned int) const
-		{
-		    // invoke serialization of the base class
-			ar << this->_angle_x;
-					    ar << this->_angle_y;
-					    ar << this->_angle_z;
-					    ar << this->_boundingBox;
-					    ar << this->_center;
-		}
+	//need to split load/save to construct additionally data on load
+	template<class Archive>
+	void save(Archive & ar, const unsigned int) const
+	{
+		// invoke serialization of the base class
+		ar << _angle_x;
+		ar << _angle_y;
+		ar << _angle_z;
+		ar << _center;
+		ar << _radius;
+	}
 
-		template<class Archive>
-		void load(Archive & ar, const unsigned int)
-		{
-			ar >> this->_angle_x;
-					    ar >> this->_angle_y;
-					    ar >> this->_angle_z;
-					    ar >> this->_boundingBox;
-					    ar >> this->_center;
+	template<class Archive>
+	void load(Archive & ar, const unsigned int)
+	{
+		ar >> _angle_x;
+		ar >> _angle_y;
+		ar >> _angle_z;
+		ar >> _center;
+		ar >> _radius;
 
-					    this->prepare_visualization_data();
-		}
+		prepare_visualization_data();
+		resetCache();
+	}
 
-		template<class Archive>
-		void serialize(
-		    Archive & ar,
-		    const unsigned int file_version
-		){
-		    boost::serialization::split_member(ar, *this, file_version);
-		}
+	template<class Archive>
+	void serialize(Archive & ar, const unsigned int file_version)
+	{
+		boost::serialization::split_member(ar, *this, file_version);
+	}
 };
 
 BOOST_CLASS_EXPORT_KEY(PipelineGrid)
-
-namespace boost {
-namespace serialization {
-
-template<class Archive>
- void load_construct_data(Archive &, PipelineGrid * g,unsigned int) {
-	// retrieve data from archive required to construct new instance
-	/*cv::Point2i center;
-	double radius, angle_z, angle_y, angle_x;
-	ar >> center;
-	ar >> radius;
-	ar >> angle_x;
-	ar >> angle_y;
-	ar >> angle_z;*/
-
-	/**
-		 * @TODO fix ME!!
-		 */
-	Util::gridconfig_t config = Util::gridconfig_t();
-	config.angle_x = 0;
-	config.angle_y = 0;
-	config.angle_z = 0;
-	config.center = cv::Point2i(0,0);
-	config.radius = 0;
-
-
-	// invoke inplace constructor to initialize instance of PipelineGrid
-	::new (g) PipelineGrid(config);
-}
-}
-}
-
