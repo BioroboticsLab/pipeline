@@ -29,10 +29,10 @@ private:
 	//needed to serialize class implicit
 	template<class Archive>
 	void serialize(Archive & ar, const unsigned int) {
-	    ar & this->_box;
-	    ar & this->_id;
-	    ar & this->_valid;
-	    ar & this->_candidates;
+	    ar & BOOST_SERIALIZATION_NVP(_box);
+	    ar & BOOST_SERIALIZATION_NVP(_id);
+	    ar & BOOST_SERIALIZATION_NVP(_valid);
+	    ar & BOOST_SERIALIZATION_NVP(_candidates);
 	}
 
 public:

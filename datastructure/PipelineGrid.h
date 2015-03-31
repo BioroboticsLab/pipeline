@@ -253,21 +253,21 @@ private:
 	void save(Archive & ar, const unsigned int) const
 	{
 		// invoke serialization of the base class
-		ar << _angle_x;
-		ar << _angle_y;
-		ar << _angle_z;
-		ar << _center;
-		ar << _radius;
+		ar << BOOST_SERIALIZATION_NVP(_angle_x);
+		ar << BOOST_SERIALIZATION_NVP(_angle_y);
+		ar << BOOST_SERIALIZATION_NVP(_angle_z);
+		ar << BOOST_SERIALIZATION_NVP(_center);
+		ar << BOOST_SERIALIZATION_NVP(_radius);
 	}
 
 	template<class Archive>
 	void load(Archive & ar, const unsigned int)
 	{
-		ar >> _angle_x;
-		ar >> _angle_y;
-		ar >> _angle_z;
-		ar >> _center;
-		ar >> _radius;
+		ar >> BOOST_SERIALIZATION_NVP(_angle_x);
+		ar >> BOOST_SERIALIZATION_NVP(_angle_y);
+		ar >> BOOST_SERIALIZATION_NVP(_angle_z);
+		ar >> BOOST_SERIALIZATION_NVP(_center);
+		ar >> BOOST_SERIALIZATION_NVP(_radius);
 
 		prepare_visualization_data();
 		resetCache();
