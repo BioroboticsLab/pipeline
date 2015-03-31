@@ -51,9 +51,9 @@ private:
 	friend class boost::serialization::access;
 	template<class Archive> void serialize(Archive & ar,
 			const unsigned int) {
-		ar & this->_ellipse;
-		ar & this->_decodings;
-		ar & this->_grids;
+		ar & BOOST_SERIALIZATION_NVP(_ellipse);
+		ar & BOOST_SERIALIZATION_NVP(_decodings);
+		ar & BOOST_SERIALIZATION_NVP(_grids);
 	}
 };
 }
