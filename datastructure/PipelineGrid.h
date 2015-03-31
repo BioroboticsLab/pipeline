@@ -9,8 +9,9 @@
 
 #include "../util/Util.h"
 #include "serialization.hpp"
-#include <boost/serialization/nvp.hpp>
+
 #include <boost/serialization/export.hpp>
+
 
 
 
@@ -24,13 +25,13 @@ public:
 		// rasterized coordinates of an grid area (outer ring etc.) for the
 		// current grid configuration
 		std::vector<cv::Point2i> areaCoordinates;
-		friend class boost::serialization::access;
+		/*friend class boost::serialization::access;
 
 				//needed to serialize class implicit
 				template<class Archive>
 				void serialize(Archive & ar, const unsigned int version) {
 					ar & BOOST_SERIALIZATION_NVP(this->areaCoordinates);
-				}
+				}*/
 
 	} coordinates_t;
 
@@ -310,29 +311,39 @@ BOOST_CLASS_EXPORT_KEY(PipelineGrid)
 namespace boost {
 namespace serialization {
 template<class Archive>
- void save_construct_data(Archive & ar, const PipelineGrid * g,
-		const unsigned long int file_version) {
+ void save_construct_data(Archive & ar, const PipelineGrid * g, const unsigned long int file_version) {
 	// save data required to construct instance
-	ar << g->getCenter();
+	/*ar << g->getCenter();
 	ar << g->getRadius();
 	ar << g->getXRotation();
 	ar << g->getYRotation();
-	ar << g->getZRotation();
+	ar << g->getZRotation();*/
 }
 
 template<class Archive>
- void load_construct_data(Archive & ar, PipelineGrid * g,
-		const unsigned long int file_version) {
+ void load_construct_data(Archive & ar, PipelineGrid * g,unsigned int file_version) {
 	// retrieve data from archive required to construct new instance
-	cv::Point2i center;
+	/*cv::Point2i center;
 	double radius, angle_z, angle_y, angle_x;
 	ar >> center;
 	ar >> radius;
 	ar >> angle_x;
 	ar >> angle_y;
-	ar >> angle_z;
+	ar >> angle_z;*/
+
+	/**
+		 * @TODO fix ME!!
+		 */
+	Util::gridconfig_t config = Util::gridconfig_t();
+	config.angle_x = 0;
+	config.angle_y = 0;
+	config.angle_z = 0;
+	config.center = cv::Point2i(0,0);
+	config.radius = 0;
+
+
 	// invoke inplace constructor to initialize instance of PipelineGrid
-	::new (g) PipelineGrid(center, radius, angle_x, angle_y, angle_z);
+	::new (g) PipelineGrid(config);
 }
 }
 }

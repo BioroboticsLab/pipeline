@@ -52,7 +52,7 @@ private:
 	template<class Archive> void serialize(Archive & ar,
 			const unsigned int version) {
 		ar & this->_ellipse;
-		//ar & this->_decodings;
+		ar & this->_decodings;
 		ar & this->_grids;
 	}
 
@@ -78,18 +78,20 @@ inline void save_construct_data(
     Archive & ar, const pipeline::TagCandidate * c, const unsigned long int file_version
 ){
     // save data required to construct instance
-    ar << c->getEllipse();
+  //  ar << c->getEllipse();
 }
 
 template<class Archive>
 inline void load_construct_data(
-    Archive & ar, pipeline::TagCandidate * c, const unsigned long int file_version
+    Archive & ar, pipeline::TagCandidate * c,  unsigned  int file_version
 ){
     // retrieve data from archive required to construct new instance
-	pipeline::Ellipse e;
-    ar >> e;
-
+	//pipeline::Ellipse e;
+    //ar >> e;
+	/**
+		 * @TODO fix ME!!
+		 */
     // invoke inplace constructor to initialize instance of PipelineGrid
-    ::new(c) pipeline::TagCandidate(e);
+    ::new(c) pipeline::TagCandidate(pipeline::Ellipse());
 }
 }}

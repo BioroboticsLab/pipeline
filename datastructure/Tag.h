@@ -88,21 +88,25 @@ inline void save_construct_data(
     Archive & ar, const pipeline::Tag * t, const unsigned long int file_version
 ){
     // save data required to construct instance
-    ar << t->getId();
-    ar << t->getBox();
+   // ar << t->getId();
+    //ar << t->getBox();
 
 }
 
 template<class Archive>
 inline void load_construct_data(
-    Archive & ar, pipeline::Tag * t, const unsigned long int file_version
+    Archive & ar, pipeline::Tag * t,  unsigned int file_version
 ){
     // retrieve data from archive required to construct new instance
-	cv::Rect box;
+/*	cv::Rect box;
 	int id;
     ar >> id;
-    ar >> box;
+    ar >> box;*/
     // invoke inplace constructor to initialize instance of PipelineGrid
-    ::new(t)pipeline::Tag(box,id);
+
+	/**
+	 * @TODO fix ME!!
+	 */
+    ::new(t)pipeline::Tag(cv::Rect(0,0,0,0),0);
 }
 }}
