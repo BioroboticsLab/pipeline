@@ -19,7 +19,7 @@ namespace heyho {
 	 *   - thus pixels with invalid y-coordinates are skipped until the next valid pixel is reached
 	 * - groups of consecutive pixels with the same y-coordinate are merged into an object containing the leftmost and rightmost x-value
 	 */
-	template<typename POINTS_IT, typename LINE_IT /* = line_iterator_cv */>
+	template<typename POINTS_IT, typename LINE_IT>
 	class poly_line_vertical_iterator
 	{
 	public:
@@ -37,7 +37,7 @@ namespace heyho {
 
 		};
 
-		explicit poly_line_vertical_iterator(POINTS_IT points_it, int connectivity);
+		explicit poly_line_vertical_iterator(POINTS_IT points_it, connectivity line_type);
 
 		const hline& operator*() const;
 		const hline* operator->() const;

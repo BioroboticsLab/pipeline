@@ -24,7 +24,7 @@ namespace heyho {
 				using ring = ring_iterator_bd<BDIT>;
 				using poly_line = poly_line_iterator<ring, line_iterator_cv>;
 
-				poly_line pl(ring(poly_points.cbegin(), poly_points.cend(), poly_points.cbegin(), poly_points.cend() - 1, false), 8);
+				poly_line pl(ring(poly_points.cbegin(), poly_points.cend(), poly_points.cbegin(), poly_points.cend() - 1, false), connectivity::eight_connected);
 				std::vector<cv::Point> pl_points;
 				for (; !pl.end(); ++pl) {
 					pl_points.emplace_back(*pl);

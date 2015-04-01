@@ -11,7 +11,7 @@
 namespace heyho {
 
 	template<typename LINE_IT, typename F, typename B, typename IT>
-	F convex_poly(F f, B boundaries, IT begin, IT end, int connectivity)
+	F convex_poly(F f, B boundaries, IT begin, IT end, int line_type)
 	{
 		//using ring_it_t  = ring_iterator_bd<IT>;
 		//using pixel_it_t = poly_line_vertical_iterator<ring_it_t>;
@@ -29,8 +29,8 @@ namespace heyho {
 		//pixel_it_t side_1(ring_it_t(begin, end, min_y_it, max_y_it, true),  connectivity);
 		//pixel_it_t side_2(ring_it_t(begin, end, min_y_it, max_y_it, false), connectivity);
 
-		pixel_fwd_it_t side_1(ring_fwd_it_t(begin, end, min_y_it, max_y_it), connectivity);
-		pixel_rev_it_t side_2(ring_rev_it_t(begin, end, min_y_it, max_y_it), connectivity);
+		pixel_fwd_it_t side_1(ring_fwd_it_t(begin, end, min_y_it, max_y_it), static_cast<connectivity>(line_type));
+		pixel_rev_it_t side_2(ring_rev_it_t(begin, end, min_y_it, max_y_it), static_cast<connectivity>(line_type));
 
 		for (; !side_1.end() && !side_2.end(); ++side_1, ++side_2)
 		{
@@ -46,7 +46,7 @@ namespace heyho {
 	}
 
 	template<typename LINE_IT, typename F, typename B>
-	inline F convex_poly(F f, B boundaries, cv::InputArray points, int connectivity)
+	inline F convex_poly(F f, B boundaries, cv::InputArray points, int line_type)
 	{
 		// cv::InputArray --> begin & end iterator; forward everything else
 		const auto ptr_size = cv_point_input_array_to_pointer(points);
@@ -55,7 +55,7 @@ namespace heyho {
 			boundaries,
 			ptr_size.first,
 			ptr_size.first + ptr_size.second,
-			connectivity
+			line_type
 		);
 	}
 
