@@ -109,6 +109,12 @@ namespace heyho {
 	 */
 	std::pair<const cv::Point*, int> cv_point_input_array_to_pointer(cv::InputArray pts);
 
+	namespace tests {
+
+		void helper_tests();
+
+	}
+
 }
 
 #include "helper.impl.h"

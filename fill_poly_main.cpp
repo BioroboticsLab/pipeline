@@ -20,6 +20,7 @@
 
 #include "line_iterator.h"
 #include "line_iterator_cv.h"          // line_iterator_tests
+#include "helper.h"
 
 
 
@@ -65,6 +66,7 @@ int main_impl() {
 
 	// tests
 	{
+		heyho::tests::helper_tests();
 		heyho::tests::line_iterator_cv_tests();
 		heyho::tests::line_iterator_tests();
 		heyho::tests::ring_iterator_tests();
