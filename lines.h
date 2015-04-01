@@ -8,7 +8,7 @@
 #ifndef LINES_H_
 #define LINES_H_
 
-#include "helper.h"           // heyho::pixel_setter
+#include "helper.h"           // heyho::pixel_setter, heyho::connectivity
 #include <opencv2/opencv.hpp> // cv::Point, cv::Mat
 #include <utility>            // std::move
 #include <algorithm>          // std::min, std::max, std::swap
@@ -24,7 +24,7 @@ namespace heyho {
 	F hline(F f, cv::Rect          boundaries, int x_left, int x_right, int y);
 
 	template<typename LINE_IT, typename F, typename B>
-	F line(F f, B boundaries, cv::Point pt1, cv::Point pt2, int connectivity = 8, bool left_to_right = false);
+	F line(F f, B boundaries, cv::Point pt1, cv::Point pt2, connectivity line_type = connectivity::eight_connected, bool left_to_right = false);
 
 
 	template<typename pixel_t>

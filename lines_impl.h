@@ -52,13 +52,13 @@ namespace heyho {
 
 
 	template<typename LINE_IT, typename F, typename B>
-	F line(F f, B boundaries, cv::Point pt1, cv::Point pt2, int connectivity, bool left_to_right)
+	F line(F f, B boundaries, cv::Point pt1, cv::Point pt2, connectivity line_type, bool left_to_right)
 	{
 		if (left_to_right && pt1.x > pt2.x) {
 			using std::swap;
 			swap(pt1, pt2);
 		}
-		for (LINE_IT it(boundaries, pt1, pt2, connectivity); !it.end(); ++it) {
+		for (LINE_IT it(boundaries, pt1, pt2, line_type); !it.end(); ++it) {
 			f(*it);
 		}
 		return std::move(f);
