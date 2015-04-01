@@ -13,13 +13,17 @@ namespace heyho {
 	template<typename pixel_t>
 	inline pixel_t scalar2pixel(const cv::Scalar &color) {
 		constexpr int img_type = cv::DataType<pixel_t>::type;
-		double buf[4];
+
+		// values from cv::scalarToRawData implementation
+		constexpr size_t max_num_chans = 4;              // CV_Assert(cn <= 4);
+		constexpr size_t max_chan_size = sizeof(double); // CV_64F
+
+		uchar buf[max_num_chans * max_chan_size];
 		cv::scalarToRawData(color, buf, img_type, 0);
+
 		pixel_t result;
-		uchar *pixel_p = reinterpret_cast<uchar*>(&result);
-		for (size_t i = 0; i < sizeof result; ++i) {
-			pixel_p[i] = reinterpret_cast<const uchar*>(buf)[i];
-		}
+		static_assert(sizeof result <= sizeof buf, "invalid pixel_t");
+		std::copy_n(buf, sizeof result, reinterpret_cast<uchar*>(&result));
 		return result;
 	}
 
