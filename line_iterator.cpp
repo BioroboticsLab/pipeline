@@ -43,13 +43,13 @@ namespace heyho {
 					const cv::Point p1(25, 25);
 					const cv::Point vec(x,y);
 					compare(
-						line_iterator   (no_boundaries_tag{}, p1, p1 + vec, 8),
-						line_iterator_cv(size,                p1, p1 + vec, 8)
+						line_iterator   (no_boundaries_tag{}, p1, p1 + vec, connectivity::eight_connected),
+						line_iterator_cv(size,                p1, p1 + vec, connectivity::eight_connected)
 					);
 
 					compare(
-						line_iterator   (no_boundaries_tag{}, p1, p1 + vec, 4),
-						line_iterator_cv(size,                p1, p1 + vec, 4)
+						line_iterator   (no_boundaries_tag{}, p1, p1 + vec, connectivity::four_connected),
+						line_iterator_cv(size,                p1, p1 + vec, connectivity::four_connected)
 					);
 				}
 			}
