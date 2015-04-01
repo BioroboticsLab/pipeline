@@ -10,7 +10,7 @@
 
 #include "ring_iterator.h"
 #include "poly_line_vertical_iterator.h"
-#include "helper.h"                      // heyho::pixel_setter, heyho::cv_point_less_y
+#include "helper.h"                      // heyho::pixel_setter, heyho::cv_point_less_y, heyho::connectivity
 #include "lines.h"                       // heyho::hline
 #include <vector>                        // std::vector
 #include <algorithm>                     // std::minmax_element
@@ -54,10 +54,10 @@ namespace heyho {
 	 *
 	 */
 	template<typename LINE_IT, typename F, typename B, typename IT>
-	F convex_poly(F f, B boundaries, IT begin, IT end, int line_type = 8);
+	F convex_poly(F f, B boundaries, IT begin, IT end, connectivity line_type = connectivity::eight_connected);
 
 	template<typename LINE_IT, typename F, typename B>
-	F convex_poly(F f, B boundaries, cv::InputArray points, int line_type = 8);
+	F convex_poly(F f, B boundaries, cv::InputArray points, connectivity line_type = connectivity::eight_connected);
 
 	/**
 	 * @see convex_poly
@@ -66,11 +66,11 @@ namespace heyho {
 	 *
 	 */
 	template<typename LINE_IT, typename pixel_t>
-	void fill_convex_poly(cv::InputOutputArray img, const cv::Scalar& color, cv::InputArray points, int line_type = 8);
+	void fill_convex_poly(cv::InputOutputArray img, const cv::Scalar& color, cv::InputArray points, connectivity line_type = connectivity::eight_connected);
 	template<typename LINE_IT, typename pixel_t>
-	void fill_convex_poly(cv::Mat &img,             const cv::Scalar& color, cv::InputArray points, int line_type = 8);
+	void fill_convex_poly(cv::Mat &img,             const cv::Scalar& color, cv::InputArray points, connectivity line_type = connectivity::eight_connected);
 	template<typename LINE_IT, typename pixel_t>
-	void fill_convex_poly(cv::Mat &img,             const pixel_t &color,    cv::InputArray points, int line_type = 8);
+	void fill_convex_poly(cv::Mat &img,             const pixel_t &color,    cv::InputArray points, connectivity line_type = connectivity::eight_connected);
 
 }
 

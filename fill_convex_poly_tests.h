@@ -79,7 +79,7 @@ namespace heyho {
 			{}
 
 			template<typename pixel_t>
-			bool operator()(int line_type) const
+			bool operator()(connectivity line_type) const
 			{
 				constexpr int img_type = cv::DataType<pixel_t>::type;
 				std::vector<cv::Point> points;
@@ -126,7 +126,7 @@ namespace heyho {
 			std::size_t times;
 
 			template<typename pixel_t>
-			bool operator()(int line_type) const
+			bool operator()(connectivity line_type) const
 			{
 				constexpr int img_type = cv::DataType<pixel_t>::type;
 				constexpr int shift = 0;
@@ -136,12 +136,12 @@ namespace heyho {
 				cv::ellipse2Poly(center, axes, angle, 0, 360, 1, points);
 				cv::Mat img(dim, dim, img_type, white<img_type>());
 
-				std::cout << "img type: " << heyho::img_type_to_str(img_type) << " line type: " << line_type << '\n';
+				std::cout << "img type: " << heyho::img_type_to_str(img_type) << " line type: " << static_cast<int>(line_type) << '\n';
 				{
 					std::cout << "    opencv:    ";
 					timer t;
 					for (size_t i = 0; i < times; ++i) {
-						cv::fillConvexPoly(img, points, default_color<img_type>(), line_type, shift);
+						cv::fillConvexPoly(img, points, default_color<img_type>(), static_cast<int>(line_type), shift);
 					}
 				}
 				{
@@ -174,8 +174,8 @@ namespace heyho {
 			void helper(F f) const
 			{
 				// line_types: {8, 4}
-				if (! f.template operator()<T>(8) ) {throw std::runtime_error("");}
-				if (! f.template operator()<T>(4) ) {throw std::runtime_error("");}
+				if (! f.template operator()<T>(connectivity::eight_connected) ) {throw std::runtime_error("");}
+				if (! f.template operator()<T>(connectivity::four_connected ) ) {throw std::runtime_error("");}
 			}
 
 		public:

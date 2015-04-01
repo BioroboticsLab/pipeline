@@ -37,7 +37,7 @@ namespace heyho {
 				std::cout.flush();
 				timer t;
 				for (size_t j = 0; j < times; ++j) {
-					name_f.second(img, poly, default_color<img_type>(), 4);
+					name_f.second(img, poly, default_color<img_type>(), connectivity::eight_connected);
 				}
 			}
 		}
@@ -74,7 +74,7 @@ namespace heyho {
 				std::cout.flush();
 				timer t;
 				for (size_t j = 0; j < times; ++j) {
-					name_f.second(img, poly, 4);
+					name_f.second(img, poly, connectivity::eight_connected);
 				}
 			}
 		}

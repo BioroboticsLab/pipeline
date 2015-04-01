@@ -11,7 +11,7 @@
 namespace heyho {
 
 	template<typename LINE_IT, typename F>
-	F convex_poly_cv(F f, const cv::Size size, cv::InputArray points, const int line_type)
+	F convex_poly_cv(F f, const cv::Size size, cv::InputArray points, const connectivity line_type)
 	{
 		const auto ptr_size = cv_point_input_array_to_pointer(points);
 		const cv::Point* const pts = ptr_size.first;
@@ -19,10 +19,6 @@ namespace heyho {
 
 		if (pts == nullptr || npts <= 0) {
 			return std::move(f);
-		}
-
-		if (line_type != 4 && line_type != 8) {
-			throw std::invalid_argument("invalid line type");
 		}
 
 		struct {
@@ -52,7 +48,7 @@ namespace heyho {
 				xmax = std::max( xmax, p.x );
 				xmin = std::min( xmin, p.x );
 
-				f = heyho::line<LINE_IT>(std::move(f), size, p0, p, static_cast<connectivity>(line_type), true);
+				f = heyho::line<LINE_IT>(std::move(f), size, p0, p, line_type, true);
 
 				p0 = p;
 			}
@@ -151,7 +147,7 @@ namespace heyho {
 
 
 	template<typename LINE_IT, typename pixel_t>
-	void fill_convex_poly_cv(cv::InputOutputArray img, const cv::Scalar& color, cv::InputArray points, int line_type)
+	void fill_convex_poly_cv(cv::InputOutputArray img, const cv::Scalar& color, cv::InputArray points, connectivity line_type)
 	{
 		/*
 		 * cv::InputOutputArray --> cv::Mat; forward everything else
@@ -167,7 +163,7 @@ namespace heyho {
 
 
 	template<typename LINE_IT, typename pixel_t>
-	void fill_convex_poly_cv(cv::Mat& img, const cv::Scalar& color, cv::InputArray points, int line_type)
+	void fill_convex_poly_cv(cv::Mat& img, const cv::Scalar& color, cv::InputArray points, connectivity line_type)
 	{
 		/*
 		 * cv::Scalar --> pixel_t; forward everything else
@@ -182,7 +178,7 @@ namespace heyho {
 
 
 	template<typename LINE_IT, typename pixel_t>
-	void fill_convex_poly_cv(cv::Mat& img, const pixel_t &color, cv::InputArray points, int line_type)
+	void fill_convex_poly_cv(cv::Mat& img, const pixel_t &color, cv::InputArray points, connectivity line_type)
 	{
 		/*
 		 * cv::Mat + pixel_t --> pixel_setter; forward everything else
