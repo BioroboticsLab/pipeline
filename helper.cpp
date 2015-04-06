@@ -60,16 +60,16 @@ namespace heyho {
 		}
 
 		template<typename T>
-		void compare_scalar_to_pixel(const cv::Scalar &color) {
-			const T pixel_cv    = cv_scalar_2_pixel<T>(color);
-			const T pixel_heyho = scalar2pixel<T>(color);
-			if (pixel_cv != pixel_heyho) {
-				throw std::runtime_error("");
+		void compare_scalar_to_pixel(const cv::Scalar &color)
+		{
+			if (cv_scalar_2_pixel<T>(color) != scalar2pixel<T>(color)) {
+				throw std::runtime_error("scalar2pixel failed :( - " + img_type_to_str(cv::DataType<T>::type));
 			}
 		}
 
-		template<typename chan_t, typename pixel_t = chan_t>
+		template<typename pixel_t>
 		void compare_scalar_to_pixel() {
+			using chan_t = typename cv::DataType<pixel_t>::channel_type;
 			const double min = std::numeric_limits<chan_t>::min();
 			const double max = std::numeric_limits<chan_t>::max();
 			const double mid = (std::numeric_limits<chan_t>::min() + std::numeric_limits<chan_t>::max()) / 2;
@@ -83,61 +83,139 @@ namespace heyho {
 			compare_scalar_to_pixel<pixel_t>(cv::Scalar(max + 16.0, max + 32.0, max + 64.0, max + 128.0));
 		}
 
-		template<typename chan_t>
-		void compare_scalar_to_pixel_vec() {
-			compare_scalar_to_pixel<chan_t, cv::Vec<chan_t, 3>>();
+		template<template<typename> class C>
+		void compare_scalar_to_pixel_c() {
+			compare_scalar_to_pixel<C<unsigned char>>();
+			compare_scalar_to_pixel<C<signed char>>();
+			compare_scalar_to_pixel<C<unsigned short>>();
+			compare_scalar_to_pixel<C<signed short>>();
+			compare_scalar_to_pixel<C<int>>();
+			compare_scalar_to_pixel<C<float>>();
+			compare_scalar_to_pixel<C<double>>();
+
 		}
+
+		template<typename T>
+		using vec1 = cv::Vec<T, 1>;
+
+		template<typename T>
+		using vec2 = cv::Vec<T, 2>;
+
+		template<typename T>
+		using vec3 = cv::Vec<T, 3>;
+
+		template<typename T>
+		using vec4 = cv::Vec<T, 4>;
+
+		template<typename T>
+		using mat11 = cv::Matx<T, 1, 1>;
+
+		template<typename T>
+		using mat12 = cv::Matx<T, 1, 2>;
+
+		template<typename T>
+		using mat13 = cv::Matx<T, 1, 3>;
+
+		template<typename T>
+		using mat14 = cv::Matx<T, 1, 4>;
+
+		template<typename T>
+		using mat21 = cv::Matx<T, 2, 1>;
+
+		template<typename T>
+		using mat22 = cv::Matx<T, 2, 2>;
+
+		template<typename T>
+		using mat31 = cv::Matx<T, 3, 1>;
+
+		template<typename T>
+		using mat41 = cv::Matx<T, 4, 1>;
+
+
+
+
+
+
+
 
 		/**
 		 * @see : http://docs.opencv.org/ref/master/d0/d3a/classcv_1_1DataType.html
 		 */
 		void helper_tests()
 		{
+			{
+				std::cout << "types:\n";
+				std::cout << "  bool:   " << img_type_to_str(cv::DataType<bool>::type) << "\n";
+				std::cout << "  uchar:  " << img_type_to_str(cv::DataType<unsigned char>::type) << "\n";
+				std::cout << "  char:   " << img_type_to_str(cv::DataType<signed char>::type) << "\n";
+				std::cout << "  ushort: " << img_type_to_str(cv::DataType<unsigned short>::type) << "\n";
+				std::cout << "  short:  " << img_type_to_str(cv::DataType<short>::type) << "\n";
+				std::cout << "  int:    " << img_type_to_str(cv::DataType<int>::type) << "\n";
+				std::cout << "  float:  " << img_type_to_str(cv::DataType<float>::type) << "\n";
+				std::cout << "  double: " << img_type_to_str(cv::DataType<double>::type) << "\n";
+			}
+
 			std::cout << "helper tests ... ";
 			std::cout.flush();
 
-			// single channel
-			// ===============
-			compare_scalar_to_pixel<bool>();
+			{
+				static_assert(! is_primitive_open_cv_data_type<bool>{},           "");
+				static_assert(is_primitive_open_cv_data_type<unsigned char>{},  "");
+				static_assert(is_primitive_open_cv_data_type<char>{},           "");
+				static_assert(is_primitive_open_cv_data_type<signed char>{},    "");
+				static_assert(is_primitive_open_cv_data_type<unsigned short>{}, "");
+				static_assert(is_primitive_open_cv_data_type<short>{},          "");
+				static_assert(is_primitive_open_cv_data_type<int>{},            "");
+				static_assert(is_primitive_open_cv_data_type<float>{},          "");
+				static_assert(is_primitive_open_cv_data_type<double>{},         "");
 
-			compare_scalar_to_pixel<unsigned char>();
-			compare_scalar_to_pixel<signed char>();
+				static_assert(! is_primitive_open_cv_data_type<unsigned int>{},       "");
+				static_assert(! is_primitive_open_cv_data_type<int*>{},               "");
+				static_assert(! is_primitive_open_cv_data_type<std::runtime_error>{}, "");
+			}
 
-			compare_scalar_to_pixel<unsigned short>();
-			compare_scalar_to_pixel<signed short>();
+			{
+				// single channel
+				// ===============
+				compare_scalar_to_pixel<unsigned char>();
+				compare_scalar_to_pixel<signed char>();
 
-			compare_scalar_to_pixel<int>();
+				compare_scalar_to_pixel<unsigned short>();
+				compare_scalar_to_pixel<signed short>();
 
-			compare_scalar_to_pixel<float>();
-			compare_scalar_to_pixel<double>();
+				compare_scalar_to_pixel<int>();
 
-			// tripple channel
-			// ===============
-			compare_scalar_to_pixel_vec<bool>();
-
-			compare_scalar_to_pixel_vec<unsigned char>();
-			compare_scalar_to_pixel_vec<signed char>();
-
-			compare_scalar_to_pixel_vec<unsigned short>();
-			compare_scalar_to_pixel_vec<signed short>();
-
-			compare_scalar_to_pixel_vec<int>();
-
-			compare_scalar_to_pixel_vec<float>();
-			compare_scalar_to_pixel_vec<double>();
-
-			std::cout << "passed :)\n";
+				compare_scalar_to_pixel<float>();
+				compare_scalar_to_pixel<double>();
 
 
-			std::cout << "types:\n";
-			std::cout << "  bool:   " << img_type_to_str(cv::DataType<bool>::type) << "\n";
-			std::cout << "  uchar:  " << img_type_to_str(cv::DataType<unsigned char>::type) << "\n";
-			std::cout << "  char:   " << img_type_to_str(cv::DataType<signed char>::type) << "\n";
-			std::cout << "  ushort: " << img_type_to_str(cv::DataType<unsigned short>::type) << "\n";
-			std::cout << "  short:  " << img_type_to_str(cv::DataType<short>::type) << "\n";
-			std::cout << "  int:    " << img_type_to_str(cv::DataType<int>::type) << "\n";
-			std::cout << "  float:  " << img_type_to_str(cv::DataType<float>::type) << "\n";
-			std::cout << "  double: " << img_type_to_str(cv::DataType<double>::type) << "\n";
+
+				// Point
+				compare_scalar_to_pixel_c<cv::Point_>();
+				compare_scalar_to_pixel_c<cv::Point3_>();
+
+				// Vec
+				compare_scalar_to_pixel_c<vec1>();
+				compare_scalar_to_pixel_c<vec2>();
+				compare_scalar_to_pixel_c<vec3>();
+				compare_scalar_to_pixel_c<vec4>();
+
+				// mat
+				compare_scalar_to_pixel_c<mat11>();
+				compare_scalar_to_pixel_c<mat12>();
+				compare_scalar_to_pixel_c<mat13>();
+				compare_scalar_to_pixel_c<mat14>();
+				compare_scalar_to_pixel_c<mat21>();
+				compare_scalar_to_pixel_c<mat22>();
+				compare_scalar_to_pixel_c<mat31>();
+				compare_scalar_to_pixel_c<mat41>();
+
+
+
+				std::cout << "passed :)\n";
+			}
+
+
 		}
 
 	}

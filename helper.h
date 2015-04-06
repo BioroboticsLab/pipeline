@@ -14,6 +14,7 @@
 #include <stdexcept>          // std::invalid_argument
 #include <cmath>              // std::abs
 #include <algorithm>          // std::copy_n
+#include <type_traits>        // std::true_type
 
 namespace heyho {
 
@@ -33,6 +34,23 @@ namespace heyho {
 		}
 	};
 
+	/**
+	 * wraps a bool "value" that is true, iff T is one of either
+	 *   - unsigned char
+	 *   - signed char
+	 *   - unsigned short
+	 *   - short
+	 *   - int
+	 *   - float
+	 *   - double
+	 *
+	 *   although "bool" is a primitive open cv data type
+	 *   (see: http://docs.opencv.org/modules/core/doc/basic_structures.html)
+	 *   it has been removed from this traits object, since
+	 *   cv::DataType<bool>::type == cv::DataType<uin8_t>::type
+	 */
+	template<typename T>
+	struct is_primitive_open_cv_data_type;
 
 	/**
 	 * converts cv::Scalar into pixel.

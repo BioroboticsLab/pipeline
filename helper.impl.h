@@ -10,21 +10,115 @@
 
 namespace heyho {
 
+	namespace detail {
+
+		template<typename T, typename = typename std::enable_if<is_primitive_open_cv_data_type<T>::value>::type>
+		inline T saturate(double d) {
+			return cv::saturate_cast<T>(d);
+		}
+
+		/**
+		 * default open cv implementation using cv::scalarToRawData
+		 */
+		template<typename pixel_t, bool = is_primitive_open_cv_data_type<pixel_t>::value>
+		struct scalar2pixel
+		{
+			pixel_t operator()(const cv::Scalar &color) const {
+				constexpr int img_type = cv::DataType<pixel_t>::type;
+
+				// values from cv::scalarToRawData implementation
+				constexpr size_t max_num_chans = 4;              // CV_Assert(cn <= 4);
+				constexpr size_t max_chan_size = sizeof(double); // CV_64F
+
+				uchar buf[max_num_chans * max_chan_size];
+				cv::scalarToRawData(color, buf, img_type, 0);
+
+				pixel_t result;
+				static_assert(sizeof result <= sizeof buf, "invalid pixel_t");
+				std::copy_n(buf, sizeof result, reinterpret_cast<uchar*>(&result));
+				return result;
+			}
+		};
+
+		/**
+		 * primitive open cv data type implementation (e.g. char, int, float, ...)
+		 */
+		template<typename pixel_t>
+		struct scalar2pixel<pixel_t, true>
+		{
+			pixel_t operator()(const cv::Scalar &color) const {
+				return saturate<pixel_t>(color[0]);
+			}
+		};
+
+		/**
+		 * cv::Vec implementation
+		 */
+		template<typename pixel_t, int num_chans>
+		struct scalar2pixel<cv::Vec<pixel_t, num_chans>, false>
+		{
+			static_assert(0 < num_chans && num_chans <= 4, "");
+
+			cv::Vec<pixel_t, num_chans> operator()(const cv::Scalar &color) const {
+				cv::Vec<pixel_t, num_chans> result;
+				for (int i = 0; i < num_chans; ++i) {
+					result[i] = saturate<pixel_t>(color[i]);
+				}
+				return result;
+			}
+		};
+
+		/**
+		 * cv::Matx implementation
+		 */
+		template<typename pixel_t, int dy, int dx>
+		struct scalar2pixel<cv::Matx<pixel_t, dy, dx>, false>
+		{
+			static_assert(dx > 0 && dy > 0 && dx * dy <= 4, "");
+
+			cv::Matx<pixel_t, dy, dx> operator()(const cv::Scalar &color) const {
+				cv::Matx<pixel_t, dy, dx> result;
+				for (int i = 0; i < dx * dy; ++i) {
+					result(i) = saturate<pixel_t>(color[i]);
+				}
+				return result;
+			}
+		};
+
+		/**
+		 * cv::Point_ implementation
+		 */
+		template<typename pixel_t>
+		struct scalar2pixel<cv::Point_<pixel_t>, false>
+		{
+			cv::Point_<pixel_t> operator()(const cv::Scalar &color) const {
+				return {
+					saturate<pixel_t>(color[0]),
+					saturate<pixel_t>(color[1])
+				};
+			}
+		};
+
+		/**
+		 * cv::Point3_ implementation
+		 */
+		template<typename pixel_t>
+		struct scalar2pixel<cv::Point3_<pixel_t>, false>
+		{
+			cv::Point3_<pixel_t> operator()(const cv::Scalar &color) const {
+				return {
+					saturate<pixel_t>(color[0]),
+					saturate<pixel_t>(color[1]),
+					saturate<pixel_t>(color[2])
+				};
+			}
+		};
+
+	}
+
 	template<typename pixel_t>
 	inline pixel_t scalar2pixel(const cv::Scalar &color) {
-		constexpr int img_type = cv::DataType<pixel_t>::type;
-
-		// values from cv::scalarToRawData implementation
-		constexpr size_t max_num_chans = 4;              // CV_Assert(cn <= 4);
-		constexpr size_t max_chan_size = sizeof(double); // CV_64F
-
-		uchar buf[max_num_chans * max_chan_size];
-		cv::scalarToRawData(color, buf, img_type, 0);
-
-		pixel_t result;
-		static_assert(sizeof result <= sizeof buf, "invalid pixel_t");
-		std::copy_n(buf, sizeof result, reinterpret_cast<uchar*>(&result));
-		return result;
+		return detail::scalar2pixel<pixel_t>{}(color);
 	}
 
 
@@ -105,6 +199,31 @@ namespace heyho {
 		const int size = points.rows * points.cols * points.channels() / 2;
 		return {begin, size};
 	}
+
+	namespace detail {
+
+		template<typename, typename ...>
+		struct contains : std::false_type {};
+
+		template<typename T, typename ...TS>
+		struct contains<T, T, TS...> : std::true_type {};
+
+		template<typename T, typename U, typename ... TS>
+		struct contains<T, U, TS...> : contains<T, TS...> {};
+
+	}
+
+	template<typename T>
+	struct is_primitive_open_cv_data_type : detail::contains<T,
+		char,
+		unsigned char,
+		signed char,
+		unsigned short,
+		short,
+		int,
+		float,
+		double>
+	{};
 
 }
 
