@@ -79,11 +79,13 @@ namespace heyho {
 			}
 		}
 
+		template<typename A, typename B>
 		void compare_convex_poly()
 		{
-			using cmp = compare_paint<heyho::tests::open_cv_fill_poly_f, heyho::tests::heyho_fill_poly_cv_f<line_iterator_cv>>;
+			using cmp = compare_paint<A, B>;
+
 			{
-				std::cout << "FOREACH( cv::fillConvexPoly == heyho::fill_convex_poly_cv ) ... ";
+				std::cout << "FOREACH( " << A::name() << " == " << B::name() << " ) ... ";
 				std::cout.flush();
 				for (int angle = 0; angle < 45; angle += 5) {
 					for (int axis_minor = 25; axis_minor < 50; ++axis_minor) {
@@ -96,7 +98,7 @@ namespace heyho {
 			}
 
 			{
-				std::cout << "FOREACH( cropped cv::fillConvexPoly == cropped heyho::fill_convex_poly_cv ) ... ";
+				std::cout << "FOREACH( cropped " << A::name() << " == cropped " << B::name() << " ) ... ";
 				std::cout.flush();
 
 				// left
@@ -119,6 +121,13 @@ namespace heyho {
 
 				std::cout << "passed :)\n";
 			}
+		}
+
+		void compare_convex_poly() {
+			compare_convex_poly<
+				heyho::tests::open_cv_fill_poly_f,
+				heyho::tests::heyho_fill_poly_cv_f<line_iterator_cv>
+			>();
 		}
 
 	}
