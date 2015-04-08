@@ -70,11 +70,11 @@ namespace heyho {
 				, center(dim_x / 2, dim_y / 2)
 			{}
 
-			compare_paint(cv::Size axes, int angle, int dim_x, int dim_y, cv::Point center)
+			compare_paint(cv::Size axes, int angle, cv::Size img_dim, cv::Point center)
 				: axes(axes)
 				, angle(angle)
-				, dim_x(dim_x)
-				, dim_y(dim_y)
+				, dim_x(img_dim.width)
+				, dim_y(img_dim.height)
 				, center(center)
 			{}
 
