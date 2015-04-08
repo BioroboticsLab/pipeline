@@ -62,6 +62,10 @@ namespace heyho {
 			const int dim_y;
 			const cv::Point center;
 
+			/**
+			 * - ellipse is centered in image
+			 * - image dimensions are chosen such that the ellipse doesn't cross image boundaries
+			 */
 			compare_paint(cv::Size axes, int angle)
 				: axes(axes)
 				, angle(angle)
