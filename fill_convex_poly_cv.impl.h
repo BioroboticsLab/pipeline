@@ -30,10 +30,10 @@ namespace heyho {
 		// draw outline, calc min/max x/y coordinates
 		int imin = 0;
 		int ymin = pts[0].y;
-		int ymax = ymin;
+		int ymax = pts[0].y;
 		{
 			int xmin = pts[0].x;
-			int xmax = ymin;
+			int xmax = pts[0].x;
 			cv::Point p0 = pts[npts - 1];
 			for(int i = 0; i < npts; i++ )
 			{
