@@ -101,23 +101,41 @@ namespace heyho {
 				std::cout << "FOREACH( cropped " << A::name() << " == cropped " << B::name() << " ) ... ";
 				std::cout.flush();
 
+				const cv::Size img_dim(100, 100);
+
+				// crossing image boundaries
+				// =========================
+
 				// left
-				foreach()(cmp{{100, 10}, 0, {100, 100}, {10, 50}});
+				foreach()(cmp{{50, 10}, 0, img_dim, {10, 50}});
 
 				// right
-				foreach()(cmp{{100, 10}, 0, {100, 100}, {90, 50}});
+				foreach()(cmp{{50, 10}, 0, img_dim, {90, 50}});
 
 				// top
-				foreach()(cmp{{10, 100}, 0, {100, 100}, {50, 10}});
+				foreach()(cmp{{10, 50}, 0, img_dim, {50, 10}});
 
 				// bottom
-				foreach()(cmp{{10, 100}, 0, {100, 100}, {50, 90}});
+				foreach()(cmp{{10, 50}, 0, img_dim, {50, 90}});
 
 				// all sides
-				foreach()(cmp{{150, 150}, 0, {100, 100}, {50, 50}});
+				foreach()(cmp{{55, 55}, 0, img_dim, {50, 50}});
+
 
 				// completly outside
-				foreach()(cmp{{10, 10}, 0, {100, 100}, {500, 500}});
+				// =================
+
+				// left
+				foreach()(cmp{{50, 10}, 0, img_dim, {-55, 50}});
+
+				// right
+				foreach()(cmp{{50, 10}, 0, img_dim, {105, 50}});
+
+				// top
+				foreach()(cmp{{10, 50}, 0, img_dim, {50, -55}});
+
+				// bottom
+				foreach()(cmp{{10, 50}, 0, img_dim, {50, 105}});
 
 				std::cout << "passed :)\n";
 			}
