@@ -56,45 +56,59 @@ namespace heyho {
 		template<typename A, typename B>
 		struct compare_paint {
 
-			const cv::Size axes;
-			const int angle;
-			const int dim_x;
-			const int dim_y;
-			const cv::Point center;
+			const cv::Size               img_dim;
+			const std::vector<cv::Point> points;
 
 			/**
+			 * compares fill convex poly functions filling the polygon spanned by points in an image sized img_dim.
+			 */
+			compare_paint(std::vector<cv::Point> points, cv::Size img_dim)
+				: img_dim(img_dim)
+				, points(std::move(points))
+			{}
+
+			/**
+			 * compares fill convex poly functions filling ellipses
+			 *
+			 * @param axes     ellipse axis
+			 * @param angle    ellipse angle
+			 * @param img_dim  image dimensions
+			 * @param center   ellipse center
+			 */
+			compare_paint(cv::Size axes, int angle, cv::Size img_dim, cv::Point center)
+				: compare_paint(ellipse_points(axes, angle, center), img_dim)
+			{}
+
+			/**
+			 *  compares fill convex poly functions filling ellipses
+			 *
 			 * - ellipse is centered in image
 			 * - image dimensions are chosen such that the ellipse doesn't cross image boundaries
 			 */
 			compare_paint(cv::Size axes, int angle)
-				: axes(axes)
-				, angle(angle)
-				, dim_x(2 * std::max(axes.width, axes.height) + 10)
-				, dim_y(dim_x)
-				, center(dim_x / 2, dim_y / 2)
+				: compare_paint(axes, angle, {dim(axes), dim(axes)}, {dim(axes) / 2, dim(axes) / 2})
 			{}
 
-			compare_paint(cv::Size axes, int angle, cv::Size img_dim, cv::Point center)
-				: axes(axes)
-				, angle(angle)
-				, dim_x(img_dim.width)
-				, dim_y(img_dim.height)
-				, center(center)
-			{}
+			static int dim(cv::Size s) {
+				return 2 * std::max(s.width, s.height) + 10;
+			}
+
+			static std::vector<cv::Point> ellipse_points(cv::Size axes, int angle, cv::Point center) {
+				std::vector<cv::Point> result;
+				cv::ellipse2Poly(center, axes, angle, 0, 360, 1, result);
+				return result;
+			}
 
 			template<typename pixel_t>
 			bool operator()(connectivity line_type) const
 			{
 				constexpr int img_type = cv::DataType<pixel_t>::type;
-				std::vector<cv::Point> points;
-				cv::ellipse2Poly(center, axes, angle, 0, 360, 1, points);
 
-
-				cv::Mat img1(dim_y, dim_x, img_type, white<img_type>());
+				cv::Mat img1(img_dim, img_type, white<img_type>());
 				A::template paint<pixel_t>(img1, points, default_color<img_type>(), line_type);
 
 
-				cv::Mat img2(dim_y, dim_x, img_type, white<img_type>());
+				cv::Mat img2(img_dim, img_type, white<img_type>());
 				B::template paint<pixel_t>(img2, points, default_color<img_type>(), line_type);
 
 
