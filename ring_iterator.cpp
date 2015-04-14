@@ -7,7 +7,7 @@
 
 #include "ring_iterator.h"
 #include <vector>          // std::vector
-#include <stdexcept>       // std::runtime_error
+#include "test_helper.h"   // assertion_error
 #include <iostream>        // std::cout
 #include <iterator>        // std::revere_iterator
 
@@ -18,7 +18,7 @@ namespace heyho {
 		namespace {
 			inline void my_assert(bool b) {
 				if (!b) {
-					throw std::runtime_error(":(");
+					throw assertion_error(":(");
 				}
 			}
 		}

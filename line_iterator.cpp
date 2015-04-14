@@ -29,7 +29,7 @@ namespace heyho {
 						std::cout << " " << p;
 					}
 					std::cout << "\n";
-					throw std::runtime_error(":(");
+					throw assertion_error(":(");
 				}
 			};
 

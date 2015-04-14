@@ -14,12 +14,12 @@
 #include <iostream>              // std::cout
 #include <iomanip>               // std::setw
 #include <vector>                // std::vector
-#include <stdexcept>             // std::runtime_error
 #include <utility>               // std::pair
 #include <string>                // std::string
 #include "fill_convex_poly_cv.h" // heyho::fill_convex_poly_cv
 #include "fill_convex_poly.h"    // heyho::fill_convex_poly
 #include "helper.h"              // heyho::img_type_2_str
+#include "test_helper.h"         // assertion_error
 #include "fill convex_poly_test_colors.h"
 #include "fill_convex_poly_test_functors.h"
 
@@ -192,8 +192,8 @@ namespace heyho {
 			void helper(F f) const
 			{
 				// line_types: {8, 4}
-				if (! f.template operator()<T>(connectivity::eight_connected) ) {throw std::runtime_error("");}
-				if (! f.template operator()<T>(connectivity::four_connected ) ) {throw std::runtime_error("");}
+				if (! f.template operator()<T>(connectivity::eight_connected) ) {throw assertion_error("");}
+				if (! f.template operator()<T>(connectivity::four_connected ) ) {throw assertion_error("");}
 			}
 
 		public:

@@ -6,9 +6,9 @@
  */
 
 #include "helper.h"
-#include <stdexcept> // std::runtime_error
-#include <iostream>  // std::cout
-#include <limits>    // std::numeric_limits
+#include "test_helper.h" // assertion_error
+#include <iostream>      // std::cout
+#include <limits>        // std::numeric_limits
 
 namespace heyho {
 
@@ -63,7 +63,7 @@ namespace heyho {
 		void compare_scalar_to_pixel(const cv::Scalar &color)
 		{
 			if (cv_scalar_2_pixel<T>(color) != scalar2pixel<T>(color)) {
-				throw std::runtime_error("scalar2pixel failed :( - " + img_type_to_str(cv::DataType<T>::type));
+				throw assertion_error("scalar2pixel failed :( - " + img_type_to_str(cv::DataType<T>::type));
 			}
 		}
 
@@ -171,7 +171,8 @@ namespace heyho {
 
 				static_assert(! is_primitive_open_cv_data_type<unsigned int>{},       "");
 				static_assert(! is_primitive_open_cv_data_type<int*>{},               "");
-				static_assert(! is_primitive_open_cv_data_type<std::runtime_error>{}, "");
+				struct foo {};
+				static_assert(! is_primitive_open_cv_data_type<foo>{}, "");
 			}
 
 			{

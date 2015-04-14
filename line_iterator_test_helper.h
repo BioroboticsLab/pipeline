@@ -11,7 +11,7 @@
 #include <vector>         // std::vector
 #include <iostream>       // std::cout
 #include <algorithm>      // std::equal
-#include <stdexcept>      // std::runtime_error
+#include "test_helper.h"  // assertion_error
 
 namespace heyho {
 
@@ -42,7 +42,7 @@ namespace heyho {
 						std::cout << " " << p;
 					}
 					std::cout << "\n";
-					throw std::runtime_error(":(");
+					throw assertion_error(":(");
 				}
 			};
 
