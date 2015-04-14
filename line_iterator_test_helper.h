@@ -11,7 +11,7 @@
 #include <vector>         // std::vector
 #include <iostream>       // std::cout
 #include <algorithm>      // std::equal
-#include "test_helper.h"  // assertion_error
+#include "test_helper.h"  // container_compare
 
 namespace heyho {
 
@@ -30,20 +30,10 @@ namespace heyho {
 		void line_iterator_test_helper()
 		{
 			const auto compare = [](LINE_IT it, std::vector<cv::Point> expected) {
-				const auto pts = line_it_2_vec(it);
-				if (pts.size() != expected.size() || !std::equal(pts.cbegin(), pts.cend(), expected.cbegin())) {
-					std::cout << "expected:";
-					for (const auto p : expected) {
-						std::cout << " " << p;
-					}
-					std::cout << "\n";
-					std::cout << "got:";
-					for (const auto p : pts) {
-						std::cout << " " << p;
-					}
-					std::cout << "\n";
-					throw assertion_error(":(");
-				}
+				container_compare(
+					expected,
+					line_it_2_vec(it)
+				);
 			};
 
 			// empty iterator

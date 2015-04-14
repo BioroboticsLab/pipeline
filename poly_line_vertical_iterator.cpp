@@ -9,7 +9,7 @@
 #include <vector>                        // std::vector
 #include <iostream>                      // std::cout
 #include <algorithm>                     // std::equal
-#include "test_helper.h"                 // assertion_error
+#include "test_helper.h"                 // container_compare
 
 namespace heyho {
 
@@ -34,20 +34,10 @@ namespace heyho {
 			};
 
 			const auto compare = [&line_2_points](std::vector<cv::Point> poly_points, std::vector<cv::Point> expected, bool leftmost) {
-				const auto pts = line_2_points(poly_points, leftmost);
-				if (pts.size() != expected.size() || !std::equal(pts.cbegin(), pts.cend(), expected.cbegin())) {
-					std::cout << "expected:";
-					for (const auto p : expected) {
-						std::cout << " " << p;
-					}
-					std::cout << "\n";
-					std::cout << "got:";
-					for (const auto p : pts) {
-						std::cout << " " << p;
-					}
-					std::cout << "\n";
-					throw assertion_error(":(");
-				}
+				container_compare(
+					expected,
+					line_2_points(poly_points, leftmost)
+				);
 			};
 
 			std::cout << "poly line vertical iterator tests ... ";
