@@ -9,7 +9,7 @@
 #define LINE_ITERATOR_CV_H_
 
 #include <opencv2/opencv.hpp> // cv::Point, cv::LineIterator, cv::Size, cv::Rect
-#include <stdexcept>          // std::runtime_error
+#include <stdexcept>          // std::logic_error
 #include "helper.h"           // heyho::no_boundaries_tag, heyho::connectivity
 
 namespace heyho {
@@ -60,7 +60,7 @@ namespace heyho {
 		/**
 		 * returns coordinates of the current pixel
 		 *
-		 * @throws std::runtime_error <=> this->end()
+		 * @throws std::logic_error <=> this->end()
 		 */
 		cv::Point operator*() const;
 

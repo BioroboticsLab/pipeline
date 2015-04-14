@@ -65,7 +65,7 @@ namespace heyho {
 
 	inline cv::Point line_iterator_cv::operator*() const {
 		if (this->end()) {
-			throw std::runtime_error("dereferencing invalid iterator");
+			throw std::logic_error("dereferencing invalid iterator");
 		}
 		return m_offset + m_it.pos();
 	}

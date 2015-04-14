@@ -25,7 +25,7 @@ namespace heyho {
 	template<typename POINTS_IT, typename LINE_IT>
 	inline typename poly_line_iterator<POINTS_IT, LINE_IT>::value_type poly_line_iterator<POINTS_IT, LINE_IT>::operator*() const {
 		if (this->end()) {
-			throw std::runtime_error("dereferencing invalid iterator");
+			throw std::logic_error("dereferencing invalid iterator");
 		}
 		return *m_current_line;
 	}

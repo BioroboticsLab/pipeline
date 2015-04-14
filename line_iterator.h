@@ -10,7 +10,7 @@
 
 #include <opencv2/opencv.hpp> // cv::Point
 #include "helper.h"           // heyho::abs, heyho::connectivity
-#include <stdexcept>          // std::invalid_argument, std::runtime_error
+#include <stdexcept>          // std::invalid_argument, std::logic_error
 
 namespace heyho {
 

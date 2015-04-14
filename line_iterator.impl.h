@@ -125,7 +125,7 @@ namespace heyho {
 	inline cv::Point line_iterator::pos() const
 	{
 		if (this->end() ) {
-			throw std::runtime_error("dereferencing an invalid pointer");
+			throw std::logic_error("dereferencing an invalid pointer");
 		}
 		return m_current_point;
 	}

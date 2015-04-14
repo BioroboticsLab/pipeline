@@ -43,7 +43,7 @@ namespace heyho {
 	template<typename POINTS_IT, typename LINE_IT>
 	const typename poly_line_vertical_iterator<POINTS_IT, LINE_IT>::hline& poly_line_vertical_iterator<POINTS_IT, LINE_IT>::operator*() const {
 		if (this->end()) {
-			throw std::runtime_error("dereferencing invalid iterator");
+			throw std::logic_error("dereferencing invalid iterator");
 		}
 		return m_current_point;
 	}
