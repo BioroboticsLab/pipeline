@@ -139,6 +139,49 @@ namespace heyho {
 
 				std::cout << "passed :)\n";
 			}
+
+			{
+				std::cout << "non-convex polygon FOREACH( cropped " << A::name() << " == cropped " << B::name() << " ) ... ";
+				std::cout.flush();
+
+				const auto shift = [](std::vector<cv::Point> pts, cv::Point offset) {
+					for (auto &p : pts) { p += offset; }
+					return std::move(pts);
+				};
+
+				/*
+				 *  1 ______ 2
+				 *    \    /
+				 *     \  /
+				 *    6 \/ 3
+				 *      /\
+				 *     /  \
+				 *  5 /____\ 4
+				 *
+				 */
+				const std::vector<cv::Point> poly{{10,10}, {50,10}, {35,30}, {50,50}, {10,50}, {25,30}};
+				const cv::Size img_dim(60, 60);
+				const cv::Point offset_x(20, 0);
+				const cv::Point offset_y(0, 20);
+
+				// non-convex polygon crossing image boundaries
+				// ============================================
+
+				// left
+				foreach()(cmp{shift(poly, -offset_x), img_dim});
+
+				// right
+				foreach()(cmp{shift(poly,  offset_x), img_dim});
+
+				// top
+				foreach()(cmp{shift(poly, -offset_y), img_dim});
+
+				// bottom
+				foreach()(cmp{shift(poly,  offset_y), img_dim});
+
+				std::cout << "passed :)\n";
+			}
+
 		}
 
 		void compare_convex_poly() {
