@@ -85,7 +85,7 @@ namespace heyho {
 			using cmp = compare_paint<A, B>;
 
 			{
-				std::cout << "FOREACH( " << A::name() << " == " << B::name() << " ) ... ";
+				std::cout << "ellipse FOREACH( " << A::name() << " == " << B::name() << " ) ... ";
 				std::cout.flush();
 				for (int angle = 0; angle < 45; angle += 5) {
 					for (int axis_minor = 25; axis_minor < 50; ++axis_minor) {
@@ -98,13 +98,13 @@ namespace heyho {
 			}
 
 			{
-				std::cout << "FOREACH( cropped " << A::name() << " == cropped " << B::name() << " ) ... ";
+				std::cout << "ellipse FOREACH( cropped " << A::name() << " == cropped " << B::name() << " ) ... ";
 				std::cout.flush();
 
 				const cv::Size img_dim(100, 100);
 
-				// crossing image boundaries
-				// =========================
+				// ellipse crossing image boundaries
+				// =================================
 
 				// left
 				foreach()(cmp{{50, 10}, 0, img_dim, {10, 50}});
@@ -122,8 +122,8 @@ namespace heyho {
 				foreach()(cmp{{55, 55}, 0, img_dim, {50, 50}});
 
 
-				// completly outside
-				// =================
+				// ellipse completly outside
+				// =========================
 
 				// left
 				foreach()(cmp{{50, 10}, 0, img_dim, {-55, 50}});
