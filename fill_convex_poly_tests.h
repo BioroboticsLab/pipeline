@@ -104,25 +104,25 @@ namespace heyho {
 			{
 				constexpr int img_type = cv::DataType<pixel_t>::type;
 
-				cv::Mat img1(img_dim, img_type, white<img_type>());
-				A::template paint<pixel_t>(img1, points, default_color<img_type>(), line_type);
+				cv::Mat img_a(img_dim, img_type, white<img_type>());
+				A::template paint<pixel_t>(img_a, points, default_color<img_type>(), line_type);
 
 
-				cv::Mat img2(img_dim, img_type, white<img_type>());
-				B::template paint<pixel_t>(img2, points, default_color<img_type>(), line_type);
+				cv::Mat img_b(img_dim, img_type, white<img_type>());
+				B::template paint<pixel_t>(img_b, points, default_color<img_type>(), line_type);
 
 
-				const bool equal =  0 == std::memcmp(img1.datastart, img2.datastart, img1.dataend - img1.datastart);
+				const bool equal =  0 == std::memcmp(img_a.datastart, img_b.datastart, img_a.dataend - img_a.datastart);
 
 				if (! equal)
 				{
 					cv::namedWindow( A::name(), cv::WINDOW_AUTOSIZE);
-					cv::imshow( A::name(), img1);
+					cv::imshow( A::name(), img_a);
 
 					cv::namedWindow( B::name(), cv::WINDOW_AUTOSIZE);
-					cv::imshow( B::name(), img2);
+					cv::imshow( B::name(), img_b);
 
-					const cv::Mat diff = img1 != img2;
+					const cv::Mat diff = img_a != img_b;
 
 					cv::namedWindow( "diff", cv::WINDOW_AUTOSIZE);
 					cv::imshow( "diff", diff);
