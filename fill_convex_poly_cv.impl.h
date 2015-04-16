@@ -54,7 +54,7 @@ namespace heyho {
 			}
 
 			if( npts < 3 || xmax < 0 || ymax < 0 || xmin >= size.width || ymin >= size.height ) {
-				return f;
+				return std::move(f);
 			}
 		}
 
@@ -75,7 +75,7 @@ namespace heyho {
 			int right = 1;
 			do
 			{
-				for(int i = 0; i < 2; ++i )
+				for (int i = 0; i < 2; ++i )
 				{
 					if( y >= edge[i].ye )
 					{
@@ -84,7 +84,7 @@ namespace heyho {
 						int xs = 0;
 						int ty = 0;
 
-						for(;;)
+						for (;;)
 						{
 							ty = pts[idx].y;
 							if( ty > y || edges == 0 ) {
@@ -100,8 +100,9 @@ namespace heyho {
 						const int xe = pts[idx].x;
 
 						/* no more edges */
-						if( y >= ye )
-							return f;
+						if ( y >= ye ) {
+							return std::move(f);
+						}
 
 						edge[i].ye = ye;
 						edge[i].dx = ((xe - xs) * 2 + (ye - y)) / (2 * (ye - y));
@@ -110,7 +111,7 @@ namespace heyho {
 					}
 				}
 
-				if( edge[left].x > edge[right].x )
+				if ( edge[left].x > edge[right].x )
 				{
 					left ^= 1;
 					right ^= 1;
@@ -119,17 +120,19 @@ namespace heyho {
 				int x1 = edge[left].x;
 				int x2 = edge[right].x;
 
-				if( y >= 0 )
+				if ( y >= 0 )
 				{
 					int xx1 = x1;
 					int xx2 = x2;
 
-					if( xx2 >= 0 && xx1 < size.width )
+					if ( xx2 >= 0 && xx1 < size.width )
 					{
-						if( xx1 < 0 )
+						if ( xx1 < 0 ) {
 							xx1 = 0;
-						if( xx2 >= size.width )
+						}
+						if ( xx2 >= size.width ) {
 							xx2 = size.width - 1;
+						}
 						f = heyho::hline(std::move(f), no_boundaries_tag{}, xx1, xx2, y);
 					}
 				}
@@ -140,7 +143,7 @@ namespace heyho {
 				edge[left].x = x1;
 				edge[right].x = x2;
 			}
-			while( ++y <= ymax );
+			while ( ++y <= ymax );
 		}
 		return std::move(f);
 	}
