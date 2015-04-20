@@ -57,7 +57,7 @@ namespace heyho {
 				p0 = p;
 			}
 
-			if( npts < 3 || xmax < 0 || ymax < 0 || xmin >= size.width || ymin >= size.height ) {
+			if ( npts < 3 || xmax < 0 || ymax < 0 || xmin >= size.width || ymin >= size.height ) {
 				return std::move(f);
 			}
 		}
@@ -127,25 +127,25 @@ namespace heyho {
 
 				if ( y >= 0 )
 				{
-					int xx1 = (x1 + DELTA) >> XY_SHIFT;
-					int xx2 = (x2 + DELTA) >> XY_SHIFT;
+					const int xx1 = (x1 + DELTA) >> XY_SHIFT;
+					const int xx2 = (x2 + DELTA) >> XY_SHIFT;
 
 					if ( xx2 >= 0 && xx1 < size.width )
 					{
-						if ( xx1 < 0 ) {
-							xx1 = 0;
-						}
-						if ( xx2 >= size.width ) {
-							xx2 = size.width - 1;
-						}
-						f = heyho::hline(std::move(f), no_boundaries_tag{}, xx1, xx2, y);
+						f = heyho::hline(
+								std::move(f),
+								no_boundaries_tag{},
+								std::max(xx1, 0),
+								std::min(xx2, size.width - 1),
+								y
+						);
 					}
 				}
 
 				x1 += edge[left].dx;
 				x2 += edge[right].dx;
 
-				edge[left].x = x1;
+				edge[left].x  = x1;
 				edge[right].x = x2;
 			}
 			while ( ++y <= ymax );
