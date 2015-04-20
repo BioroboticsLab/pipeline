@@ -13,6 +13,10 @@ namespace heyho {
 	template<typename LINE_IT, typename F>
 	F convex_poly_cv(F f, const cv::Size size, cv::InputArray points, const connectivity line_type)
 	{
+		constexpr int XY_SHIFT = 16;
+		constexpr int XY_ONE   = 1 << XY_SHIFT;
+		constexpr int DELTA    = XY_ONE >> 1;
+
 		const auto ptr_size = cv_point_input_array_to_pointer(points);
 		const cv::Point* const pts = ptr_size.first;
 		const int npts = ptr_size.second;
@@ -35,7 +39,7 @@ namespace heyho {
 			int xmin = pts[0].x;
 			int xmax = pts[0].x;
 			cv::Point p0 = pts[npts - 1];
-			for(int i = 0; i < npts; i++ )
+			for (int i = 0; i < npts; i++ )
 			{
 				cv::Point p = pts[i];
 				if( p.y < ymin )
@@ -97,7 +101,8 @@ namespace heyho {
 						}
 
 						const int ye = ty;
-						const int xe = pts[idx].x;
+						xs <<= XY_SHIFT;
+						const int xe = pts[idx].x << XY_SHIFT;
 
 						/* no more edges */
 						if ( y >= ye ) {
@@ -122,8 +127,8 @@ namespace heyho {
 
 				if ( y >= 0 )
 				{
-					int xx1 = x1;
-					int xx2 = x2;
+					int xx1 = (x1 + DELTA) >> XY_SHIFT;
+					int xx2 = (x2 + DELTA) >> XY_SHIFT;
 
 					if ( xx2 >= 0 && xx1 < size.width )
 					{
