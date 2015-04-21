@@ -182,6 +182,33 @@ namespace heyho {
 				std::cout << "passed :)\n";
 			}
 
+			{
+				std::cout << "convex polygon FOREACH( " << A::name() << " == " << B::name() << " ) ... ";
+				std::cout.flush();
+
+				const cv::Size img_size(60, 60);
+				for (int y = 10 + 1; y < 50 - 1; ++y)
+				{
+					/*
+					 * P1             P2
+					 * (10,10)________(25,10)
+					 *        \       \
+					 *         \       \
+					 *     P6   \       \ P3
+					 *    (35,y)/       / (50,y)
+					 *         /       /
+					 *  P5    /_______/P4
+					 * (10,50)        (25,50)
+					 *
+					 * loop over y-coords of P3 & P6
+					 *
+					 */
+					const std::vector<cv::Point> poly{{10,10}, {25,10}, {50, y}, {25,50}, {10,50}, {35,y}};
+					foreach()(cmp(poly, img_size));
+				}
+				std::cout << "passed :)\n";
+			}
+
 		}
 
 		void compare_convex_poly() {
