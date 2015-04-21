@@ -60,4 +60,13 @@ namespace heyho {
 
 #include "fill_convex_poly_cv.impl.h"
 
+namespace heyho
+{
+	template<typename LINE_IT, typename F, typename IT>
+	F convex_poly_cv2(F f, cv::Size size, IT begin, IT end,      connectivity line_type = connectivity::eight_connected);
+	template<typename LINE_IT, typename F>
+	F convex_poly_cv2(F f, cv::Size size, cv::InputArray points, connectivity line_type = connectivity::eight_connected);
+}
+#include "fill_convex_poly_cv2.impl.h"
+
 #endif /* FILL_CONVEX_POLY_CV_H_ */
