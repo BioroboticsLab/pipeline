@@ -101,6 +101,28 @@ namespace heyho {
 		};
 
 		template<typename LINE_IT>
+		struct heyho_fill_poly_cv2_f
+		{
+			static std::string name() {
+				return "heyho::fill_convex_poly_cv2<" + detail::line_it_name<LINE_IT>() + ">";
+			}
+			template<typename pixel_t>
+			static void paint(cv::Mat &img, cv::InputArray points, const cv::Scalar& color, connectivity line_type) {
+				heyho::convex_poly_cv2<LINE_IT>(
+					pixel_setter<pixel_t>{img, color},
+					img.size(),
+					points,
+					line_type
+				);
+			}
+			template<typename pixel_t>
+			static std::pair<size_t, size_t> count(const cv::Mat &img, cv::InputArray points, connectivity line_type) {
+				const auto counts = heyho::convex_poly_cv2<LINE_IT>(pixel_counter<pixel_t>{img, pixel_2_white<pixel_t>()}, img.size(), points, line_type).count();
+				return {counts.zero(), counts.non_zero()};
+			}
+		};
+
+		template<typename LINE_IT>
 		struct heyho_fill_poly_f
 		{
 			static std::string name() {

@@ -216,6 +216,11 @@ namespace heyho {
 				heyho::tests::open_cv_fill_poly_f,
 				heyho::tests::heyho_fill_poly_cv_f<line_iterator_cv>
 			>();
+
+			compare_convex_poly<
+				heyho::tests::open_cv_fill_poly_f,
+				heyho::tests::heyho_fill_poly_cv2_f<line_iterator>
+			>();
 		}
 
 	}

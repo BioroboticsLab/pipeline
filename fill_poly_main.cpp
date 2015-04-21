@@ -87,8 +87,12 @@ int main_impl() {
 
 			const std::vector<std::pair<std::string, heyho::tests::fill_convex_poly_f>> fill_functions {
 				paint_function<open_cv_fill_poly_f,                    uchar>(),
+
 				paint_function<heyho_fill_poly_cv_f<line_iterator_cv>, uchar>(),
 				paint_function<heyho_fill_poly_cv_f<line_iterator>,    uchar>(),
+
+				paint_function<heyho_fill_poly_cv2_f<line_iterator>,   uchar>(),
+
 				paint_function<heyho_fill_poly_f<line_iterator_cv>,    uchar>(),
 				paint_function<heyho_fill_poly_f<line_iterator>,       uchar>()
 			};
@@ -99,8 +103,12 @@ int main_impl() {
 
 			const std::vector<std::pair<std::string, heyho::tests::count_convex_poly_f>> count_functions {
 				count_function<open_cv_fill_poly_f,                    uchar>(),
+
 				count_function<heyho_fill_poly_cv_f<line_iterator_cv>, uchar>(),
 				count_function<heyho_fill_poly_cv_f<line_iterator>,    uchar>(),
+
+				count_function<heyho_fill_poly_cv2_f<line_iterator>,   uchar>(),
+
 				count_function<heyho_fill_poly_f<line_iterator_cv>,    uchar>(),
 				count_function<heyho_fill_poly_f<line_iterator>,       uchar>()
 			};
