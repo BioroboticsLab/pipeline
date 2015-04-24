@@ -116,14 +116,16 @@ template<typename LINE_IT, typename F, typename IT>
 			{
 				for (auto &e : edge)
 				{
-					if( y >= e.get_ye() )
+					if( e.get_ye() <= y )
 					{
 						int xs = 0;
 						int ty = 0;
 
+						// find next point that's y-coord is >= current line
 						for (;;)
 						{
 							ty = e.get_point().y;
+							// point found || no more points
 							if( ty > y || remaining_edges == 0 ) {
 								break;
 							}
@@ -133,6 +135,7 @@ template<typename LINE_IT, typename F, typename IT>
 
 							--remaining_edges;
 						}
+						// no point found --> done
 						if ( y >= ty ) {
 							return std::move(f);
 						}
