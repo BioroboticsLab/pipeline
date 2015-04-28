@@ -83,6 +83,8 @@ protected:
 		            std::pair<std::string, setting_entry>(setting.setting_name,
 		                                                  setting));
 	}
+
+public:
 	template<typename T>
 	T _getValue(std::string setting_name) {
 		if (_settings.count(setting_name)) {
@@ -102,7 +104,7 @@ protected:
 	}
 
 	template<typename T>
-	T _setValue(std::string setting_name, T value) {
+	void _setValue(std::string setting_name, T value) {
 		setting_entry entry = _settings[setting_name];
 		entry.field = value;
 		_settings[setting_name] = entry;
@@ -111,8 +113,6 @@ protected:
 	setting_entry _getEnty(std::string setting_name) {
 		return _settings[setting_name];
 	}
-
-public:
 
 	settings_abs() {
 
