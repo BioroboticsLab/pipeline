@@ -310,6 +310,16 @@ void Localizer::loadSettings(settings::localizer_settings_t &&settings)
 {
 	_settings = std::move(settings);
 }
+
+void Localizer::loadSettings(settings::localizer_settings_t const& settings)
+{
+	_settings = settings;
+}
+
+settings::localizer_settings_t Localizer::getSettings() const
+{
+	return _settings;
+}
 }
 
 
