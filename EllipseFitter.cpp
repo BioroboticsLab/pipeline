@@ -183,7 +183,7 @@ void EllipseFitter::detectEllipse(Tag &tag) {
 #endif
 		tag.addCandidate(TagCandidate(ell));
 	}
-	if (tag.getCandidates().empty()) {
+	if (tag.getCandidatesConst().empty()) {
 		if(this->_settings.get_use_xie_as_fallback()){
 #ifdef DEBUG_MODE_ELLIPSEFITTER
 			std::cout<< "start Xie-Detection" << std::endl;
@@ -387,7 +387,7 @@ foundEllipse:
 #endif
 		tag.addCandidate(TagCandidate(ell));
 	}
-	if (tag.getCandidates().empty()) {
+	if (tag.getCandidatesConst().empty()) {
 		tag.setValid(false);
 	}
 #ifdef PipelineStandalone

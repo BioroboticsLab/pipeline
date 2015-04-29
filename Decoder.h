@@ -5,6 +5,8 @@
 #include "datastructure/Tag.h"
 #include "datastructure/TagCandidate.h"
 
+#include "util/Util.h"
+
 namespace pipeline {
 
 typedef struct {
@@ -23,21 +25,19 @@ private:
 
 	std::vector<decoding_t> getDecodings(pipeline::Tag const& tag, TagCandidate &candidate) const;
 
+	void visualizeDebug(pipeline::Tag const& tag, PipelineGrid &grid, const decoding_t &decoding) const;
+
 	class mean_calculator_t {
 	public:
 		explicit mean_calculator_t(cv::Mat const& roi, const cv::Point roiOffset)
 		    : _roi(roi), _roiOffset(roiOffset), _sum(0), _pixelNum(0) {}
 
 		inline void operator()(const cv::Point coords) {
-			const cv::Point roiCoords(coords - _roiOffset);
-			if (roiCoords.x >= 0 && roiCoords.y >= 0 &&
-			    roiCoords.x < this->_roi.get().size().width &&
-			    roiCoords.y < this->_roi.get().size().height)
-			{
-				const uint8_t value = _roi.get().template at<uint8_t>(roiCoords);
-				_sum += value;
-				++_pixelNum;
-			}
+			assert(Util::pointInBounds(_roi.get().size(), coords - _roiOffset));
+
+			const uint8_t value = _roi.get().template at<uint8_t>(coords - _roiOffset);
+			_sum += value;
+			++_pixelNum;
 		}
 
 		inline double getMean() const {
@@ -57,18 +57,14 @@ private:
 		    : _roi(roi), _roiOffset(roiOffset), _meanBlack(meanBlack), _meanWhite(meanWhite), _distanceSumBlack(0.), _distanceSumWhite(0.), _pixelNum(0) {}
 
 		inline void operator()(const cv::Point coords) {
-			const cv::Point roiCoords(coords - _roiOffset);
-			if (roiCoords.x >= 0 && roiCoords.y >= 0 &&
-			    roiCoords.x < this->_roi.get().size().width &&
-			    roiCoords.y < this->_roi.get().size().height)
-			{
-				const double value = static_cast<double>(_roi.get().template at<uint8_t>(roiCoords));
+			assert(Util::pointInBounds(_roi.get().size(), coords - _roiOffset));
 
-				_distanceSumBlack += std::abs(value - _meanBlack);
-				_distanceSumWhite += std::abs(value - _meanWhite);
+			const double value = static_cast<double>(_roi.get().template at<uint8_t>(coords - _roiOffset));
 
-				++_pixelNum;
-			}
+			_distanceSumBlack += std::abs(value - _meanBlack);
+			_distanceSumWhite += std::abs(value - _meanWhite);
+
+			++_pixelNum;
 		}
 
 		inline double getDistanceBlack() const {
