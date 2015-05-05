@@ -50,8 +50,6 @@ namespace heyho {
 
 		/**
 		 * converts a cv::Scalar to a pixel using the cv::Mat's constructor
-		 * @param color
-		 * @return
 		 */
 		template<typename T>
 		T cv_scalar_2_pixel(const cv::Scalar &color) {

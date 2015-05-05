@@ -27,7 +27,7 @@ namespace heyho {
 	 * @param boundaries    cropping dimensions
 	 * @param begin         iterator to the polygon's first point
 	 * @param end           iterator behind the polygon's last point
-	 * @param connectivity  line connectivity : 4 or 8
+	 * @param line_type     line connectivity : 4 or 8
 	 *
 	 * @tparam LINE_IT class that iterates over the pixels connecting to points
 	 *                 (e.g. heyho::line_iterator_cv, heyho::line_iterator)
