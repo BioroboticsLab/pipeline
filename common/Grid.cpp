@@ -104,14 +104,6 @@ Grid::coordinates3D_t Grid::generate_3D_base_coordinates() {
 		const value_type z_middle_ring = - std::cos(BULGE_FACTOR * MIDDLE_RING_RADIUS);
 		const value_type z_outer_ring  = - std::cos(BULGE_FACTOR * OUTER_RING_RADIUS);
 
-		const double z_line_sum = std::accumulate(result._inner_line.begin(), result._inner_line.end(), 0.,
-			[](double res, const cv::Point3d& val) { return (res + val.z); });
-
-		// TODO: maybe reverse changes for ground truth data compatibility
-		// mean z of all points in the ring (discard the few points on the line)
-		const value_type mean = (z_inner_ring + z_middle_ring + z_outer_ring + z_line_sum) /
-				(3.0 + POINTS_PER_LINE);
-
 		// subtract mean, otherwise rotation will be eccentric
 		for(size_t i = 0; i < POINTS_PER_RING; ++i)
 		{
