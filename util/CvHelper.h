@@ -3,6 +3,7 @@
 #include <opencv2/opencv.hpp> // CV_PI, cv::Matx
 #include <cmath>              // std::{sin,cos}
 #include <stdexcept>          // std::invalid_argument
+#include <QRect>
 
 /**
  * Computer vision helper functions
@@ -68,7 +69,7 @@ namespace CvHelper
 		using std::sin;
 
 		// rotation angles:
-		const double b = beta_rad;  // angle to rotate around x axis
+		const double b = beta_rad;  // angle to rotate around y axis
 
 		return cv::Matx<double, 3, 3>
 		(
@@ -93,7 +94,7 @@ namespace CvHelper
 		using std::sin;
 
 		// rotation angles:
-		const double a = alpha_rad;  // angle to rotate around x axis
+		const double a = alpha_rad;  // angle to rotate around z axis
 
 		return cv::Matx<double, 3, 3>
 		(
@@ -134,6 +135,19 @@ namespace CvHelper
 		);
 	}
 
+	inline void drawPolyline(cv::Mat &img, std::vector<cv::Point> const &contour, const cv::Scalar& color, bool close = false, cv::Point offset = cv::Point(), int thickness = 1)
+	{
+	   if (contour.size() < 2) {
+			   throw std::invalid_argument("a contour contains a least 2 points");
+	   }
+	   for (size_t i = 1; i < contour.size(); i++) {
+			   cv::line(img, offset + contour[i - 1], offset + contour[i], color, thickness);
+	   }
+	   if (close) {
+			   cv::line(img, offset + contour.back(), offset + contour.front(), color, thickness);
+	   }
+	}
+
 	/**
 	 *
 	 * @param img            Image
@@ -143,17 +157,9 @@ namespace CvHelper
 	 * @param close          Parameter indicating if the last and first vertex of the contour should be connected
 	 * @param offset         Optional contour shift parameter.
 	 */
-	inline void drawPolyline(cv::Mat &img, std::vector<std::vector<cv::Point>> const &contours, size_t index_contour, cv::Scalar const & color, bool close = false, cv::Point offset = cv::Point())
+	inline void drawPolyline(cv::Mat &img, std::vector<std::vector<cv::Point>> const &contours, size_t index_contour, cv::Scalar const & color, bool close = false, cv::Point offset = cv::Point(), int thickness = 1)
 	{
-		if (contours.size() < 2) {
-			throw std::invalid_argument("a contour contains a least 2 points");
-		}
-		for (size_t i = 1; i < contours[index_contour].size(); i++) {
-			cv::line(img, offset + contours[index_contour][i - 1], offset + contours[index_contour][i], color);
-		}
-		if (close) {
-			cv::line(img, offset + contours[index_contour].back(), offset + contours[index_contour].front(), color);
-		}
+		drawPolyline(img, contours[index_contour], color, close, offset, thickness);
 	}
 
 	struct cv_point_compare_less_x
@@ -172,4 +178,65 @@ namespace CvHelper
 		}
 	};
 
+    /*
+     * @brief makeCanvas Makes composite image from the given images
+     * @param vecMat Vector of Images.
+     * @param windowHeight The height of the new composite image to be formed.
+     * @param nRows Number of rows of images. (Number of columns will be calculated
+     *              depending on the value of total number of images).
+     * @return new composite image.
+     */
+    inline cv::Mat makeCanvas(std::vector<cv::Mat>& vecMat, int windowHeight, int nRows) {
+        int N = vecMat.size();
+        nRows  = nRows > N ? N : nRows;
+        int edgeThickness = 10;
+        int imagesPerRow = static_cast<int>(ceil(double(N) / nRows));
+        int resizeHeight = static_cast<int>(floor(2.0 * ((floor(double(windowHeight - edgeThickness) / nRows)) / 2.0)) - edgeThickness);
+        int maxRowLength = 0;
+
+        std::vector<int> resizeWidth;
+        for (int i = 0; i < N;) {
+                int thisRowLen = 0;
+                for (int k = 0; k < imagesPerRow; k++) {
+                        double aspectRatio = double(vecMat[i].cols) / vecMat[i].rows;
+                        int temp = int( ceil(resizeHeight * aspectRatio));
+                        resizeWidth.push_back(temp);
+                        thisRowLen += temp;
+                        if (++i == N) break;
+                }
+                if ((thisRowLen + edgeThickness * (imagesPerRow + 1)) > maxRowLength) {
+                        maxRowLength = thisRowLen + edgeThickness * (imagesPerRow + 1);
+                }
+        }
+        int windowWidth = maxRowLength;
+        cv::Mat canvasImage(windowHeight, windowWidth, CV_8UC3, cv::Scalar(0, 0, 0));
+
+        for (int k = 0, i = 0; i < nRows; i++) {
+                int y = i * resizeHeight + (i + 1) * edgeThickness;
+                int x_end = edgeThickness;
+                for (int j = 0; j < imagesPerRow && k < N; k++, j++) {
+                        int x = x_end;
+                        cv::Rect roi(x, y, resizeWidth[k], resizeHeight);
+                        cv::Mat target_ROI = canvasImage(roi);
+                        cv::resize(vecMat[k], target_ROI, target_ROI.size());
+                        x_end += resizeWidth[k] + edgeThickness;
+                }
+        }
+        return canvasImage;
+    }
+
+    inline cv::Rect toCv(const QRect& rect)
+    {
+        return cv::Rect( rect.x(), rect.y(), rect.width(), rect.height() );
+    }
+
+    inline QRect toQt(const cv::Rect& rect)
+    {
+        return QRect(rect.x,rect.y,rect.width,rect.height);
+    }
+
+    inline QPoint toQt( const cv::Point& point )
+    {
+        return QPoint( point.x, point.y );
+    }
 }
