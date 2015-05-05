@@ -69,7 +69,7 @@ public:
 	cv::Rect getOriginBoundingBox() const {	return _boundingBox; }
 
 protected:
-	/* only use for deserialization purposes! */
+	/* use only for deserialization purposes! */
 	explicit Grid() : _coordinates2D(NUM_CELLS) {}
 
 	enum RingIndex {

@@ -3,12 +3,11 @@
  */
 #pragma once
 
-#include <iostream>
-#include <fstream>
-
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/serialization/string.hpp>
+#include <iostream>
+#include <fstream>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/array.hpp>
 #include <boost/serialization/bitset.hpp>
@@ -19,6 +18,7 @@
 
 namespace boost {
 namespace serialization {
+
 // Rect (opencv)
 template<class Archive>
 void serialize(Archive &ar, cv::Rect_<int> &rec, const unsigned int) {
@@ -35,11 +35,13 @@ void serialize(Archive &ar, cv::Point2i &point, const unsigned int) {
 	ar & BOOST_SERIALIZATION_NVP(point.y);
 }
 
+
 // Size (opencv)
 template<class Archive>
 void serialize(Archive &ar, cv::Size_<int>& size, const unsigned int) {
 	ar & BOOST_SERIALIZATION_NVP(size.width);
 	ar & BOOST_SERIALIZATION_NVP(size.height);
 }
+
 }
 }

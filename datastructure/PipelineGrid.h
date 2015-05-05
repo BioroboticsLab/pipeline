@@ -195,12 +195,9 @@ private:
 		cacheSetter& operator=(cacheSetter&&) = default;
 
 		inline void operator()(cv::Point coords) {
-			assert(
-					Util::pointInBounds(_idImage.get().size(),
-							coords - _idImageOffset));
+			assert(Util::pointInBounds(_idImage.get().size(), coords - _idImageOffset));
 
 			// TODO: maybe speed up using raw pointer access
-			assert(Util::pointInBounds(idImageCoords, coords - this->_idImageOffset));
 
 			_idImage.get().template at<uint8_t>(coords - _idImageOffset) = _idx;
 			_coordinateCache.get().areaCoordinates.push_back(
@@ -235,9 +232,7 @@ private:
 		cacheSetterOuter& operator=(cacheSetterOuter&&) = default;
 
 		inline void operator()(cv::Point coords) {
-			assert(
-					Util::pointInBounds(this->_idImage.get().size(),
-							coords - this->_idImageOffset));
+			assert(Util::pointInBounds(this->_idImage.get().size(), coords - this->_idImageOffset));
 
 			uint8_t value = this->_idImage.get().template at<uint8_t>(
 					coords - this->_idImageOffset);
