@@ -10,8 +10,6 @@
 
 #include "datastructure/PipelineGrid.impl.h"
 
-#include "source/utility/CvHelper.h"
-
 // #define DEBUG_DECODER
 
 namespace pipeline {

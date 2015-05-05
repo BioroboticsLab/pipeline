@@ -3,6 +3,8 @@
  */
 #pragma once
 
+#include <opencv2/opencv.hpp>
+
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/serialization/string.hpp>
@@ -42,6 +44,7 @@ void serialize(Archive &ar, cv::Size_<int>& size, const unsigned int) {
 	ar & BOOST_SERIALIZATION_NVP(size.width);
 	ar & BOOST_SERIALIZATION_NVP(size.height);
 }
+
 
 }
 }
