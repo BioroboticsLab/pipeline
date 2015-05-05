@@ -9,6 +9,52 @@
  */
 namespace CvHelper
 {
+	/*
+	 * @brief makeCanvas Makes composite image from the given images
+	 * @param vecMat Vector of Images.
+	 * @param windowHeight The height of the new composite image to be formed.
+	 * @param nRows Number of rows of images. (Number of columns will be calculated
+	 *              depending on the value of total number of images).
+	 * @return new composite image.
+	 */
+	inline cv::Mat makeCanvas(std::vector<cv::Mat>& vecMat, int windowHeight, int nRows) {
+		int N = vecMat.size();
+		nRows  = nRows > N ? N : nRows;
+		int edgeThickness = 10;
+		int imagesPerRow = static_cast<int>(ceil(double(N) / nRows));
+		int resizeHeight = static_cast<int>(floor(2.0 * ((floor(double(windowHeight - edgeThickness) / nRows)) / 2.0)) - edgeThickness);
+		int maxRowLength = 0;
+
+		std::vector<int> resizeWidth;
+		for (int i = 0; i < N;) {
+				int thisRowLen = 0;
+				for (int k = 0; k < imagesPerRow; k++) {
+						double aspectRatio = double(vecMat[i].cols) / vecMat[i].rows;
+						int temp = int( ceil(resizeHeight * aspectRatio));
+						resizeWidth.push_back(temp);
+						thisRowLen += temp;
+						if (++i == N) break;
+				}
+				if ((thisRowLen + edgeThickness * (imagesPerRow + 1)) > maxRowLength) {
+						maxRowLength = thisRowLen + edgeThickness * (imagesPerRow + 1);
+				}
+		}
+		int windowWidth = maxRowLength;
+		cv::Mat canvasImage(windowHeight, windowWidth, CV_8UC3, cv::Scalar(0, 0, 0));
+
+		for (int k = 0, i = 0; i < nRows; i++) {
+				int y = i * resizeHeight + (i + 1) * edgeThickness;
+				int x_end = edgeThickness;
+				for (int j = 0; j < imagesPerRow && k < N; k++, j++) {
+						int x = x_end;
+						cv::Rect roi(x, y, resizeWidth[k], resizeHeight);
+						cv::Mat target_ROI = canvasImage(roi);
+						cv::resize(vecMat[k], target_ROI, target_ROI.size());
+						x_end += resizeWidth[k] + edgeThickness;
+				}
+		}
+		return canvasImage;
+	}
 
 	/**
 	 * Convert degree to radian.
@@ -161,84 +207,5 @@ namespace CvHelper
 		drawPolyline(img, contours[index_contour], color, close, offset, thickness);
 	}
 
-	struct cv_point_compare_less_x
-	{
-		template<typename CV_POINT>
-		bool operator()(const CV_POINT &lhs, const CV_POINT &rhs) const {
-			return lhs.x < rhs.x;
-		}
-	};
 
-	struct cv_point_compare_less_y
-	{
-		template<typename CV_POINT>
-		bool operator()(const CV_POINT &lhs, const CV_POINT &rhs) const {
-			return lhs.y < rhs.y;
-		}
-	};
-
-    /*
-     * @brief makeCanvas Makes composite image from the given images
-     * @param vecMat Vector of Images.
-     * @param windowHeight The height of the new composite image to be formed.
-     * @param nRows Number of rows of images. (Number of columns will be calculated
-     *              depending on the value of total number of images).
-     * @return new composite image.
-     */
-    inline cv::Mat makeCanvas(std::vector<cv::Mat>& vecMat, int windowHeight, int nRows) {
-        int N = vecMat.size();
-        nRows  = nRows > N ? N : nRows;
-        int edgeThickness = 10;
-        int imagesPerRow = static_cast<int>(ceil(double(N) / nRows));
-        int resizeHeight = static_cast<int>(floor(2.0 * ((floor(double(windowHeight - edgeThickness) / nRows)) / 2.0)) - edgeThickness);
-        int maxRowLength = 0;
-
-        std::vector<int> resizeWidth;
-        for (int i = 0; i < N;) {
-                int thisRowLen = 0;
-                for (int k = 0; k < imagesPerRow; k++) {
-                        double aspectRatio = double(vecMat[i].cols) / vecMat[i].rows;
-                        int temp = int( ceil(resizeHeight * aspectRatio));
-                        resizeWidth.push_back(temp);
-                        thisRowLen += temp;
-                        if (++i == N) break;
-                }
-                if ((thisRowLen + edgeThickness * (imagesPerRow + 1)) > maxRowLength) {
-                        maxRowLength = thisRowLen + edgeThickness * (imagesPerRow + 1);
-                }
-        }
-        int windowWidth = maxRowLength;
-        cv::Mat canvasImage(windowHeight, windowWidth, CV_8UC3, cv::Scalar(0, 0, 0));
-
-        for (int k = 0, i = 0; i < nRows; i++) {
-                int y = i * resizeHeight + (i + 1) * edgeThickness;
-                int x_end = edgeThickness;
-                for (int j = 0; j < imagesPerRow && k < N; k++, j++) {
-                        int x = x_end;
-                        cv::Rect roi(x, y, resizeWidth[k], resizeHeight);
-                        cv::Mat target_ROI = canvasImage(roi);
-                        cv::resize(vecMat[k], target_ROI, target_ROI.size());
-                        x_end += resizeWidth[k] + edgeThickness;
-                }
-        }
-        return canvasImage;
-    }
-
-	//TODO!
-	/*
-    inline cv::Rect toCv(const QRect& rect)
-    {
-        return cv::Rect( rect.x(), rect.y(), rect.width(), rect.height() );
-    }
-
-    inline QRect toQt(const cv::Rect& rect)
-    {
-        return QRect(rect.x,rect.y,rect.width,rect.height);
-    }
-
-    inline QPoint toQt( const cv::Point& point )
-    {
-        return QPoint( point.x, point.y );
-    }
-	*/
 }
