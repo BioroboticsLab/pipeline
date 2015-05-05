@@ -1,112 +1,79 @@
-/*
- * Candidate.h
- *
- *  Created on: 18.08.2014
- *      Author: mareikeziese
- */
+#pragma once
 
-#ifndef CANDIDATE_H_
-#define CANDIDATE_H_
+#include <bitset>
+#include <vector>
 
-#include "Decoding.h"            // Decoding
-#include "Ellipse.h"             // Ellipse
-#include "Grid.h"                // Grid
-#include <utility>               // std::move
-#include <vector>                // std::vector
-#include <opencv2/core/core.hpp> // cv::Mat
+#include "Ellipse.h"
+#include "PipelineGrid.h"
+#include "serialization.hpp"
 
+namespace pipeline {
+typedef std::bitset<Grid::NUM_MIDDLE_CELLS> decoding_t;
 
-
-namespace decoder {
 class TagCandidate {
-private:
-    /**************************************
-    *
-    *           members
-    *
-    **************************************/
-    //score of the candidate
-    //double _score;
-    Ellipse _ellipse;
-    std::vector<Grid> _grids;
-    std::vector<Decoding> _decodings;
-    //decoded Id
-    //int _decodedId;
 public:
-    /**************************************
-    *
-    *           constructor
-    *
-    **************************************/
+	explicit TagCandidate(Ellipse const& ellipse) :
+			_ellipse(ellipse) {
+	}
 
-    TagCandidate(Ellipse e){
-        this->_ellipse = e;
-    }
-    ~TagCandidate(){
-    }
-
-    /**************************************
-    *
-    *           getter/setter
-    *
-    **************************************/
-
-//    int getDecodedId() const {
-//        return _decodedId;
-//    }
-//
-//    void setDecodedId(int decodedId) {
-//        _decodedId = decodedId;
-//    }
-
-    Ellipse& getEllipse() {
-        return _ellipse;
-    }
-
-	const Ellipse& getEllipse() const {
+	Ellipse const& getEllipse() const {
 		return _ellipse;
 	}
 
-    void setEllipse(const Ellipse& ellipse) {
-        _ellipse = ellipse;
-    }
+	std::vector<PipelineGrid>& getGrids() {
+		return _grids;
+	}
+	std::vector<PipelineGrid> const& getGridsConst() const {
+		return _grids;
+	}
+	void setGrids(std::vector<PipelineGrid>&& grids) {
+		_grids = std::move(grids);
+	}
+	void addGrid(PipelineGrid&& PipelineGrid) {
+		_grids.push_back(std::move(PipelineGrid));
+	}
 
-//    double getScore() const {
-//        return _score;
-//    }
-//
-//    void setScore(double score) {
-//        _score = score;
-//    }
+	std::vector<decoding_t> const& getDecodings() const {
+		return _decodings;
+	}
+	void setDecodings(std::vector<decoding_t>&& decodings) {
+		_decodings = std::move(decodings);
+	}
+	void addDecoding(decoding_t&& decoding) {
+		_decodings.push_back(std::move(decoding));
+	}
 
-    const cv::Mat& getTransformedImage() const {
-        return _ellipse.getTransformedImage();
-    }
+private:
+	Ellipse _ellipse;
+	std::vector<PipelineGrid> _grids;
+	std::vector<decoding_t> _decodings;
 
-    void setTransformedImage(const cv::Mat& transformedImage) {
-        _ellipse.setTransformedImage(transformedImage);
-    }
-
-    std::vector<Grid>& getGrids() {
-        return _grids;
-    }
-
-    const std::vector<Grid>& getGrids() const {
-        return _grids;
-    }
-
-    void setGrids(std::vector<Grid>&& grids) {
-        _grids = std::move(grids);
-    }
-
-    const std::vector<Decoding>& getDecodings() const {
-        return _decodings;
-    }
-
-    void setDecodings(std::vector<Decoding>&& decodings) {
-        _decodings = std::move(decodings);
-    }
+	friend class boost::serialization::access;
+	template<class Archive> void serialize(Archive & ar,
+			const unsigned int) {
+		ar & BOOST_SERIALIZATION_NVP(_ellipse);
+		ar & BOOST_SERIALIZATION_NVP(_decodings);
+		ar & BOOST_SERIALIZATION_NVP(_grids);
+	}
 };
-} /* namespace decoder */
+}
 
-#endif /* CANDIDATE_H_ */
+
+BOOST_CLASS_EXPORT_KEY(pipeline::TagCandidate)
+
+
+namespace boost { namespace serialization {
+template<class Archive>
+inline void load_construct_data(
+    Archive &, pipeline::TagCandidate * c,  unsigned  int
+){
+    // retrieve data from archive required to construct new instance
+	//pipeline::Ellipse e;
+    //ar >> e;
+	/**
+		 * @TODO fix ME!!
+		 */
+    // invoke inplace constructor to initialize instance of PipelineGrid
+    ::new(c) pipeline::TagCandidate(pipeline::Ellipse());
+}
+}}

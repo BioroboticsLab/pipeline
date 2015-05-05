@@ -1,91 +1,85 @@
-/*
- * Tag.h
- *
- *  Created on: 17.08.2014
- *      Author: mareikeziese
- */
+#pragma once
 
-#ifndef TAG_H_
-#define TAG_H_
-
-#include "TagCandidate.h"        // TagCandidate
-#include "opencv2/core/core.hpp" // cv::Mat, cv::Rect
 #include <vector>                // std::vector
 
-#ifdef PipelineStandalone
-#include <boost/archive/text_iarchive.hpp>
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/serialization/vector.hpp>
+#include <opencv2/core/core.hpp> // cv::Mat, cv::Rect
 
-using namespace boost;
-#endif
+#include "TagCandidate.h"
+#include "serialization.hpp"
 
-
-namespace decoder {
+namespace pipeline {
 class Tag {
 private:
+	cv::Rect _box;
+	cv::Mat _origSubImage;
+	cv::Mat _cannySubImage;
 
-    /**************************************
-    *
-    *           members
-    *
-    **************************************/
+	//marks if the tag is really a tag;
+	bool _valid;
 
-    cv::Rect _box;
+	//virtual id, just necessary for the decoding process;
+	int _id;
 
-    cv::Mat _origSubImage;
+	//there may be multiple ellipses and grids for this location, so there is a list of candidates
+	std::vector<TagCandidate> _candidates;
 
-    cv::Mat _cannySubImage;
+	//needed to serialize all the private members
+	friend class boost::serialization::access;
 
-    //marks if the tag is really a tag;
-    bool _valid;
-
-    //virtual id, just necessary for the decoding process;
-    int id;
-
-    //there may be multiple ellipses and grids for this location, so there is a list of candidates
-    std::vector<TagCandidate> _candidates;
-
-#ifdef PipelineStandalone
-    //needed to serialize all the private members
-    friend class boost::serialization::access;
-
-    //needed to serialize class implicit
-    template<class Archive> void serialize(Archive & ar,
-      const unsigned int version);
-#endif
+	//needed to serialize class implicit
+	template<class Archive>
+	void serialize(Archive & ar, const unsigned int) {
+	    ar & BOOST_SERIALIZATION_NVP(_box);
+	    ar & BOOST_SERIALIZATION_NVP(_id);
+	    ar & BOOST_SERIALIZATION_NVP(_valid);
+	    ar & BOOST_SERIALIZATION_NVP(_candidates);
+	}
 
 public:
+	explicit Tag(cv::Rect rec, int _id);
 
-    explicit Tag(cv::Rect rec, int id);
-    ~Tag();
+	std::vector<TagCandidate> &getCandidates();
+	const std::vector<TagCandidate> &getCandidatesConst() const;
+	void setCandidates(std::vector<TagCandidate>&& candidates);
+	void addCandidate(TagCandidate c);
 
-    /**************************************
-    *
-    *           getter/setter
-    *
-    **************************************/
+	const cv::Mat& getCannySubImage() const;
+	void setCannySubImage(const cv::Mat& cannySubImage);
 
-    std::vector<TagCandidate> &getCandidates();
-	const std::vector<TagCandidate> &getCandidates() const;
-    void setCandidates(std::vector<TagCandidate>&& candidates);
-    const cv::Mat& getCannySubImage() const;
-    void setCannySubImage(const cv::Mat& cannySubImage);
-    const cv::Mat& getOrigSubImage() const;
-    void setOrigSubImage(const cv::Mat& origSubImage);
-    bool isValid() const;
-    void setValid(bool valid);
-    int getId() const;
-    void setId(int id);
-    void addCandidate(TagCandidate c);
-    const cv::Rect& getBox() const;
-    void setBox(const cv::Rect& box);
+	const cv::Mat& getOrigSubImage() const;
+	void setOrigSubImage(const cv::Mat& origSubImage);
+
+	bool isValid() const;
+	void setValid(bool valid);
+
+	int getId() const;
+	void setId(int _id);
+
+	const cv::Rect& getBox() const;
+	void setBox(const cv::Rect& box);
 };
 
 bool operator<(const Tag& lhs, const Tag& rhs);
 
-} /* namespace decoder */
+}
 
-// needed to be included for the function template
-//#include "Tag.cpp"
-#endif /* TAG_H_ */
+BOOST_CLASS_EXPORT_KEY(pipeline::Tag)
+
+
+namespace boost { namespace serialization {
+
+template<class Archive>
+inline void load_construct_data(Archive &, pipeline::Tag * t,  unsigned int) {
+    // retrieve data from archive required to construct new instance
+/*	cv::Rect box;
+	int id;
+    ar >> id;
+    ar >> box;*/
+    // invoke inplace constructor to initialize instance of PipelineGrid
+
+	/**
+	 * @TODO fix ME!!
+	 */
+    ::new(t)pipeline::Tag(cv::Rect(0,0,0,0),0);
+}
+}}

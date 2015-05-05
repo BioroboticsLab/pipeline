@@ -1,76 +1,28 @@
-/*
- * Localizer.h
- *
- *  Created on: 03.07.2014
- *      Author: mareikeziese
- */
+#pragma once
 
-#ifndef LOCALIZER_H_
-#define LOCALIZER_H_
-
-#include <fstream>
-#include <iostream>
-#include <cmath>
-#include <cstdio>
-#include <vector>
-
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
 #include <opencv2/opencv.hpp>
 
-#include "datastructure/BoundingBox.h"
-#include "datastructure/Tag.h"
-
-#ifdef PipelineStandalone
-#include "../config.h"
-#include <boost/property_tree/ini_parser.hpp>
-#include <boost/property_tree/ptree.hpp>
-#endif
+#include "datastructure/settings.h"
 
 
-namespace decoder {
-typedef struct {
-	// Threshold for binarisation
-	int binary_threshold = 29;
 
-	// number of first dilation iterations
-	int dilation_1_iteration_number = 4;
+namespace pipeline {
 
-	// size of dilation-radius
-	int dilation_1_size = 2;
-
-	// erosion-size
-	int erosion_size = 25;
-
-	// second dilation-size
-	int dilation_2_size = 2;
-
-	// maximal size of a possible tag
-	unsigned int max_tag_size =  250;
-
-	// minimal size of bounding box
-	int min_tag_size =  100;
-} localizer_settings_t;
+class BoundingBox;
+class Tag;
 
 class Localizer {
 private:
-	cv::Mat gray_image_;
-	cv::Mat sobel_;
 	cv::Mat blob_;
 	cv::Mat canny_map_;
+	cv::Mat _threshold_image;
 
-	localizer_settings_t _settings;
+	settings::localizer_settings_t _settings;
 
-	cv::Mat computeSobelMap(const cv::Mat &grayImage) const;
-	cv::Mat computeBlobs(const cv::Mat &sobel) const;
-	cv::Mat highlightTags(const cv::Mat &grayImage) const;
+	cv::Mat computeBlobs(const cv::Mat &sobel) ;
+	cv::Mat highlightTags(const cv::Mat &grayImage) ;
 	std::vector<Tag> locateTagCandidates(cv::Mat blobImage, cv::Mat cannyEdgeMap, cv::Mat grayImage);
 
-
-#ifdef PipelineStandalone
-	void loadConfigVars(const std::string &filename);
-#endif
 
 public:
 	Localizer();
@@ -79,7 +31,9 @@ public:
 #endif
 	virtual ~Localizer();
 
-	void loadSettings(localizer_settings_t&& settings);
+	void loadSettings(settings::localizer_settings_t&& settings);
+	void loadSettings(settings::localizer_settings_t const& settings);
+	settings::localizer_settings_t getSettings() const;
 
 	const cv::Mat& getBlob() const;
 	void setBlob(const cv::Mat& blob);
@@ -87,12 +41,10 @@ public:
 	void setCannyMap(const cv::Mat& cannyMap);
 	const cv::Mat& getGrayImage() const;
 	void setGrayImage(const cv::Mat& grayImage);
-	const cv::Mat& getSobel() const;
-	void setSobel(const cv::Mat& sobel);
 
-	std::vector<Tag> process(cv::Mat &&image);
+	std::vector<Tag> process(cv::Mat &&originalImage, cv::Mat &&preprocessedImage);
 	void reset();
+	const cv::Mat& getThresholdImage() const;
+	void setThresholdImage(const cv::Mat& thresholdImage);
 };
-} /* namespace decoder */
-
-#endif /* LOCALIZER_H_ */
+}
