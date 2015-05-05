@@ -14,12 +14,12 @@
 #include <iostream>              // std::cout
 #include <iomanip>               // std::setw
 #include <vector>                // std::vector
-#include <stdexcept>             // std::runtime_error
 #include <utility>               // std::pair
 #include <string>                // std::string
 #include "fill_convex_poly_cv.h" // heyho::fill_convex_poly_cv
 #include "fill_convex_poly.h"    // heyho::fill_convex_poly
 #include "helper.h"              // heyho::img_type_2_str
+#include "test_helper.h"         // assertion_error
 #include "fill convex_poly_test_colors.h"
 #include "fill_convex_poly_test_functors.h"
 
@@ -56,55 +56,73 @@ namespace heyho {
 		template<typename A, typename B>
 		struct compare_paint {
 
-			const cv::Size axes;
-			const int angle;
-			const int dim_x;
-			const int dim_y;
-			const cv::Point center;
+			const cv::Size               img_dim;
+			const std::vector<cv::Point> points;
 
+			/**
+			 * compares fill convex poly functions filling the polygon spanned by points in an image sized img_dim.
+			 */
+			compare_paint(std::vector<cv::Point> points, cv::Size img_dim)
+				: img_dim(img_dim)
+				, points(std::move(points))
+			{}
+
+			/**
+			 * compares fill convex poly functions filling ellipses
+			 *
+			 * @param axes     ellipse axis
+			 * @param angle    ellipse angle
+			 * @param img_dim  image dimensions
+			 * @param center   ellipse center
+			 */
+			compare_paint(cv::Size axes, int angle, cv::Size img_dim, cv::Point center)
+				: compare_paint(ellipse_points(axes, angle, center), img_dim)
+			{}
+
+			/**
+			 *  compares fill convex poly functions filling ellipses
+			 *
+			 * - ellipse is centered in image
+			 * - image dimensions are chosen such that the ellipse doesn't cross image boundaries
+			 */
 			compare_paint(cv::Size axes, int angle)
-				: axes(axes)
-				, angle(angle)
-				, dim_x(2 * std::max(axes.width, axes.height) + 10)
-				, dim_y(dim_x)
-				, center(dim_x / 2, dim_y / 2)
+				: compare_paint(axes, angle, {dim(axes), dim(axes)}, {dim(axes) / 2, dim(axes) / 2})
 			{}
 
-			compare_paint(cv::Size axes, int angle, int dim_x, int dim_y, cv::Point center)
-				: axes(axes)
-				, angle(angle)
-				, dim_x(dim_x)
-				, dim_y(dim_y)
-				, center(center)
-			{}
+			static int dim(cv::Size s) {
+				return 2 * std::max(s.width, s.height) + 10;
+			}
+
+			static std::vector<cv::Point> ellipse_points(cv::Size axes, int angle, cv::Point center) {
+				std::vector<cv::Point> result;
+				cv::ellipse2Poly(center, axes, angle, 0, 360, 1, result);
+				return result;
+			}
 
 			template<typename pixel_t>
-			bool operator()(int line_type) const
+			bool operator()(connectivity line_type) const
 			{
 				constexpr int img_type = cv::DataType<pixel_t>::type;
-				std::vector<cv::Point> points;
-				cv::ellipse2Poly(center, axes, angle, 0, 360, 1, points);
+
+				cv::Mat img_a(img_dim, img_type, white<img_type>());
+				A::template paint<pixel_t>(img_a, points, default_color<img_type>(), line_type);
 
 
-				cv::Mat img1(dim_y, dim_x, img_type, white<img_type>());
-				A::template paint<pixel_t>(img1, points, default_color<img_type>(), line_type);
+				cv::Mat img_b(img_dim, img_type, white<img_type>());
+				B::template paint<pixel_t>(img_b, points, default_color<img_type>(), line_type);
 
 
-				cv::Mat img2(dim_y, dim_x, img_type, white<img_type>());
-				B::template paint<pixel_t>(img2, points, default_color<img_type>(), line_type);
-
-
-				const bool equal =  0 == std::memcmp(img1.datastart, img2.datastart, img1.dataend - img1.datastart);
+				const bool equal =  0 == std::memcmp(img_a.datastart, img_b.datastart, img_a.dataend - img_a.datastart);
 
 				if (! equal)
 				{
 					cv::namedWindow( A::name(), cv::WINDOW_AUTOSIZE);
-					cv::imshow( A::name(), img1);
+					cv::imshow( A::name(), img_a);
 
 					cv::namedWindow( B::name(), cv::WINDOW_AUTOSIZE);
-					cv::imshow( B::name(), img2);
+					cv::imshow( B::name(), img_b);
 
-					const cv::Mat diff = img1 != img2;
+					const cv::Mat diff = img_a != img_b;
 
 					cv::namedWindow( "diff", cv::WINDOW_AUTOSIZE);
 					cv::imshow( "diff", diff);
@@ -126,7 +144,7 @@ namespace heyho {
 			std::size_t times;
 
 			template<typename pixel_t>
-			bool operator()(int line_type) const
+			bool operator()(connectivity line_type) const
 			{
 				constexpr int img_type = cv::DataType<pixel_t>::type;
 				constexpr int shift = 0;
@@ -136,12 +154,12 @@ namespace heyho {
 				cv::ellipse2Poly(center, axes, angle, 0, 360, 1, points);
 				cv::Mat img(dim, dim, img_type, white<img_type>());
 
-				std::cout << "img type: " << heyho::img_type_to_str(img_type) << " line type: " << line_type << '\n';
+				std::cout << "img type: " << heyho::img_type_to_str(img_type) << " line type: " << static_cast<int>(line_type) << '\n';
 				{
 					std::cout << "    opencv:    ";
 					timer t;
 					for (size_t i = 0; i < times; ++i) {
-						cv::fillConvexPoly(img, points, default_color<img_type>(), line_type, shift);
+						cv::fillConvexPoly(img, points, default_color<img_type>(), static_cast<int>(line_type), shift);
 					}
 				}
 				{
@@ -174,8 +192,8 @@ namespace heyho {
 			void helper(F f) const
 			{
 				// line_types: {8, 4}
-				if (! f.template operator()<T>(8) ) {throw std::runtime_error("");}
-				if (! f.template operator()<T>(4) ) {throw std::runtime_error("");}
+				if (! f.template operator()<T>(connectivity::eight_connected) ) {throw assertion_error("");}
+				if (! f.template operator()<T>(connectivity::four_connected ) ) {throw assertion_error("");}
 			}
 
 		public:

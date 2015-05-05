@@ -17,33 +17,30 @@ namespace heyho {
 		, m_slow_step_err_inc()
 	{}
 
-	inline line_iterator::line_iterator(no_boundaries_tag, cv::Point p1, cv::Point p2, int connectivity)
+	inline line_iterator::line_iterator(no_boundaries_tag, cv::Point p1, cv::Point p2, connectivity line_type)
 		: line_iterator()
 	{
-		this->init(p1, p2, connectivity);
+		this->init(p1, p2, line_type);
 	}
 
-	inline line_iterator::line_iterator(cv::Size boundaries, cv::Point p1, cv::Point p2, int connectivity)
-		: line_iterator()
-	{
-		if (cv::clipLine(boundaries, p1, p2)) {
-			this->init(p1, p2, connectivity);
-		}
-	}
-
-	inline line_iterator::line_iterator(cv::Rect boundaries, cv::Point p1, cv::Point p2, int connectivity)
+	inline line_iterator::line_iterator(cv::Size boundaries, cv::Point p1, cv::Point p2, connectivity line_type)
 		: line_iterator()
 	{
 		if (cv::clipLine(boundaries, p1, p2)) {
-			this->init(p1, p2, connectivity);
+			this->init(p1, p2, line_type);
 		}
 	}
 
-	inline void line_iterator::init(cv::Point p1, cv::Point p2, int connectivity)
+	inline line_iterator::line_iterator(cv::Rect boundaries, cv::Point p1, cv::Point p2, connectivity line_type)
+		: line_iterator()
 	{
-		if (connectivity != 8 && connectivity != 4) {
-			throw std::invalid_argument("invalid connectivity");
+		if (cv::clipLine(boundaries, p1, p2)) {
+			this->init(p1, p2, line_type);
 		}
+	}
+
+	inline void line_iterator::init(cv::Point p1, cv::Point p2, connectivity line_type)
+	{
 		m_current_point    = p1;
 		m_remaining_points = 1;
 
@@ -64,9 +61,9 @@ namespace heyho {
 		 * This can be generalized by simply switching x and y if 1 < slope < infinity.
 		 *
 		 * In order to avoid confusion, movements along the x- and y-axis are referred to
-		 * as "fast" and "slow" depending on the the slope:
-		 *    - For a small  slope line x is in/decremented in every step and y only if a certain error is reached.
-		 *    - For a large  slope line y is changed in every step.
+		 * as "fast" and "slow" depending on the slope:
+		 *    - For a small slope line x is in/decremented in every step and y only if a certain error is reached.
+		 *    - For a large slope line y is changed in every step.
 		 * This directions is referred to as "fast".
 		 *
 		 */
@@ -78,29 +75,32 @@ namespace heyho {
 		const cv::Point &fast_step    = small_slope ? step_x : step_y;
 		const cv::Point &slow_step    = small_slope ? step_y : step_x;
 
-		if (connectivity == 8)
+		switch (line_type)
 		{
-			m_error = fast_step_abs_delta - 2 * slow_step_abs_delta;
+			case connectivity::eight_connected : {
+				m_error = fast_step_abs_delta - 2 * slow_step_abs_delta;
 
-			m_remaining_points += static_cast<size_t>(fast_step_abs_delta);
+				m_remaining_points += static_cast<size_t>(fast_step_abs_delta);
 
-			m_fast_step = fast_step;
-			m_slow_step = slow_step;
+				m_fast_step = fast_step;
+				m_slow_step = slow_step;
 
-			m_fast_step_err_inc = -2 * slow_step_abs_delta;
-			m_slow_step_err_inc =  2 * fast_step_abs_delta;
-		}
-		else /* connectivity == 4 */
-		{
-			m_error = 0;
+				m_fast_step_err_inc = -2 * slow_step_abs_delta;
+				m_slow_step_err_inc =  2 * fast_step_abs_delta;
+				break;
+			}
+			case connectivity::four_connected : {
+				m_error = 0;
 
-			m_remaining_points += static_cast<size_t>(fast_step_abs_delta + slow_step_abs_delta);
+				m_remaining_points += static_cast<size_t>(fast_step_abs_delta + slow_step_abs_delta);
 
-			m_fast_step = fast_step;
-			m_slow_step = slow_step - fast_step;
+				m_fast_step = fast_step;
+				m_slow_step = slow_step - fast_step;
 
-			m_fast_step_err_inc = -2 *  slow_step_abs_delta;
-			m_slow_step_err_inc =  2 * (fast_step_abs_delta + slow_step_abs_delta);
+				m_fast_step_err_inc = -2 *  slow_step_abs_delta;
+				m_slow_step_err_inc =  2 * (fast_step_abs_delta + slow_step_abs_delta);
+				break;
+			}
 		}
 	}
 
@@ -125,7 +125,7 @@ namespace heyho {
 	inline cv::Point line_iterator::pos() const
 	{
 		if (this->end() ) {
-			throw std::runtime_error("dereferencing an invalid pointer");
+			throw std::logic_error("dereferencing an invalid pointer");
 		}
 		return m_current_point;
 	}

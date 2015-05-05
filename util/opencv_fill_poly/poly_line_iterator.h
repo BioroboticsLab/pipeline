@@ -12,6 +12,7 @@
 #include <opencv2/opencv.hpp> // cv::Point
 #include <type_traits>        // std::is_same
 #include "line_iterator_cv.h" // heyho::line_iterator
+#include "helper.h"           // heyho::connectivity
 
 namespace heyho {
 
@@ -24,14 +25,14 @@ namespace heyho {
 	 *                     typename POINTS_IT::value_type
 	 *                     POINTS_IT::value_type POINTS_IT::operator*();
 	 */
-	template<typename POINTS_IT, typename LINE_IT /* = line_iterator_cv */>
+	template<typename POINTS_IT, typename LINE_IT>
 	class poly_line_iterator {
 	public:
 		using value_type = cv::Point;
 
 		static_assert(std::is_same<typename POINTS_IT::value_type, value_type>::value, "invalid point type");
 
-		explicit poly_line_iterator(POINTS_IT points_it, int connectivity);
+		explicit poly_line_iterator(POINTS_IT points_it, connectivity line_type);
 
 		bool end() const;
 
@@ -40,11 +41,11 @@ namespace heyho {
 		poly_line_iterator& operator++();
 
 	private:
-		static LINE_IT make_line_it(POINTS_IT &it, int connectivity);
+		static LINE_IT make_line_it(POINTS_IT &it, connectivity line_type);
 
-		POINTS_IT m_points;
-		int       m_connectivity;
-		LINE_IT   m_current_line;
+		POINTS_IT    m_points;
+		connectivity m_line_type;
+		LINE_IT      m_current_line;
 	};
 
 	namespace tests {

@@ -26,7 +26,7 @@ namespace heyho {
 	template<typename IT, bool reverse>
 	inline const typename ring_iterator<IT, reverse>::value_type& ring_iterator<IT, reverse>::operator*() const {
 		if (this->end()) {
-			throw std::runtime_error("dereferencing invalid iterator");
+			throw std::logic_error("dereferencing invalid iterator");
 		}
 		return *m_current;
 	}

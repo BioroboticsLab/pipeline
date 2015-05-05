@@ -9,7 +9,7 @@
 #include <vector>                        // std::vector
 #include <iostream>                      // std::cout
 #include <algorithm>                     // std::equal
-#include <stdexcept>                     // std::runtime_error
+#include "test_helper.h"                 // container_compare
 
 namespace heyho {
 
@@ -25,7 +25,7 @@ namespace heyho {
 				using ring = ring_iterator_bd<BDIT>;
 				using poly_v_line = poly_line_vertical_iterator<ring, line_iterator_cv>;
 
-				poly_v_line pl(ring(poly_points.cbegin(), poly_points.cend(), poly_points.cbegin(), poly_points.cend() - 1, false), 8);
+				poly_v_line pl(ring(poly_points.cbegin(), poly_points.cend(), poly_points.cbegin(), poly_points.cend() - 1, false), connectivity::eight_connected);
 				std::vector<cv::Point> pl_points;
 				for (; !pl.end(); ++pl) {
 					pl_points.emplace_back(leftmost ? pl->left() : pl->right());
@@ -34,20 +34,10 @@ namespace heyho {
 			};
 
 			const auto compare = [&line_2_points](std::vector<cv::Point> poly_points, std::vector<cv::Point> expected, bool leftmost) {
-				const auto pts = line_2_points(poly_points, leftmost);
-				if (pts.size() != expected.size() || !std::equal(pts.cbegin(), pts.cend(), expected.cbegin())) {
-					std::cout << "expected:";
-					for (const auto p : expected) {
-						std::cout << " " << p;
-					}
-					std::cout << "\n";
-					std::cout << "got:";
-					for (const auto p : pts) {
-						std::cout << " " << p;
-					}
-					std::cout << "\n";
-					throw std::runtime_error(":(");
-				}
+				container_compare(
+					expected,
+					line_2_points(poly_points, leftmost)
+				);
 			};
 
 			std::cout << "poly line vertical iterator tests ... ";
