@@ -3,10 +3,7 @@
 #include <algorithm>
 #include <random>
 
-#ifdef PipelineStandalone
-// TODO: FIXME!
-#include "CvHelper.h"
-#endif
+#include "../util/CvHelper.h"
 
 #include "PipelineGrid.impl.h"
 

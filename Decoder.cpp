@@ -4,8 +4,9 @@
 
 #include "datastructure/Tag.h"
 #include "datastructure/TagCandidate.h"
+
 #include "util/ThreadPool.h"
-#include "source/utility/CvHelper.h"
+#include "util/CvHelper.h"
 
 #include "datastructure/PipelineGrid.impl.h"
 

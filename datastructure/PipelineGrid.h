@@ -5,12 +5,7 @@
 
 #include <boost/optional.hpp>
 
-#ifdef PipelineStandalone
-// TODO: FIXME!
-#include "CvHelper.h"
-#include "Grid.h"
-#endif
-
+#include "../common/Grid.h"
 #include "../util/Util.h"
 
 namespace pipeline {

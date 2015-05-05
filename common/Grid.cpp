@@ -1,6 +1,6 @@
 #include "Grid.h"
 
-#include "utility/CvHelper.h"
+#include "../util/CvHelper.h"
 
 const double Grid::INNER_RING_RADIUS  = 0.4;
 const double Grid::MIDDLE_RING_RADIUS = 0.8;

@@ -2,13 +2,9 @@
 
 #include <opencv2/opencv.hpp>
 
-#ifdef PipelineStandalone
-// TODO: FIXME!
-#include "../datastructure/CvHelper.h"
-#include "../datastructure/util.h"
-#endif
+#include "CvHelper.h"
 
-#include "source/tracking/algorithm/BeesBook/Common/Grid.h"
+#include "../common/Grid.h"
 
 namespace Util {
 
