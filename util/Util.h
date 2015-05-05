@@ -1,5 +1,9 @@
 #pragma once
 
+#include <bitset>
+#include <cstdint>
+#include <vector>
+
 #include "../datastructure/Ellipse.h"
 
 namespace Util {
@@ -26,4 +30,25 @@ inline bool pointInBounds(cv::Size const& size, cv::Point const& point) {
 	return pointInBounds(cv::Rect(0, 0, size.width, size.height), point);
 }
 
+// branchless, type-safe signum
+// see: http://stackoverflow.com/a/4609795
+template <typename T>
+int sgn(T val) {
+		return (T(0) < val) - (val < T(0));
+}
+
+template <typename T>
+std::vector<T> linspace(T first, T last, size_t len) {
+		std::vector<T> result(len);
+		T step = (last-first) / (len - 1);
+		for (size_t i=0; i<len; i++) { result[i] = first + static_cast<T>(i) * step; }
+		return result;
+}
+
+template <std::size_t N>
+inline void
+rotateBitset(std::bitset<N>& b, unsigned m)
+{
+		b = b << m | b >> (N-m);
+}
 }

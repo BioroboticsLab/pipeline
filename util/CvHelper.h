@@ -3,7 +3,6 @@
 #include <opencv2/opencv.hpp> // CV_PI, cv::Matx
 #include <cmath>              // std::{sin,cos}
 #include <stdexcept>          // std::invalid_argument
-#include <QRect>
 
 /**
  * Computer vision helper functions
@@ -225,6 +224,8 @@ namespace CvHelper
         return canvasImage;
     }
 
+	//TODO!
+	/*
     inline cv::Rect toCv(const QRect& rect)
     {
         return cv::Rect( rect.x(), rect.y(), rect.width(), rect.height() );
@@ -239,4 +240,5 @@ namespace CvHelper
     {
         return QPoint( point.x, point.y );
     }
+	*/
 }
