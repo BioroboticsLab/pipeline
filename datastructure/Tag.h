@@ -5,14 +5,7 @@
 #include <opencv2/core/core.hpp> // cv::Mat, cv::Rect
 
 #include "TagCandidate.h"
-
-#ifdef PipelineStandalone
-#include <boost/archive/text_iarchive.hpp>
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/serialization/vector.hpp>
-
-using namespace boost;
-#endif
+#include "serialization.hpp"
 
 namespace pipeline {
 class Tag {
@@ -30,13 +23,17 @@ private:
 	//there may be multiple ellipses and grids for this location, so there is a list of candidates
 	std::vector<TagCandidate> _candidates;
 
-#ifdef PipelineStandalone
 	//needed to serialize all the private members
 	friend class boost::serialization::access;
 
 	//needed to serialize class implicit
-	template<class Archive> void serialize(Archive & ar, const unsigned int version);
-#endif
+	template<class Archive>
+	void serialize(Archive & ar, const unsigned int) {
+	    ar & BOOST_SERIALIZATION_NVP(_box);
+	    ar & BOOST_SERIALIZATION_NVP(_id);
+	    ar & BOOST_SERIALIZATION_NVP(_valid);
+	    ar & BOOST_SERIALIZATION_NVP(_candidates);
+	}
 
 public:
 	explicit Tag(cv::Rect rec, int _id);
@@ -63,4 +60,26 @@ public:
 };
 
 bool operator<(const Tag& lhs, const Tag& rhs);
+
 }
+
+BOOST_CLASS_EXPORT_KEY(pipeline::Tag)
+
+
+namespace boost { namespace serialization {
+
+template<class Archive>
+inline void load_construct_data(Archive &, pipeline::Tag * t,  unsigned int) {
+    // retrieve data from archive required to construct new instance
+/*	cv::Rect box;
+	int id;
+    ar >> id;
+    ar >> box;*/
+    // invoke inplace constructor to initialize instance of PipelineGrid
+
+	/**
+	 * @TODO fix ME!!
+	 */
+    ::new(t)pipeline::Tag(cv::Rect(0,0,0,0),0);
+}
+}}

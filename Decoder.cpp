@@ -10,7 +10,7 @@
 
 #include "datastructure/PipelineGrid.impl.h"
 
-//#define DEBUG_DECODER
+// #define DEBUG_DECODER
 
 namespace pipeline {
 

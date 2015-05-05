@@ -31,8 +31,8 @@ namespace heyho {
 	}
 
 	template<typename POINTS_IT, typename LINE_IT>
-	poly_line_vertical_iterator<POINTS_IT, LINE_IT>::poly_line_vertical_iterator(POINTS_IT points_it, int connectivity)
-		: m_poly_line_points(std::move(points_it), connectivity)
+	poly_line_vertical_iterator<POINTS_IT, LINE_IT>::poly_line_vertical_iterator(POINTS_IT points_it, connectivity line_type)
+		: m_poly_line_points(std::move(points_it), line_type)
 		, m_current_point(*m_poly_line_points)
 		, m_end(false)
 	{
@@ -43,7 +43,7 @@ namespace heyho {
 	template<typename POINTS_IT, typename LINE_IT>
 	const typename poly_line_vertical_iterator<POINTS_IT, LINE_IT>::hline& poly_line_vertical_iterator<POINTS_IT, LINE_IT>::operator*() const {
 		if (this->end()) {
-			throw std::runtime_error("dereferencing invalid iterator");
+			throw std::logic_error("dereferencing invalid iterator");
 		}
 		return m_current_point;
 	}

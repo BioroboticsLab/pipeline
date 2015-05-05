@@ -37,7 +37,7 @@ namespace heyho {
 				std::cout.flush();
 				timer t;
 				for (size_t j = 0; j < times; ++j) {
-					name_f.second(img, poly, default_color<img_type>(), 4);
+					name_f.second(img, poly, default_color<img_type>(), connectivity::eight_connected);
 				}
 			}
 		}
@@ -74,16 +74,18 @@ namespace heyho {
 				std::cout.flush();
 				timer t;
 				for (size_t j = 0; j < times; ++j) {
-					name_f.second(img, poly, 4);
+					name_f.second(img, poly, connectivity::eight_connected);
 				}
 			}
 		}
 
+		template<typename A, typename B>
 		void compare_convex_poly()
 		{
-			using cmp = compare_paint<heyho::tests::open_cv_fill_poly_f, heyho::tests::heyho_fill_poly_cv_f<line_iterator_cv>>;
+			using cmp = compare_paint<A, B>;
+
 			{
-				std::cout << "FOREACH( cv::fillConvexPoly == heyho::fill_convex_poly_cv ) ... ";
+				std::cout << "ellipse FOREACH( " << A::name() << " == " << B::name() << " ) ... ";
 				std::cout.flush();
 				for (int angle = 0; angle < 45; angle += 5) {
 					for (int axis_minor = 25; axis_minor < 50; ++axis_minor) {
@@ -96,29 +98,129 @@ namespace heyho {
 			}
 
 			{
-				std::cout << "FOREACH( cropped cv::fillConvexPoly == cropped heyho::fill_convex_poly_cv ) ... ";
+				std::cout << "ellipse FOREACH( cropped " << A::name() << " == cropped " << B::name() << " ) ... ";
 				std::cout.flush();
 
+				const cv::Size img_dim(100, 100);
+
+				// ellipse crossing image boundaries
+				// =================================
+
 				// left
-				foreach()(cmp{{100, 10}, 0, 100, 100, {10, 50}});
+				foreach()(cmp{{50, 10}, 0, img_dim, {10, 50}});
 
 				// right
-				foreach()(cmp{{100, 10}, 0, 100, 100, {90, 50}});
+				foreach()(cmp{{50, 10}, 0, img_dim, {90, 50}});
 
 				// top
-				foreach()(cmp{{10, 100}, 0, 100, 100, {50, 10}});
+				foreach()(cmp{{10, 50}, 0, img_dim, {50, 10}});
 
 				// bottom
-				foreach()(cmp{{10, 100}, 0, 100, 100, {50, 90}});
+				foreach()(cmp{{10, 50}, 0, img_dim, {50, 90}});
 
 				// all sides
-				foreach()(cmp{{150, 150}, 0, 100, 100, {50, 50}});
+				foreach()(cmp{{55, 55}, 0, img_dim, {50, 50}});
 
-				// completly outside
-				foreach()(cmp{{10, 10}, 0, 100, 100, {500, 500}});
+
+				// ellipse completly outside
+				// =========================
+
+				// left
+				foreach()(cmp{{50, 10}, 0, img_dim, {-55, 50}});
+
+				// right
+				foreach()(cmp{{50, 10}, 0, img_dim, {105, 50}});
+
+				// top
+				foreach()(cmp{{10, 50}, 0, img_dim, {50, -55}});
+
+				// bottom
+				foreach()(cmp{{10, 50}, 0, img_dim, {50, 105}});
 
 				std::cout << "passed :)\n";
 			}
+
+			{
+				std::cout << "non-convex polygon FOREACH( cropped " << A::name() << " == cropped " << B::name() << " ) ... ";
+				std::cout.flush();
+
+				const auto shift = [](std::vector<cv::Point> pts, cv::Point offset) {
+					for (auto &p : pts) { p += offset; }
+					return std::move(pts);
+				};
+
+				/*
+				 *  1 ______ 2
+				 *    \    /
+				 *     \  /
+				 *    6 \/ 3
+				 *      /\
+				 *     /  \
+				 *  5 /____\ 4
+				 *
+				 */
+				const std::vector<cv::Point> poly{{10,10}, {50,10}, {35,30}, {50,50}, {10,50}, {25,30}};
+				const cv::Size img_dim(60, 60);
+				const cv::Point offset_x(20, 0);
+				const cv::Point offset_y(0, 20);
+
+				// non-convex polygon crossing image boundaries
+				// ============================================
+
+				// left
+				foreach()(cmp{shift(poly, -offset_x), img_dim});
+
+				// right
+				foreach()(cmp{shift(poly,  offset_x), img_dim});
+
+				// top
+				foreach()(cmp{shift(poly, -offset_y), img_dim});
+
+				// bottom
+				foreach()(cmp{shift(poly,  offset_y), img_dim});
+
+				std::cout << "passed :)\n";
+			}
+
+			{
+				std::cout << "convex polygon FOREACH( " << A::name() << " == " << B::name() << " ) ... ";
+				std::cout.flush();
+
+				const cv::Size img_size(60, 60);
+				for (int y = 10 + 1; y < 50 - 1; ++y)
+				{
+					/*
+					 * P1             P2
+					 * (10,10)________(25,10)
+					 *        \       \
+					 *         \       \
+					 *     P6   \       \ P3
+					 *    (35,y)/       / (50,y)
+					 *         /       /
+					 *  P5    /_______/P4
+					 * (10,50)        (25,50)
+					 *
+					 * loop over y-coords of P3 & P6
+					 *
+					 */
+					const std::vector<cv::Point> poly{{10,10}, {25,10}, {50, y}, {25,50}, {10,50}, {35,y}};
+					foreach()(cmp(poly, img_size));
+				}
+				std::cout << "passed :)\n";
+			}
+
+		}
+
+		void compare_convex_poly() {
+			compare_convex_poly<
+				heyho::tests::open_cv_fill_poly_f,
+				heyho::tests::heyho_fill_poly_cv_f<line_iterator_cv>
+			>();
+
+			compare_convex_poly<
+				heyho::tests::open_cv_fill_poly_f,
+				heyho::tests::heyho_fill_poly_cv2_f<line_iterator>
+			>();
 		}
 
 	}

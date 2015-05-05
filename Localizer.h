@@ -32,6 +32,8 @@ public:
 	virtual ~Localizer();
 
 	void loadSettings(settings::localizer_settings_t&& settings);
+	void loadSettings(settings::localizer_settings_t const& settings);
+	settings::localizer_settings_t getSettings() const;
 
 	const cv::Mat& getBlob() const;
 	void setBlob(const cv::Mat& blob);

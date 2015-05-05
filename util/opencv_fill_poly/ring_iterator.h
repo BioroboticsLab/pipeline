@@ -10,7 +10,7 @@
 
 #include <iterator>    // std::distance
 #include <algorithm>   // std::minmax_element
-#include <stdexcept>   // std::invalid_argument, std::runtime_error
+#include <stdexcept>   // std::invalid_argument, std::logic_error
 #include <type_traits> // std::integral_constant, std::{true,false}_type
 
 namespace heyho {

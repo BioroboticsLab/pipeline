@@ -11,18 +11,18 @@
 namespace heyho {
 
 	template<typename LINE_IT, typename F>
-	F convex_poly_cv(F f, const cv::Size size, cv::InputArray points, const int line_type)
+	F convex_poly_cv(F f, const cv::Size size, cv::InputArray points, const connectivity line_type)
 	{
+		constexpr int XY_SHIFT = 16;
+		constexpr int XY_ONE   = 1 << XY_SHIFT;
+		constexpr int DELTA    = XY_ONE >> 1;
+
 		const auto ptr_size = cv_point_input_array_to_pointer(points);
 		const cv::Point* const pts = ptr_size.first;
 		const int npts = ptr_size.second;
 
 		if (pts == nullptr || npts <= 0) {
 			return std::move(f);
-		}
-
-		if (line_type != 4 && line_type != 8) {
-			throw std::invalid_argument("invalid line type");
 		}
 
 		struct {
@@ -34,12 +34,12 @@ namespace heyho {
 		// draw outline, calc min/max x/y coordinates
 		int imin = 0;
 		int ymin = pts[0].y;
-		int ymax = ymin;
+		int ymax = pts[0].y;
 		{
 			int xmin = pts[0].x;
-			int xmax = ymin;
+			int xmax = pts[0].x;
 			cv::Point p0 = pts[npts - 1];
-			for(int i = 0; i < npts; i++ )
+			for (int i = 0; i < npts; i++ )
 			{
 				cv::Point p = pts[i];
 				if( p.y < ymin )
@@ -57,8 +57,8 @@ namespace heyho {
 				p0 = p;
 			}
 
-			if( npts < 3 || xmax < 0 || ymax < 0 || xmin >= size.width || ymin >= size.height ) {
-				return f;
+			if ( npts < 3 || xmax < 0 || ymax < 0 || xmin >= size.width || ymin >= size.height ) {
+				return std::move(f);
 			}
 		}
 
@@ -79,7 +79,7 @@ namespace heyho {
 			int right = 1;
 			do
 			{
-				for(int i = 0; i < 2; ++i )
+				for (int i = 0; i < 2; ++i )
 				{
 					if( y >= edge[i].ye )
 					{
@@ -88,7 +88,7 @@ namespace heyho {
 						int xs = 0;
 						int ty = 0;
 
-						for(;;)
+						for (;;)
 						{
 							ty = pts[idx].y;
 							if( ty > y || edges == 0 ) {
@@ -101,11 +101,13 @@ namespace heyho {
 						}
 
 						const int ye = ty;
-						const int xe = pts[idx].x;
+						xs <<= XY_SHIFT;
+						const int xe = pts[idx].x << XY_SHIFT;
 
 						/* no more edges */
-						if( y >= ye )
-							return f;
+						if ( y >= ye ) {
+							return std::move(f);
+						}
 
 						edge[i].ye = ye;
 						edge[i].dx = ((xe - xs) * 2 + (ye - y)) / (2 * (ye - y));
@@ -114,7 +116,7 @@ namespace heyho {
 					}
 				}
 
-				if( edge[left].x > edge[right].x )
+				if ( edge[left].x > edge[right].x )
 				{
 					left ^= 1;
 					right ^= 1;
@@ -123,35 +125,37 @@ namespace heyho {
 				int x1 = edge[left].x;
 				int x2 = edge[right].x;
 
-				if( y >= 0 )
+				if ( y >= 0 )
 				{
-					int xx1 = x1;
-					int xx2 = x2;
+					const int xx1 = (x1 + DELTA) >> XY_SHIFT;
+					const int xx2 = (x2 + DELTA) >> XY_SHIFT;
 
-					if( xx2 >= 0 && xx1 < size.width )
+					if ( xx2 >= 0 && xx1 < size.width )
 					{
-						if( xx1 < 0 )
-							xx1 = 0;
-						if( xx2 >= size.width )
-							xx2 = size.width - 1;
-						f = heyho::hline(std::move(f), no_boundaries_tag{}, xx1, xx2, y);
+						f = heyho::hline(
+								std::move(f),
+								no_boundaries_tag{},
+								std::max(xx1, 0),
+								std::min(xx2, size.width - 1),
+								y
+						);
 					}
 				}
 
 				x1 += edge[left].dx;
 				x2 += edge[right].dx;
 
-				edge[left].x = x1;
+				edge[left].x  = x1;
 				edge[right].x = x2;
 			}
-			while( ++y <= ymax );
+			while ( ++y <= ymax );
 		}
 		return std::move(f);
 	}
 
 
 	template<typename LINE_IT, typename pixel_t>
-	void fill_convex_poly_cv(cv::InputOutputArray img, const cv::Scalar& color, cv::InputArray points, int line_type)
+	void fill_convex_poly_cv(cv::InputOutputArray img, const cv::Scalar& color, cv::InputArray points, connectivity line_type)
 	{
 		/*
 		 * cv::InputOutputArray --> cv::Mat; forward everything else
@@ -167,7 +171,7 @@ namespace heyho {
 
 
 	template<typename LINE_IT, typename pixel_t>
-	void fill_convex_poly_cv(cv::Mat& img, const cv::Scalar& color, cv::InputArray points, int line_type)
+	void fill_convex_poly_cv(cv::Mat& img, const cv::Scalar& color, cv::InputArray points, connectivity line_type)
 	{
 		/*
 		 * cv::Scalar --> pixel_t; forward everything else
@@ -182,7 +186,7 @@ namespace heyho {
 
 
 	template<typename LINE_IT, typename pixel_t>
-	void fill_convex_poly_cv(cv::Mat& img, const pixel_t &color, cv::InputArray points, int line_type)
+	void fill_convex_poly_cv(cv::Mat& img, const pixel_t &color, cv::InputArray points, connectivity line_type)
 	{
 		/*
 		 * cv::Mat + pixel_t --> pixel_setter; forward everything else

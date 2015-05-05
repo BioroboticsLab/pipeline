@@ -55,17 +55,19 @@ Func PipelineGrid::processCoordinates(cached_coordinates_t& coordinates, const s
 template <typename Func>
 PipelineGrid::polygon_coords_return_t<Func> PipelineGrid::calculatePolygonCoordinates(const size_t idx, Func&& coordinateFunction)
 {
+	static const heyho::connectivity con = heyho::connectivity::eight_connected;
+
 	coordinates_t coordinates;
 
 	// TODO: maybe move coordinateFunction
 	if (idx == INDEX_OUTER_WHITE_RING) {
 		cacheSetterOuter<Func> cacheFun(idx, _idImage, coordinates, coordinateFunction, _boundingBox.tl(), _center);
 		cacheFun = heyho::convex_poly<heyho::line_iterator, cacheSetterOuter<Func>, heyho::no_boundaries_tag>(
-		            std::move(cacheFun), heyho::no_boundaries_tag(), _coordinates2D[idx], 8);
+					std::move(cacheFun), heyho::no_boundaries_tag(), _coordinates2D[idx], con);
 	} else {
 		cacheSetter<Func> cacheFun(idx, _idImage, coordinates, coordinateFunction, _boundingBox.tl(), _center);
 		cacheFun = heyho::convex_poly<heyho::line_iterator, cacheSetter<Func>, heyho::no_boundaries_tag>(
-		            std::move(cacheFun), heyho::no_boundaries_tag(), _coordinates2D[idx], 8);
+					std::move(cacheFun), heyho::no_boundaries_tag(), _coordinates2D[idx], con);
 	}
 
 	return PipelineGrid::polygon_coords_return_t<Func>(std::move(coordinates), std::move(coordinateFunction));
@@ -74,7 +76,7 @@ PipelineGrid::polygon_coords_return_t<Func> PipelineGrid::calculatePolygonCoordi
 template <typename Func>
 Func PipelineGrid::processLineCoordinates(const cv::Point start, const cv::Point end, Func&& coordinateFunction) const
 {
-	static const int connectivity = 8;
+	static const heyho::connectivity connectivity = heyho::connectivity::eight_connected;
 
 	const int dx = end.x - start.x;
 	const int dy = end.y - start.y;

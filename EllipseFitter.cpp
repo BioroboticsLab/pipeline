@@ -34,23 +34,10 @@ namespace pipeline {
 
 //#define DEBUG_MODE_ELLIPSEFITTER_XIE
 
-EllipseFitter::EllipseFitter() {
-#ifdef PipelineStandalone
-	this->loadConfigVars(config::DEFAULT_ELLIPSEFITTER_CONFIG);
-#endif
-}
-
 void EllipseFitter::loadSettings(settings::ellipsefitter_settings_t &&settings)
 {
 	_settings = std::move(settings);
 }
-
-#ifdef PipelineStandalone
-EllipseFitter::EllipseFitter(std::string configFile) {
-	this->loadConfigVars(configFile);
-}
-#endif
-
 
 void EllipseFitter::detectEllipse(Tag &tag) {
 	detectXieEllipse(tag);
@@ -521,32 +508,5 @@ static const size_t numThreads = std::thread::hardware_concurrency() ?
 #endif
 	return std::move(taglist);
 }
-
-#ifdef PipelineStandalone
-void EllipseFitter::loadConfigVars(std::string filename) {
-	// TODO FIXME!
-//    boost::property_tree::ptree pt;
-//    boost::property_tree::ini_parser::read_ini(filename, pt);
-
-//	_settings.max_major_axis =
-//		pt.get<int>(config::APPlICATION_ENVIROMENT + ".max_major_axis");
-//	_settings.min_major_axis =
-//		pt.get<int>(config::APPlICATION_ENVIROMENT + ".min_major_axis");
-//	_settings.max_minor_axis =
-//		pt.get<int>(config::APPlICATION_ENVIROMENT + ".max_minor_axis");
-//	_settings.min_minor_axis =
-//		pt.get<int>(config::APPlICATION_ENVIROMENT + ".min_minor_axis");
-//	_settings.threshold_edge_pixels =
-//		pt.get<int>(config::APPlICATION_ENVIROMENT + ".threshold_edge_pixels");
-//	_settings.threshold_vote =
-//		pt.get<int>(config::APPlICATION_ENVIROMENT + ".threshold_vote");
-//	_settings.threshold_best_vote =
-//		pt.get<int>(config::APPlICATION_ENVIROMENT + ".threshold_best_vote");
-//	_settings.canny_threshold_high =
-//		pt.get<int>(config::APPlICATION_ENVIROMENT + ".canny_threshold_low");
-//	_settings.canny_threshold_low =
-//		pt.get<int>(config::APPlICATION_ENVIROMENT + ".canny_threshold_high");
-}
-#endif
 
 } /* namespace decoder */

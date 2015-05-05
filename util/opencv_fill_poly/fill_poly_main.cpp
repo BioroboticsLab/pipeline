@@ -20,6 +20,7 @@
 
 #include "line_iterator.h"
 #include "line_iterator_cv.h"          // line_iterator_tests
+#include "helper.h"
 
 
 
@@ -41,7 +42,7 @@ int main_impl() {
 		{
 			for (const auto &key_val : m) {
 				cv::Mat img(100, 100, CV_8UC1, cv::Scalar(0));
-				heyho::fill_convex_poly<heyho::line_iterator_cv, uchar>(img, cv::Scalar(255), key_val.second, 8);
+				heyho::fill_convex_poly<heyho::line_iterator_cv, uchar>(img, cv::Scalar(255), key_val.second, heyho::connectivity::eight_connected);
 				const auto name = "heyho: " + key_val.first;
 				cv::namedWindow(name, cv::WINDOW_AUTOSIZE);
 				cv::imshow(name, img);
@@ -65,6 +66,7 @@ int main_impl() {
 
 	// tests
 	{
+		heyho::tests::helper_tests();
 		heyho::tests::line_iterator_cv_tests();
 		heyho::tests::line_iterator_tests();
 		heyho::tests::ring_iterator_tests();
@@ -85,8 +87,12 @@ int main_impl() {
 
 			const std::vector<std::pair<std::string, heyho::tests::fill_convex_poly_f>> fill_functions {
 				paint_function<open_cv_fill_poly_f,                    uchar>(),
+
 				paint_function<heyho_fill_poly_cv_f<line_iterator_cv>, uchar>(),
 				paint_function<heyho_fill_poly_cv_f<line_iterator>,    uchar>(),
+
+				paint_function<heyho_fill_poly_cv2_f<line_iterator>,   uchar>(),
+
 				paint_function<heyho_fill_poly_f<line_iterator_cv>,    uchar>(),
 				paint_function<heyho_fill_poly_f<line_iterator>,       uchar>()
 			};
@@ -97,8 +103,12 @@ int main_impl() {
 
 			const std::vector<std::pair<std::string, heyho::tests::count_convex_poly_f>> count_functions {
 				count_function<open_cv_fill_poly_f,                    uchar>(),
+
 				count_function<heyho_fill_poly_cv_f<line_iterator_cv>, uchar>(),
 				count_function<heyho_fill_poly_cv_f<line_iterator>,    uchar>(),
+
+				count_function<heyho_fill_poly_cv2_f<line_iterator>,   uchar>(),
+
 				count_function<heyho_fill_poly_f<line_iterator_cv>,    uchar>(),
 				count_function<heyho_fill_poly_f<line_iterator>,       uchar>()
 			};

@@ -13,6 +13,8 @@
 #include <functional>         // std::reverence_wrapper
 #include <stdexcept>          // std::invalid_argument
 #include <cmath>              // std::abs
+#include <algorithm>          // std::copy_n
+#include <type_traits>        // std::true_type
 
 namespace heyho {
 
@@ -22,14 +24,33 @@ namespace heyho {
 	std::string img_type_to_str(int type);
 
 	/**
-	 * compares cv::Points based on their y coordinate
+	 * compares cv::Point_s based on their y coordinate.
 	 */
-	struct cv_point_less_y {
-		bool operator()(const cv::Point &lhs, const cv::Point &rhs) const {
+	struct cv_point_less_y
+	{
+		template<typename T>
+		bool operator()(const cv::Point_<T> &lhs, const cv::Point_<T> &rhs) const {
 			return lhs.y < rhs.y;
 		}
 	};
 
+	/**
+	 * wraps a bool "value" that is true, iff T is one of either
+	 *   - unsigned char
+	 *   - signed char
+	 *   - unsigned short
+	 *   - short
+	 *   - int
+	 *   - float
+	 *   - double
+	 *
+	 *   although "bool" is a primitive open cv data type
+	 *   (see: http://docs.opencv.org/modules/core/doc/basic_structures.html)
+	 *   it has been removed from this traits object, since
+	 *   cv::DataType<bool>::type == cv::DataType<uin8_t>::type
+	 */
+	template<typename T>
+	struct is_primitive_open_cv_data_type;
 
 	/**
 	 * converts cv::Scalar into pixel.
@@ -42,10 +63,13 @@ namespace heyho {
 	 */
 	struct no_boundaries_tag {};
 
+
+	enum class connectivity : int {four_connected = 4, eight_connected = 8};
+
 	/**
-	 * Stores a reference to a cv::Mat and a pixel.
+	 * Stores a reference to a cv::Mat and a pixel value.
 	 *
-	 * operator()(cv::Points) sets the matrix' pixel to the stored value.
+	 * operator()(cv::Point) sets the matrix' corresponding pixel to the stored value.
 	 *
 	 */
 	template<typename pixel_t>
@@ -60,6 +84,12 @@ namespace heyho {
 		pixel_t m_color;
 	};
 
+	/**
+	 * Stores a reference to a cv::Mat and the value of a zero-pixel in order to count zero and non-zero pixels.
+	 *
+	 * operator()(cv::Point) compares the matrix' corresponding pixel with the stored value and increment either the zero or non-zero counter.
+	 *
+	 */
 	template<typename pixel_t>
 	class pixel_counter
 	{
@@ -96,6 +126,12 @@ namespace heyho {
 	 * @return (ptr to first point, number of points)
 	 */
 	std::pair<const cv::Point*, int> cv_point_input_array_to_pointer(cv::InputArray pts);
+
+	namespace tests {
+
+		void helper_tests();
+
+	}
 
 }
 

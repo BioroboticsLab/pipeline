@@ -86,14 +86,6 @@ void Tag::setBox(const cv::Rect& box) {
 *
 **************************************/
 
-#ifdef PipelineStandalone
-// TODO: FIXME!
-//template<class Archive>
-//void Tag::serialize(Archive & ar, const unsigned int version) {
-//    ar & this->id & this->_valid;
-//}
-#endif
-
 void Tag::addCandidate(TagCandidate c){
 	this->_candidates.push_back(c);
 }

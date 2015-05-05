@@ -24,6 +24,13 @@ namespace heyho {
 	 *
 	 * The polygon is cropped by the rectangle cv::Rect(cv::Point(0,0), size).
 	 *
+	 * @about This function's code is a modified version of open cv's cv::fillConvecPoly:
+	 *  * all macros have been replaced by (templatized) functions
+	 *  * cv::Mat and cv::Mat::type() specific code has been replaced by calls to a functor and "drawing" boundaries (cv::Size)
+	 *  * removed shift param
+	 *  * removed anti-aliased lines
+	 *  * added consts
+	 *
 	 * @param size       cropping dimensions
 	 * @param points     points that span the polygon
 	 * @param f          some functor or function
@@ -34,7 +41,7 @@ namespace heyho {
 	 *
 	 */
 	template<typename LINE_IT, typename F>
-	F convex_poly_cv(F f, cv::Size size, cv::InputArray points, int line_type = 8);
+	F convex_poly_cv(F f, cv::Size size, cv::InputArray points, connectivity line_type = connectivity::eight_connected);
 
 	/**
 	 * @see convex_poly_cv
@@ -43,14 +50,23 @@ namespace heyho {
 	 *
 	 */
 	template<typename LINE_IT, typename pixel_t>
-	void fill_convex_poly_cv(cv::InputOutputArray img, const cv::Scalar &color, cv::InputArray points, int line_type = 8);
+	void fill_convex_poly_cv(cv::InputOutputArray img, const cv::Scalar &color, cv::InputArray points, connectivity line_type = connectivity::eight_connected);
 	template<typename LINE_IT, typename pixel_t>
-	void fill_convex_poly_cv(cv::Mat& img,             const cv::Scalar &color, cv::InputArray points, int line_type = 8);
+	void fill_convex_poly_cv(cv::Mat& img,             const cv::Scalar &color, cv::InputArray points, connectivity line_type = connectivity::eight_connected);
 	template<typename LINE_IT, typename pixel_t>
-	void fill_convex_poly_cv(cv::Mat& img,             const pixel_t &color,    cv::InputArray points, int line_type = 8);
+	void fill_convex_poly_cv(cv::Mat& img,             const pixel_t &color,    cv::InputArray points, connectivity line_type = connectivity::eight_connected);
 
 }
 
 #include "fill_convex_poly_cv.impl.h"
+
+namespace heyho
+{
+	template<typename LINE_IT, typename F, typename IT>
+	F convex_poly_cv2(F f, cv::Size size, IT begin, IT end,      connectivity line_type = connectivity::eight_connected);
+	template<typename LINE_IT, typename F>
+	F convex_poly_cv2(F f, cv::Size size, cv::InputArray points, connectivity line_type = connectivity::eight_connected);
+}
+#include "fill_convex_poly_cv2.impl.h"
 
 #endif /* FILL_CONVEX_POLY_CV_H_ */
