@@ -41,6 +41,7 @@ public:
 	settings::preprocessor_settings_t getOptions() const;
 	void setOptions(settings::preprocessor_settings_t options);
 	void loadSettings(settings::preprocessor_settings_t&& settings);
+	void loadSettings(settings::preprocessor_settings_t& settings);
 
 	const cv::Mat& getThresholdImage() const;
 	void setThresholdImage(const cv::Mat& thresholdImage);

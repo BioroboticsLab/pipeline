@@ -145,6 +145,10 @@ void Preprocessor::loadSettings(settings::preprocessor_settings_t &&settings) {
 	_options = std::move(settings);
 }
 
+void Preprocessor::loadSettings(settings::preprocessor_settings_t &settings) {
+	_options = settings;
+}
+
 /**
  * Computes the Sobel map for a given grayscale image.
  * @return sobelmap
