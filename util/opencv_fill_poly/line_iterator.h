@@ -50,7 +50,7 @@ namespace heyho {
 		/**
 		 * empty line iterator.
 		 */
-		explicit line_iterator();
+		line_iterator();
 
 		cv::Point operator*() const;
 
