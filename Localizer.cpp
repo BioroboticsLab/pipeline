@@ -106,8 +106,8 @@ cv::Mat Localizer::highlightTags(const cv::Mat &grayImage)  {
 
 	// Threshold each block (3x3 grid) of the image separately to
 	// correct for minor differences in contrast across the image.
-	for (int i = 0; i < 30; i++) {
-		for (int j = 0; j < 40; j++) {
+	for (int i = 0; i < image.rows / 100; i++) {
+		for (int j = 0; j < image.cols / 100; j++) {
 			cv::Mat block = image.rowRange(100*i, 100*(i+1)).colRange(100*j, 100*(j+1));
 			cv::Scalar mean_sobel = mean(block);
 			double average_value = mean_sobel.val[0];
