@@ -30,6 +30,12 @@ void GridFitter::loadSettings(settings::gridfitter_settings_t &&settings)
 	cacheSettings();
 }
 
+void GridFitter::loadSettings(settings::gridfitter_settings_t &settings)
+{
+	_settings = settings;
+	cacheSettings();
+}
+
 void GridFitter::cacheSettings()
 {
 	_settings_cache.err_func_alpha_inner      = _settings.get_err_func_alpha_inner();

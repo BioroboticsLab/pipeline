@@ -47,6 +47,7 @@ public:
 	virtual ~EllipseFitter() {}
 
 	void loadSettings(settings::ellipsefitter_settings_t &&settings);
+	void loadSettings(settings::ellipsefitter_settings_t const& settings);
 
 	std::vector<Tag> process(std::vector<Tag> &&taglist);
 	void visualizeEllipse(Tag const& tag , Ellipse const& ell, std::string const& title);

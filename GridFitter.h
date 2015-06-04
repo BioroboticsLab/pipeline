@@ -17,6 +17,7 @@ public:
 	GridFitter();
 
 	void loadSettings(settings::gridfitter_settings_t&& settings);
+	void loadSettings(settings::gridfitter_settings_t& settings);
 
 	/**
 	 * @brief process

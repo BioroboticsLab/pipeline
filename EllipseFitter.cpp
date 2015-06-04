@@ -39,6 +39,11 @@ void EllipseFitter::loadSettings(settings::ellipsefitter_settings_t &&settings)
 	_settings = std::move(settings);
 }
 
+void EllipseFitter::loadSettings(const settings::ellipsefitter_settings_t &settings)
+{
+	_settings = settings;
+}
+
 void EllipseFitter::detectEllipse(Tag &tag) {
 	detectXieEllipse(tag);
 	return;
