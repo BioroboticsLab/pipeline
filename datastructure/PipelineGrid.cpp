@@ -12,11 +12,17 @@ static const cv::Scalar whiteC1(255);
 static const cv::Scalar blackC1(0);
 }
 
-PipelineGrid::PipelineGrid(cv::Point2i center, double radius, double angle_z,
-                           double angle_y, double angle_x)
-    : Grid(center, radius, angle_z, angle_y, angle_x)
+PipelineGrid::PipelineGrid(cv::Point2i center, double radius, double angle_z, double angle_y, double angle_x, double error)
+	: Grid(center, radius, angle_z, angle_y, angle_x)
+	, _error(error)
 {
 	resetCache();
+}
+
+PipelineGrid::PipelineGrid(cv::Point2i center, double radius, double angle_z,
+						   double angle_y, double angle_x)
+	: PipelineGrid(center, radius, angle_z, angle_y, angle_x, 0.)
+{
 }
 
 PipelineGrid::PipelineGrid(const Util::gridconfig_t& config)

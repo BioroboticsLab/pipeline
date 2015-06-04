@@ -27,6 +27,8 @@ public:
 
 	explicit PipelineGrid(cv::Point2i center, double radius, double angle_z,
 			double angle_y, double angle_x);
+	explicit PipelineGrid(cv::Point2i center, double radius, double angle_z,
+			double angle_y, double angle_x, double error);
 	explicit PipelineGrid(Util::gridconfig_t const& config);
 	virtual ~PipelineGrid() {
 	}
@@ -112,6 +114,8 @@ public:
 
 	double compare(const PipelineGrid &to) const;
 
+	double getError() const { return _error; }
+
 private:
 	/* only use for deserialization purposes! */
 	explicit PipelineGrid() {}
@@ -130,6 +134,8 @@ private:
 	cached_coordinates_t _innerWhiteRingCoordinates;
 	cached_coordinates_t _innerBlackRingCoordinates;
 	std::array<cached_coordinates_t, NUM_MIDDLE_CELLS> _gridCellCoordinates;
+
+	double _error;
 
 	// returns the bounding box of a single polygon (identified by the index
 	// of the polygon area [0, Grid::NUM_MIDDLE_CELLS)

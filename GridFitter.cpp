@@ -301,7 +301,8 @@ std::vector<PipelineGrid> GridFitter::fitGrid(const Tag& tag, const TagCandidate
 		size_t idx = 0;
 		for (candidate_t const& gridCandidate : bestGrids) {
 			Util::gridconfig_t const& config = gridCandidate.config;
-			results.emplace_back(config.center + tag.getBox().tl(), config.radius, config.angle_z, config.angle_y, config.angle_x);
+			results.emplace_back(config.center + tag.getBox().tl(), config.radius, config.angle_z,
+								 config.angle_y, config.angle_x, gridCandidate.error);
 
 			++idx;
 			if (idx == to) break;
