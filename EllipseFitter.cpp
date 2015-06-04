@@ -441,53 +441,38 @@ int EllipseFitter::calcScore(Ellipse ell, cv::Mat canny){
 cv::Mat EllipseFitter::computeCannyEdgeMap(cv::Mat const& grayImage) {
 	cv::Mat localGrayImage = grayImage.clone();
 
-	cv::GaussianBlur(localGrayImage, localGrayImage, cv::Size(3, 3), 0, 0,
-	                 cv::BORDER_DEFAULT);
+	cv::GaussianBlur(localGrayImage, localGrayImage, cv::Size(3, 3), 0, 0, cv::BORDER_DEFAULT);
 
 	cv::Mat cannyEdgeMap;
 
-	double low=static_cast<double>(this->_settings.get_canny_initial_high()- this->_settings.get_canny_values_distance());
-	double high = static_cast<double>(this->_settings.get_canny_initial_high());
+	double low  = static_cast<double>(_settings.get_canny_initial_high() -
+									  _settings.get_canny_values_distance());
+	double high = static_cast<double>(_settings.get_canny_initial_high());
 
+	const double min_mean = static_cast<double>(_settings.get_canny_mean_min());;
+	const double max_mean = static_cast<double>(_settings.get_canny_mean_max());;
 
-	double average_old = -1, average_old_2 =-1;
-	double min_mean = static_cast<double>(this->_settings.get_canny_mean_min());;
-	double max_mean = static_cast<double>(this->_settings.get_canny_mean_max());;
+	std::array<double, 2> history {-1., -1.};
+	double average_value;
+	do
+	{
+		cv::Canny(localGrayImage, cannyEdgeMap,low, high);
+		average_value = cv::mean(cannyEdgeMap).val[0];
 
-canny:
-	cv::Canny(localGrayImage, cannyEdgeMap,low, high);
+		// direction of adjustment
+		int direction = 0;
+		if (average_value < min_mean) direction = -1;
+		else if (average_value > max_mean) direction = 1;
 
-	cv::Scalar mean = cv::mean(cannyEdgeMap);
-	double average_value = mean.val[0];
-	//std::cout << "canny mean " << mean.val[0] << " "<< std::endl;
+		low  += direction * 5;
+		high += direction * 5;
 
+		// abort if iterating between two values -> endless loop
+		if (std::abs(history[0] - average_value) < 0.00001) break;
 
-	if (average_old_2 != average_value ||  average_old == average_old_2 ) {
-
-		if (average_value < min_mean) {
-			if(low > 0)
-				low-=5;
-			if(high > 0)
-				high-=5;
-			average_old_2 = average_old;
-			average_old = average_value;
-
-			//std::cout << "new values " << high << " " <<low << std::endl;
-
-			goto canny;
-		} else if (average_value > max_mean) {
-			if(low < 255)
-				low+= 5;
-			if(high < 255)
-				high+=5;
-			average_old_2 = average_old;
-			average_old = average_value;
-			//std::cout << "new values " << high << " " <<low << std::endl;
-			goto canny;
-		}
-	}
-
-
+		history[0] = history[1];
+		history[1] = average_value;
+	} while (average_value <= min_mean || average_value >= max_mean);
 
 	return cannyEdgeMap;
 }
