@@ -81,8 +81,11 @@ cv::Mat Preprocessor::process(const std::string& filename) {
 cv::Mat Preprocessor::process(const cv::Mat &image) {
 	cv::Mat grayImage;
 
-	// convert image to grayscale (not needed later because images will already be grayscale)
-	cv::cvtColor(image, grayImage, CV_BGR2GRAY);
+	if (image.type() == CV_8UC1) {
+		image.copyTo(grayImage);
+	} else {
+		cv::cvtColor(image, grayImage, CV_BGR2GRAY);
+	}
 
 	cv::Mat opt_image;
 	if (this->_options.get_opt_use_contrast_streching()) {
