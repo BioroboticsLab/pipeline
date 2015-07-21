@@ -4,6 +4,11 @@
 
 #include "datastructure/settings.h"
 
+#define USE_DEEPLOCALIZER
+
+#ifdef USE_DEEPLOCALIZER
+#include <deeplocalizer/classifier/CaffeClassifier.h>
+#endif
 
 
 namespace pipeline {
@@ -22,6 +27,13 @@ private:
 	cv::Mat computeBlobs(const cv::Mat &sobel) ;
 	cv::Mat highlightTags(const cv::Mat &grayImage) ;
 	std::vector<Tag> locateTagCandidates(cv::Mat blobImage, cv::Mat cannyEdgeMap, cv::Mat grayImage);
+
+#ifdef USE_DEEPLOCALIZER
+    deeplocalizer::CaffeClassifier _caffeNet;
+    caffe::DataTransformer<float> _caffeTransformer;
+
+    std::vector<Tag> filterTagCandidates(std::vector<Tag>&& candidates);
+#endif
 
 
 public:

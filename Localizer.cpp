@@ -11,6 +11,24 @@
 
 #include "datastructure/Tag.h"
 
+#ifdef USE_DEEPLOCALIZER
+#include <deeplocalizer/classifier/DataReader.h>
+
+namespace deeplocalizer_config {
+const std::string model_file("/home/ben/dev/deeplocalizer-data/from_aws/models/conv12_conv48_fc1024_fc_2/deploy.prototxt");
+const std::string trained_file("/home/ben/dev/deeplocalizer-data/from_aws/models/conv12_conv48_fc1024_fc_2/solver.prototxt");
+const float probability_threshold = 0.5;
+}
+
+caffe::TransformationParameter getTransformationParameter() {
+    caffe::TransformationParameter param;
+    param.set_scale(1.f / 255.f);
+
+    return param;
+}
+
+#endif
+
 /**
  * Scales a given OpenCV rectangle by a factor, conserving the rectangle's center.
  *
@@ -31,8 +49,13 @@ namespace pipeline {
 *
 **************************************/
 
-Localizer::Localizer() {
-
+Localizer::Localizer()
+#ifdef USE_DEEPLOCALIZER
+    : _caffeNet(deeplocalizer_config::model_file, deeplocalizer_config::trained_file)
+    // TODO: set batch size according to number of localizer candidates
+    , _caffeTransformer(getTransformationParameter(), caffe::TEST)
+#endif
+{
 }
 
 
@@ -246,8 +269,53 @@ std::vector<Tag> Localizer::locateTagCandidates(cv::Mat blobImage_old,
 		}
 	}
 
-	return taglist;
+#ifdef USE_DEEPLOCALIZER
+    taglist = filterTagCandidates(std::move(taglist));
+#endif
+
+    return taglist;
 }
+
+#ifdef USE_DEEPLOCALIZER
+std::vector<Tag> Localizer::filterTagCandidates(std::vector<Tag> &&candidates)
+{
+    _caffeNet.setBatchSize(candidates.size());
+
+    std::vector<caffe::Datum> _data;
+
+    for (Tag const& candidate : candidates) {
+        cv::Mat const& blob = candidate.getOrigSubImage();
+        assert(blob.cols == 100 && blob.rows == 100);
+        assert(blob.channels() == 1);
+
+        caffe::Datum datum;
+        caffe::CVMatToDatum(blob, &datum);
+
+        _data.push_back(std::move(datum));
+    }
+
+    caffe::Blob<float> caffeData;
+    caffeData.Reshape(candidates.size(), 1, 100, 100);
+    _caffeTransformer.Transform(_data, &caffeData);
+
+    std::vector<std::vector<float>> probabilityMatrix = _caffeNet.forward(caffeData);
+
+    std::vector<size_t> removalIndices;
+    size_t idx = probabilityMatrix.size();
+    while (idx > 0) {
+        if (probabilityMatrix[idx-1][0] < deeplocalizer_config::probability_threshold) {
+            removalIndices.push_back(idx-1);
+        }
+        --idx;
+    }
+
+    for (const size_t idx : removalIndices) {
+        candidates.erase(candidates.begin() + idx);
+    }
+
+    return candidates;
+}
+#endif
 
 
 /*
