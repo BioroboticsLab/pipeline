@@ -15,10 +15,16 @@ namespace pipeline {
 *
 **************************************/
 
-Tag::Tag(cv::Rect rec, int id)
+Tag::Tag(cv::Rect rec, cv::Mat subImage, int id)
     : _box(rec)
+    , _origSubImage(subImage)
     , _valid(true)
     , _id(id)
+{
+}
+
+Tag::Tag(cv::Rect rec, int id)
+    : Tag(rec, cv::Mat(), id)
 {
 }
 

@@ -36,7 +36,8 @@ private:
 	}
 
 public:
-	explicit Tag(cv::Rect rec, int _id);
+    explicit Tag(cv::Rect rec, int _id);
+    explicit Tag(cv::Rect rec, cv::Mat subImage, int _id);
 
 	std::vector<TagCandidate> &getCandidates();
 	const std::vector<TagCandidate> &getCandidatesConst() const;

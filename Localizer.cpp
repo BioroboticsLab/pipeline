@@ -10,7 +10,7 @@
 namespace deeplocalizer_config {
 const std::string model_file("/home/ben/dev/deeplocalizer-data/from_aws/models/conv12_conv48_fc1024_fc_2/deploy.prototxt");
 const std::string trained_file("/home/ben/dev/deeplocalizer-data/from_aws/models/conv12_conv48_fc1024_fc_2/model_iter_20000.caffemodel");
-const float probability_threshold = 0.3f;
+const float probability_threshold = 0.5f;
 }
 
 namespace {
@@ -80,6 +80,7 @@ std::vector<Tag> Localizer::process(cv::Mat &&originalImage, cv::Mat &&preproces
     _blob = highlightTags(preprocessedImage);
 
     std::vector<Tag> taglist= locateTagCandidates(_blob, _canny_map,originalImage);
+    //std::vector<Tag> taglist= locateAllPossibleCandidates(originalImage);
 
     return taglist;
 }
@@ -232,12 +233,51 @@ std::vector<Tag> Localizer::locateTagCandidates(cv::Mat blobImage_old,
     return taglist;
 }
 
+std::vector<Tag> Localizer::locateAllPossibleCandidates(const cv::Mat &grayImage)
+{
+    const int roiSize  = _settings.get_min_bounding_box_size();
+    const int stepSize = static_cast<int>(roiSize * 0.45);
+
+    cv::Mat imageWithBorder;
+    cv::copyMakeBorder(grayImage, imageWithBorder, roiSize, roiSize, roiSize, roiSize, cv::BORDER_REPLICATE);
+
+    std::vector<Tag> taglist;
+
+    auto addRoi = [&](const int x, const int y) {
+        const cv::Rect roi(x, y, roiSize, roiSize);
+        const cv::Mat subImage(imageWithBorder, roi);
+
+        const cv::Rect originalImageRoi(x - roiSize, y - roiSize, roiSize, roiSize);
+        Tag tag(originalImageRoi, subImage.clone(), taglist.size() + 1);
+        taglist.push_back(tag);
+    };
+
+    int y = roiSize + 1;
+    do {
+
+        int x = roiSize + 1;
+        do {
+            addRoi(x, y);
+
+            x += stepSize;
+        } while (x < (grayImage.size[1] + roiSize - 1));
+
+        y += stepSize;
+    } while (y < (grayImage.size[0] + roiSize - 1));
+
+#ifdef USE_DEEPLOCALIZER
+    taglist = filterTagCandidates(std::move(taglist));
+#endif
+
+    return taglist;
+}
+
 #ifdef USE_DEEPLOCALIZER
 std::vector<Tag> Localizer::filterTagCandidates(std::vector<Tag> &&candidates)
 {
     _caffeNet.setBatchSize(candidates.size());
 
-    std::vector<caffe::Datum> _data;
+    std::vector<caffe::Datum> data;
 
     for (Tag const& candidate : candidates) {
         cv::Mat const& blob = candidate.getOrigSubImage();
@@ -247,12 +287,12 @@ std::vector<Tag> Localizer::filterTagCandidates(std::vector<Tag> &&candidates)
         caffe::Datum datum;
         caffe::CVMatToDatum(blob, &datum);
 
-        _data.push_back(std::move(datum));
+        data.push_back(std::move(datum));
     }
 
     caffe::Blob<float> caffeData;
     caffeData.Reshape(candidates.size(), 1, 100, 100);
-    _caffeTransformer.Transform(_data, &caffeData);
+    _caffeTransformer.Transform(data, &caffeData);
 
     std::vector<std::vector<float>> probabilityMatrix = _caffeNet.forward(caffeData);
 

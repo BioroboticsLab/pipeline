@@ -37,6 +37,8 @@ private:
      */
     std::vector<Tag> locateTagCandidates(cv::Mat blobImage, cv::Mat cannyEdgeMap, cv::Mat grayImage);
 
+    std::vector<Tag> locateAllPossibleCandidates(cv::Mat const& grayImage);
+
 #ifdef USE_DEEPLOCALIZER
     deeplocalizer::CaffeClassifier _caffeNet;
     caffe::DataTransformer<float> _caffeTransformer;
