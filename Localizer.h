@@ -4,8 +4,6 @@
 
 #include "datastructure/settings.h"
 
-#define USE_DEEPLOCALIZER
-
 #ifdef USE_DEEPLOCALIZER
 #include <deeplocalizer/classifier/CaffeClassifier.h>
 #endif
