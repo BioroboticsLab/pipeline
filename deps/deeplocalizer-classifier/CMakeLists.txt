@@ -23,4 +23,4 @@ ExternalProject_Get_Property(deeplocalizer-classifier-ext SOURCE_DIR)
 set(DEEPLOCALIZER_CLASSIFIER_INCLUDE_DIR ${SOURCE_DIR}/include CACHE INTERNAL "Path to include dir for deeplocalizer classifier")
 
 ExternalProject_Get_Property(deeplocalizer-classifier-ext BINARY_DIR)
-set(DEEPLOCALIZER_CLASSIFIER_LIBRARY_DIR ${BINARY_DIR}/source/classifier/ CACHE INTERNAL "Path to lib for deeplocalizer classifier")
+set(DEEPLOCALIZER_CLASSIFIER_LIBRARY_DIR "${BINARY_DIR}/source/classifier/" CACHE INTERNAL "Path to lib for deeplocalizer classifier")

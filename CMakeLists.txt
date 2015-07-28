@@ -134,11 +134,17 @@ add_library(Pipeline STATIC
     ${src_util} ${hdr_util}
 )
 
-include_directories(
+set(PIPELINE_INCLUDE_DIRS
     SYSTEM ${DEEPLOCALIZER_CLASSIFIER_INCLUDE_DIR}
     SYSTEM ${Caffe_INCLUDE_DIRS}
     SYSTEM ${LMDB_INCLUDE_DIRS}
     SYSTEM ${CUDA_INCLUDE_DIRS}
+)
+
+add_definitions(-DUSE_DEEPLOCALIZER)
+
+include_directories(
+    ${PIPELINE_INCLUDE_DIRS}
 )
 
 link_directories(${DEEPLOCALIZER_CLASSIFIER_LIBRARY_DIR})
@@ -149,5 +155,10 @@ target_link_libraries(Pipeline
     ${OpenCV_LIBS}
     ${CMAKE_THREAD_LIBS_INIT}
     ${Boost_LIBRARIES}
+    ${Caffe_LIBRARIES}
+    ${LMDB_LIBRARIES}
+    ${CUDA_LIBRARIES}
 )
+
+set_target_properties(Pipeline PROPERTIES PIPELINE_INCLUDES "${PIPELINE_INCLUDE_DIRS}")
 

@@ -16,7 +16,7 @@
 
 namespace deeplocalizer_config {
 const std::string model_file("/home/ben/dev/deeplocalizer-data/from_aws/models/conv12_conv48_fc1024_fc_2/deploy.prototxt");
-const std::string trained_file("/home/ben/dev/deeplocalizer-data/from_aws/models/conv12_conv48_fc1024_fc_2/solver.prototxt");
+const std::string trained_file("/home/ben/dev/deeplocalizer-data/from_aws/models/conv12_conv48_fc1024_fc_2/model_iter_20000.caffemodel");
 const float probability_threshold = 0.5;
 }
 
@@ -303,7 +303,7 @@ std::vector<Tag> Localizer::filterTagCandidates(std::vector<Tag> &&candidates)
     std::vector<size_t> removalIndices;
     size_t idx = probabilityMatrix.size();
     while (idx > 0) {
-        if (probabilityMatrix[idx-1][0] < deeplocalizer_config::probability_threshold) {
+        if (probabilityMatrix[idx-1][0] > deeplocalizer_config::probability_threshold) {
             removalIndices.push_back(idx-1);
         }
         --idx;
