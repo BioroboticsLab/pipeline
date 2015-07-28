@@ -303,7 +303,7 @@ std::vector<Tag> Localizer::filterTagCandidates(std::vector<Tag> &&candidates)
     std::vector<size_t> removalIndices;
     size_t idx = probabilityMatrix.size();
     while (idx > 0) {
-        if (probabilityMatrix[idx-1][0] < deeplocalizer_config::probability_threshold) {
+        if (probabilityMatrix[idx-1][0] > deeplocalizer_config::probability_threshold) {
             removalIndices.push_back(idx-1);
         }
         --idx;
