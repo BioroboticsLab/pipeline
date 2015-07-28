@@ -9,13 +9,10 @@ ExternalProject_Add(
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
     GIT_REPOSITORY https://github.com/BioroboticsLab/deeplocalizer-classifier.git
     TIMEOUT 10
-    #UPDATE_COMMAND ${GIT_EXECUTABLE} pull
-    #CONFIGURE_COMMAND ""
     BUILD_COMMAND "" 
     INSTALL_COMMAND 
         "@CMAKE_COMMAND@"
         --build .
-        #--target install
         --config ${configuration}
         --
         ${jobs_option}

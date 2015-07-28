@@ -134,10 +134,6 @@ add_library(Pipeline STATIC
     ${src_util} ${hdr_util}
 )
 
-
-message(${DEEPLOCALIZER_CLASSIFIER_INCLUDE_DIR})
-message(${DEEPLOCALIZER_CLASSIFIER_LIBRARY_DIR})
-
 include_directories(
     SYSTEM ${DEEPLOCALIZER_CLASSIFIER_INCLUDE_DIR}
     SYSTEM ${Caffe_INCLUDE_DIRS}
