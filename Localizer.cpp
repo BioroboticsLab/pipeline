@@ -16,7 +16,7 @@
 
 namespace deeplocalizer_config {
 const std::string model_file("/home/ben/dev/deeplocalizer-data/from_aws/models/conv12_conv48_fc1024_fc_2/deploy.prototxt");
-const std::string trained_file("/home/ben/dev/deeplocalizer-data/from_aws/models/conv12_conv48_fc1024_fc_2/solver.prototxt");
+const std::string trained_file("/home/ben/dev/deeplocalizer-data/from_aws/models/conv12_conv48_fc1024_fc_2/model_iter_20000.caffemodel");
 const float probability_threshold = 0.5;
 }
 
