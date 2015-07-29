@@ -254,4 +254,3 @@ double PipelineGrid::compare(const PipelineGrid &to) const
 
 	return cv::min(d1, cp1*cp2*cp3*cp1*cp2*cp3*cp1*cp2*cp3);
 }
-
