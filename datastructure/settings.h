@@ -503,7 +503,7 @@ static const unsigned int FIRST_DILATION_SIZE = 2;
 static const unsigned int EROSION_SIZE = 25;
 static const unsigned int SECOND_DILATION_SIZE = 2;
 // TODO: change to one size parameter
-static const unsigned int MAX_TAG_SIZE = 250;
+static const unsigned int MAX_TAG_SIZE = 100;
 static const int MIN_BOUNDING_BOX_SIZE = 100;
 }
 }
