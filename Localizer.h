@@ -32,7 +32,7 @@ private:
     /**
      *  Find blobs in the binary input image Ib and filter them by their size
      *
-     * @param blobImage_old binary comb image with highlighted tag candidates
+     * @param blobImage binary comb image with highlighted tag candidates
      * @return boundingBoxes output vector of size-filtered bounding boxes
      */
     std::vector<Tag> locateTagCandidates(cv::Mat blobImage, cv::Mat cannyEdgeMap, cv::Mat grayImage);
