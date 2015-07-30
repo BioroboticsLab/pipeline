@@ -54,6 +54,23 @@ public:
 	template<typename Func>
 	Func processInnerLineCoordinates(Func&& coordinateFunction) const;
 
+    /* Pawel */
+    const boost::optional<coordinates_t> getGridCellCoordinates(const size_t idx) {
+        return _gridCellCoordinates[idx];
+    }
+
+    boost::optional<coordinates_t> getOuterRingCoordinates() {
+        return _outerRingCoordinates;
+    }
+
+    boost::optional<coordinates_t> getInnerWhiteRingCoordinates() {
+        return _innerWhiteRingCoordinates;
+    }
+
+    boost::optional<coordinates_t> getInnerBlackCoordinates() {
+        return _innerBlackRingCoordinates;
+    }
+
 	// legacy code
 	const std::vector<cv::Point2i> getOuterRingEdgeCoordinates();
 
