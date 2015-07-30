@@ -14,7 +14,6 @@ const float probability_threshold = 0.5f;
 }
 
 namespace {
-
 caffe::TransformationParameter getTransformationParameter() {
     caffe::TransformationParameter param;
     param.set_scale(1.f / 255.f);
@@ -44,7 +43,6 @@ namespace pipeline {
 Localizer::Localizer()
 #ifdef USE_DEEPLOCALIZER
     : _caffeNet(deeplocalizer_config::model_file, deeplocalizer_config::trained_file)
-    // TODO: set batch size according to number of localizer candidates
     , _caffeTransformer(getTransformationParameter(), caffe::TEST)
     #endif
 {
@@ -275,6 +273,10 @@ std::vector<Tag> Localizer::locateAllPossibleCandidates(const cv::Mat &grayImage
 #ifdef USE_DEEPLOCALIZER
 std::vector<Tag> Localizer::filterTagCandidates(std::vector<Tag> &&candidates)
 {
+    if (candidates.empty()) {
+        return candidates;
+    }
+
     _caffeNet.setBatchSize(candidates.size());
 
     std::vector<caffe::Datum> data;
