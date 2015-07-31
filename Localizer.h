@@ -46,6 +46,8 @@ private:
     std::vector<Tag> filterTagCandidates(std::vector<Tag>&& candidates);
 #endif
 
+    std::vector<Tag> filterDuplicates(std::vector<Tag>&& candidates);
+
 public:
     Localizer();
 #ifdef PipelineStandalone

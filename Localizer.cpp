@@ -1,5 +1,7 @@
 #include "Localizer.h"
 
+#include <boost/range/adaptor/reversed.hpp>
+
 #include <opencv2/highgui/highgui.hpp>
 
 #include "datastructure/Tag.h"
@@ -79,6 +81,12 @@ std::vector<Tag> Localizer::process(cv::Mat &&originalImage, cv::Mat &&preproces
 
     std::vector<Tag> taglist= locateTagCandidates(_blob, _canny_map,originalImage);
     //std::vector<Tag> taglist= locateAllPossibleCandidates(originalImage);
+
+#ifdef USE_DEEPLOCALIZER
+    taglist = filterTagCandidates(std::move(taglist));
+#endif
+
+    //taglist = filterDuplicates(std::move(taglist));
 
     return taglist;
 }
@@ -224,17 +232,14 @@ std::vector<Tag> Localizer::locateTagCandidates(cv::Mat blobImage_old,
         }
     }
 
-#ifdef USE_DEEPLOCALIZER
-    taglist = filterTagCandidates(std::move(taglist));
-#endif
-
     return taglist;
 }
 
 std::vector<Tag> Localizer::locateAllPossibleCandidates(const cv::Mat &grayImage)
 {
     const int roiSize  = _settings.get_min_bounding_box_size();
-    const int stepSize = static_cast<int>(roiSize * 0.45);
+    //const int stepSize = static_cast<int>(roiSize * 0.45);
+    const int stepSize = 25;
 
     cv::Mat imageWithBorder;
     cv::copyMakeBorder(grayImage, imageWithBorder, roiSize, roiSize, roiSize, roiSize, cv::BORDER_REPLICATE);
@@ -247,6 +252,7 @@ std::vector<Tag> Localizer::locateAllPossibleCandidates(const cv::Mat &grayImage
 
         const cv::Rect originalImageRoi(x - roiSize, y - roiSize, roiSize, roiSize);
         Tag tag(originalImageRoi, subImage.clone(), taglist.size() + 1);
+
         taglist.push_back(tag);
     };
 
@@ -262,10 +268,6 @@ std::vector<Tag> Localizer::locateAllPossibleCandidates(const cv::Mat &grayImage
 
         y += stepSize;
     } while (y < (grayImage.size[0] + roiSize - 1));
-
-#ifdef USE_DEEPLOCALIZER
-    taglist = filterTagCandidates(std::move(taglist));
-#endif
 
     return taglist;
 }
@@ -319,17 +321,61 @@ std::vector<Tag> Localizer::filterTagCandidates(std::vector<Tag> &&candidates)
 }
 #endif
 
+std::vector<Tag> Localizer::filterDuplicates(std::vector<Tag> &&candidates)
+{
+    const double minOverlap = std::pow(_settings.get_max_tag_size() / 1.5, 2);
+
+    std::set<size_t> removalIndices;
+
+    for (size_t firstIdx = 0; firstIdx < candidates.size(); ++firstIdx) {
+
+        pipeline::Tag const& firstTag = candidates.at(firstIdx);
+
+        double maxScore = firstTag.getLocalizerScore();
+
+        typedef std::pair<size_t, double> idxScorePair;
+        std::set<idxScorePair> overlappingTags;
+        overlappingTags.insert({firstIdx, firstTag.getLocalizerScore()});
+
+        for (size_t secondIdx = 0; secondIdx < candidates.size(); ++secondIdx) {
+
+            if ((firstIdx != secondIdx) && !removalIndices.count(firstIdx) && !removalIndices.count(secondIdx)) {
+
+                pipeline::Tag const& secondTag = candidates.at(secondIdx);
+
+                const cv::Rect firstRoi = firstTag.getBox();
+                const cv::Rect secondRoi = secondTag.getBox();
+                const cv::Rect overlap = firstRoi & secondRoi;
+
+                if (overlap.area() >= minOverlap) {
+
+                    std::cout << secondTag.getLocalizerScore() << std::endl;
+                    overlappingTags.insert({secondIdx, secondTag.getLocalizerScore()});
+                    maxScore = std::max(maxScore, secondTag.getLocalizerScore());
+                }
+            }
         }
-        --idx;
+
+
+        size_t removalCount = 0;
+        for (idxScorePair const& pair : overlappingTags) {
+
+            if ((pair.second <= maxScore) && (removalCount < (overlappingTags.size() - 1))) {
+
+                removalIndices.insert(pair.first);
+                ++removalCount;
+            }
+        }
     }
 
-    for (const size_t idx : removalIndices) {
+    for (const size_t idx : boost::adaptors::reverse(removalIndices)) {
+
         candidates.erase(candidates.begin() + idx);
     }
 
     return candidates;
 }
-#endif
+
 
 void Localizer::loadSettings(settings::localizer_settings_t &&settings)
 {
