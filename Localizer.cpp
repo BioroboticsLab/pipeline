@@ -273,6 +273,10 @@ std::vector<Tag> Localizer::locateAllPossibleCandidates(const cv::Mat &grayImage
 #ifdef USE_DEEPLOCALIZER
 std::vector<Tag> Localizer::filterTagCandidates(std::vector<Tag> &&candidates)
 {
+    assert(_settings.get_min_bounding_box_size() == _settings.get_max_tag_size());
+    const unsigned int tagSize = _settings.get_max_tag_size();
+    assert(tagSize = 100);
+
     if (candidates.empty()) {
         return candidates;
     }
@@ -283,7 +287,7 @@ std::vector<Tag> Localizer::filterTagCandidates(std::vector<Tag> &&candidates)
 
     for (Tag const& candidate : candidates) {
         cv::Mat const& blob = candidate.getOrigSubImage();
-        assert(blob.cols == 100 && blob.rows == 100);
+        assert(blob.cols == tagSize && blob.rows == tagSize);
         assert(blob.channels() == 1);
 
         caffe::Datum datum;
@@ -293,16 +297,28 @@ std::vector<Tag> Localizer::filterTagCandidates(std::vector<Tag> &&candidates)
     }
 
     caffe::Blob<float> caffeData;
-    caffeData.Reshape(candidates.size(), 1, 100, 100);
+    caffeData.Reshape(candidates.size(), 1, tagSize, tagSize);
     _caffeTransformer.Transform(data, &caffeData);
 
     std::vector<std::vector<float>> probabilityMatrix = _caffeNet.forward(caffeData);
 
-    std::vector<size_t> removalIndices;
-    size_t idx = probabilityMatrix.size();
-    while (idx > 0) {
-        if (probabilityMatrix[idx-1][0] > deeplocalizer_config::probability_threshold) {
-            removalIndices.push_back(idx-1);
+    assert(probabilityMatrix.size() == candidates.size());
+
+    for (size_t idx = 0; idx < probabilityMatrix.size(); ++idx) {
+        candidates[idx].setLocalizerScore(probabilityMatrix[idx][1]);
+    }
+
+    candidates.erase(std::remove_if(candidates.begin(), candidates.end(),
+                       [](pipeline::Tag const& tag)
+                       {
+                           return tag.getLocalizerScore() < deeplocalizer_config::probability_threshold;
+                       }
+                    ), candidates.end());
+
+    return candidates;
+}
+#endif
+
         }
         --idx;
     }
