@@ -20,6 +20,8 @@ private:
 	//virtual id, just necessary for the decoding process;
 	int _id;
 
+    double _localizerScore;
+
 	//there may be multiple ellipses and grids for this location, so there is a list of candidates
 	std::vector<TagCandidate> _candidates;
 
@@ -38,6 +40,7 @@ private:
 public:
     explicit Tag(cv::Rect rec, int _id);
     explicit Tag(cv::Rect rec, cv::Mat subImage, int _id);
+    explicit Tag(cv::Rect rec, cv::Mat subImage, int _id, double score);
 
 	std::vector<TagCandidate> &getCandidates();
 	const std::vector<TagCandidate> &getCandidatesConst() const;
@@ -55,6 +58,9 @@ public:
 
 	int getId() const;
 	void setId(int _id);
+
+    double getLocalizerScore() const;
+    void setLocalizerScore(const double score);
 
 	const cv::Rect& getBox() const;
 	void setBox(const cv::Rect& box);

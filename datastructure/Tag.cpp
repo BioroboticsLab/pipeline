@@ -15,11 +15,17 @@ namespace pipeline {
 *
 **************************************/
 
-Tag::Tag(cv::Rect rec, cv::Mat subImage, int id)
+Tag::Tag(cv::Rect rec, cv::Mat subImage, int id, double score)
     : _box(rec)
     , _origSubImage(subImage)
     , _valid(true)
     , _id(id)
+    , _localizerScore(score)
+{
+}
+
+Tag::Tag(cv::Rect rec, cv::Mat subImage, int id)
+    : Tag(rec, subImage, id, 0)
 {
 }
 
@@ -98,7 +104,17 @@ void Tag::addCandidate(TagCandidate c){
 
 bool operator<(const Tag &lhs, const Tag &rhs)
 {
-	return lhs.getId() < rhs.getId();
+    return lhs.getId() < rhs.getId();
 }
 
+double Tag::getLocalizerScore() const
+{
+    return _localizerScore;
+}
+
+void Tag::setLocalizerScore(const double score)
+{
+    _localizerScore = score;
+
+}
 } /* namespace decoder */
