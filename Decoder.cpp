@@ -59,9 +59,7 @@ std::vector<decoding_t> Decoder::getDecodings(const Tag &tag, TagCandidate &cand
     const double SHARPENING_FACTOR = 2.0;
 
 	// region of interest of tag candidate
-	cv::Mat roi;
-	// TODO: shouldn't be BGR in the first place
-	cv::cvtColor(tag.getOrigSubImage(), roi, CV_BGR2GRAY);
+    const cv::Mat& roi = tag.getOrigSubImage();
 
 	const cv::Point roiOffset = tag.getBox().tl();
 
@@ -255,9 +253,7 @@ void Decoder::visualizeDebug(const Tag &tag, PipelineGrid &grid, pipeline::decod
 
 	cv::Mat test(roiSize, CV_8UC1, cv::Scalar::all(0));
 	grid.draw(test, boost::make_optional(decoding));
-	cv::Mat testCpy;
-	cv::cvtColor(test, testCpy, CV_GRAY2BGR);
-	images.push_back(testCpy);
+    images.push_back(test.clone());
 
 	const auto canvas = CvHelper::makeCanvas(images, images[0].rows + 10, 1);
 
