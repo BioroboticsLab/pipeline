@@ -16,8 +16,7 @@ static const std::string FIRST_DILATION_NUM_ITERATIONS =
 static const std::string FIRST_DILATION_SIZE = "FIRST_DILATION_SIZE";
 static const std::string EROSION_SIZE = "EROSION_SIZE";
 static const std::string SECOND_DILATION_SIZE = "SECOND_DILATION_SIZE";
-static const std::string MAX_TAG_SIZE = "MAX_TAG_SIZE";
-static const std::string MIN_BOUNDING_BOX_SIZE = "MIN_BOUNDING_BOX_SIZE";
+static const std::string TAG_SIZE = "TAG_SIZE";
 }
 
 namespace Defaults {
@@ -26,9 +25,7 @@ static const unsigned int FIRST_DILATION_NUM_ITERATIONS = 4;
 static const unsigned int FIRST_DILATION_SIZE = 2;
 static const unsigned int EROSION_SIZE = 25;
 static const unsigned int SECOND_DILATION_SIZE = 2;
-// TODO: change to one size parameter
-static const unsigned int MAX_TAG_SIZE = 100;
-static const int MIN_BOUNDING_BOX_SIZE = 100;
+static const unsigned int TAG_SIZE = 60;
 }
 }
 
@@ -39,8 +36,7 @@ public:
     unsigned int get_first_dilation_size();
     unsigned int get_erosion_size();
     unsigned int get_second_dilation_size();
-    unsigned int get_max_tag_size();
-    int get_min_bounding_box_size();
+    unsigned int get_tag_size();
 
     localizer_settings_t();
 };

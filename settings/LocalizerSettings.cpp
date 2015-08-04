@@ -26,12 +26,8 @@ unsigned int localizer_settings_t::get_second_dilation_size() {
                 Localizer::Params::SECOND_DILATION_SIZE);
 }
 
-unsigned int localizer_settings_t::get_max_tag_size() {
-    return this->getValue<unsigned int>(Localizer::Params::MAX_TAG_SIZE);
-}
-
-int localizer_settings_t::get_min_bounding_box_size() {
-    return this->getValue<int>(Localizer::Params::MIN_BOUNDING_BOX_SIZE);
+unsigned int localizer_settings_t::get_tag_size() {
+    return this->getValue<unsigned int>(Localizer::Params::TAG_SIZE);
 }
 
 localizer_settings_t::localizer_settings_t() {
@@ -54,11 +50,8 @@ localizer_settings_t::localizer_settings_t() {
                 setting_entry(Localizer::Params::SECOND_DILATION_SIZE,
                               Localizer::Defaults::SECOND_DILATION_SIZE));
     addEntry(
-                setting_entry(Localizer::Params::MAX_TAG_SIZE,
-                              Localizer::Defaults::MAX_TAG_SIZE));
-    addEntry(
-                setting_entry(Localizer::Params::MIN_BOUNDING_BOX_SIZE,
-                              Localizer::Defaults::MIN_BOUNDING_BOX_SIZE));
+                setting_entry(Localizer::Params::TAG_SIZE,
+                              Localizer::Defaults::TAG_SIZE));
 }
 
 }

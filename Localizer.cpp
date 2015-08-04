@@ -188,17 +188,17 @@ std::vector<Tag> Localizer::locateTagCandidates(cv::Mat blobImage_old,
     //extract contour bounding boxes for tag candidates
     for (const auto &contour : contours) {
         //filter contours which are too big
-        if (contour.size() < static_cast<unsigned int>( _settings.get_max_tag_size())) {
+        if (contour.size() < static_cast<unsigned int>( _settings.get_tag_size())) {
             cv::Rect rec = cv::boundingRect(contour) * 2;
 
-            if (rec.width < _settings.get_min_bounding_box_size()) {
-                const int offset = abs(rec.width - _settings.get_min_bounding_box_size());
+            if (rec.width < static_cast<int>(_settings.get_tag_size())) {
+                const int offset = abs(rec.width - _settings.get_tag_size());
                 rec.x     = rec.x - offset / 2;
                 rec.width = rec.width + offset;
             }
 
-            if (rec.height < _settings.get_min_bounding_box_size()) {
-                const int offset = abs(rec.height - _settings.get_min_bounding_box_size());
+            if (rec.height < static_cast<int>(_settings.get_tag_size())) {
+                const int offset = abs(rec.height - _settings.get_tag_size());
                 rec.y      = rec.y - offset / 2;
                 rec.height = rec.height + offset;
             }
@@ -237,7 +237,7 @@ std::vector<Tag> Localizer::locateTagCandidates(cv::Mat blobImage_old,
 
 std::vector<Tag> Localizer::locateAllPossibleCandidates(const cv::Mat &grayImage)
 {
-    const int roiSize  = _settings.get_min_bounding_box_size();
+    const int roiSize  = _settings.get_tag_size();
     const int stepSize = static_cast<int>(roiSize * 0.45);
 
     cv::Mat imageWithBorder;
@@ -274,8 +274,8 @@ std::vector<Tag> Localizer::locateAllPossibleCandidates(const cv::Mat &grayImage
 #ifdef USE_DEEPLOCALIZER
 std::vector<Tag> Localizer::filterTagCandidates(std::vector<Tag> &&candidates)
 {
-    assert(_settings.get_min_bounding_box_size() == _settings.get_max_tag_size());
-    const unsigned int tagSize = _settings.get_max_tag_size();
+    assert(_settings.get_tag_size() == _settings.get_tag_size());
+    const unsigned int tagSize = _settings.get_tag_size();
     assert(tagSize = 100);
 
     if (candidates.empty()) {
@@ -322,7 +322,7 @@ std::vector<Tag> Localizer::filterTagCandidates(std::vector<Tag> &&candidates)
 
 std::vector<Tag> Localizer::filterDuplicates(std::vector<Tag> &&candidates)
 {
-    const double minOverlap = std::pow(_settings.get_max_tag_size() / 1.5, 2);
+    const double minOverlap = std::pow(_settings.get_tag_size() / 1.5, 2);
 
     std::set<size_t> removalIndices;
 
