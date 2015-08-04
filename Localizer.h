@@ -2,7 +2,7 @@
 
 #include <opencv2/opencv.hpp>
 
-#include "datastructure/settings.h"
+#include "settings/LocalizerSettings.h"
 
 #ifdef USE_DEEPLOCALIZER
 #include <deeplocalizer/classifier/CaffeClassifier.h>

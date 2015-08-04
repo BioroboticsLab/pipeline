@@ -238,8 +238,7 @@ std::vector<Tag> Localizer::locateTagCandidates(cv::Mat blobImage_old,
 std::vector<Tag> Localizer::locateAllPossibleCandidates(const cv::Mat &grayImage)
 {
     const int roiSize  = _settings.get_min_bounding_box_size();
-    //const int stepSize = static_cast<int>(roiSize * 0.45);
-    const int stepSize = 25;
+    const int stepSize = static_cast<int>(roiSize * 0.45);
 
     cv::Mat imageWithBorder;
     cv::copyMakeBorder(grayImage, imageWithBorder, roiSize, roiSize, roiSize, roiSize, cv::BORDER_REPLICATE);

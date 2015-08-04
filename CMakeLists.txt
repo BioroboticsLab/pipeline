@@ -32,6 +32,9 @@ file(GLOB hdr_datastructure RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} datastructure/*
 file(GLOB src_util RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} util/*.cpp)
 file(GLOB hdr_util RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} util/*.h util/*.hpp)
 
+file(GLOB src_settings RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} settings/*.cpp)
+file(GLOB hdr_settings RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} settings/*.h settings/*.hpp)
+
 add_subdirectory(deps)
 
 # remove all previously set compiler and linker flags for debug build
@@ -132,6 +135,7 @@ add_library(Pipeline STATIC
     ${src_common} ${hdr_common}
     ${src_datastructure} ${hdr_datastructure}
     ${src_util} ${hdr_util}
+    ${src_settings} ${hdr_settings}
 )
 
 set(PIPELINE_INCLUDE_DIRS

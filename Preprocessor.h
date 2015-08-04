@@ -4,7 +4,7 @@
 
 #include <opencv2/opencv.hpp>
 
-#include "datastructure/settings.h"
+#include "settings/PreprocessorSettings.h"
 
 
 namespace pipeline {

@@ -3,7 +3,7 @@
 #include <opencv2/opencv.hpp>
 #include <vector>
 
-#include "datastructure/settings.h"
+#include "settings/EllipseFitterSettings.h"
 
 #ifdef PipelineStandalone
 #include "../config.h"
