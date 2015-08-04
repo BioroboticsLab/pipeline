@@ -40,10 +40,12 @@ private:
     std::vector<Tag> locateAllPossibleCandidates(cv::Mat const& grayImage);
 
 #ifdef USE_DEEPLOCALIZER
-    deeplocalizer::CaffeClassifier _caffeNet;
-    caffe::DataTransformer<float> _caffeTransformer;
+    std::unique_ptr<deeplocalizer::CaffeClassifier> _caffeNet;
+    std::unique_ptr<caffe::DataTransformer<float>> _caffeTransformer;
 
     std::vector<Tag> filterTagCandidates(std::vector<Tag>&& candidates);
+
+    void initializeDeepLocalizer();
 #endif
 
     std::vector<Tag> filterDuplicates(std::vector<Tag>&& candidates);

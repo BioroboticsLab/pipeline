@@ -12,8 +12,15 @@
 class Settings;
 #endif
 
-namespace pipeline {
+#define PARAMETER(NAME, TYPE, DEFAULT_VALUE) \
+    namespace Params { \
+    static const std::string NAME = #NAME; \
+    } \
+    namespace Defaults { \
+    static const TYPE NAME = DEFAULT_VALUE; \
+    }
 
+namespace pipeline {
 namespace settings {
 
 /**
