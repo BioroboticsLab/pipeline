@@ -55,8 +55,9 @@ std::vector<Tag> Decoder::process(std::vector<Tag> &&taglist)
 
 std::vector<decoding_t> Decoder::getDecodings(const Tag &tag, TagCandidate &candidate) const
 {
-    const double BLUR_KERNEL [3] = {0.25,0.50,0.25};
-    const double SHARPENING_FACTOR = 2.0;
+    // TODO: add to settings
+    static const double BLUR_KERNEL [3] = {0.25,0.50,0.25};
+    static const double SHARPENING_FACTOR = 2.0;
 
     // region of interest of tag candidate
     const cv::Mat& roi = tag.getOrigSubImage();
@@ -84,11 +85,9 @@ std::vector<decoding_t> Decoder::getDecodings(const Tag &tag, TagCandidate &cand
             grid.processGridCellCoordinates(idx, dummy_functor_t());
         }
         whiteMeanCalculator = grid.processOuterRingCoordinates(std::move(whiteMeanCalculator));
-        //grid.processOuterRingCoordinates(dummy_functor_t());
 
         const double meanBlack = blackMeanCalculator.getMean();
         const double meanWhite = whiteMeanCalculator.getMean();
-        const double bwSpread = std::abs(meanWhite - meanBlack);
 
         for (size_t idx = 0; idx < Grid::NUM_MIDDLE_CELLS; ++ idx) {
 
@@ -98,16 +97,16 @@ std::vector<decoding_t> Decoder::getDecodings(const Tag &tag, TagCandidate &cand
             median_calculator_t gridCellMedianCalculator(roi, roiOffset);
             gridCellMedianCalculator = grid.processGridCellCoordinates(idx, std::move(gridCellMedianCalculator));
 
-            double gridCellMedian = gridCellMedianCalculator.getMedian();
-            //double distanceBlack = std::abs(gridCellMeanCalculator.getMean() - meanBlack);
-            //double distanceWhite = std::abs(gridCellMeanCalculator.getMean() - meanWhite);
+            const double gridCellMedian = gridCellMedianCalculator.getMedian();
 
-            double distanceBlack = std::abs(gridCellMedian - meanBlack);
-            double distanceWhite = std::abs(gridCellMedian - meanWhite);
+            const double distanceBlack = std::abs(gridCellMedian - meanBlack);
+            const double distanceWhite = std::abs(gridCellMedian - meanWhite);
 
             cellMedians[idx] = gridCellMedian;
 
+#ifdef DEBUG_DECODER
             std::cout << "Cell median " << idx << ": " << gridCellMedian << "\n";
+#endif
 
             // superwhite - mark as a reference TODO
             if (gridCellMedian > meanWhite) {
@@ -119,108 +118,40 @@ std::vector<decoding_t> Decoder::getDecodings(const Tag &tag, TagCandidate &cand
             }
             else if (distanceWhite < distanceBlack) {
                 decoding.set(idx, true);
-
             }
         }
 
         for (size_t idx = 0; idx < Grid::NUM_MIDDLE_CELLS; ++ idx) {
 
-            size_t idxCurr = (idx + 1) % Grid::NUM_MIDDLE_CELLS;
-            size_t idxNext = (idx + 2) % Grid::NUM_MIDDLE_CELLS;
-            size_t idxPrev = (idx);
+            const size_t idxCurr = (idx + 1) % Grid::NUM_MIDDLE_CELLS;
+            const size_t idxNext = (idx + 2) % Grid::NUM_MIDDLE_CELLS;
+            const size_t idxPrev = (idx);
 
             blurredCellMedians[idxCurr] = BLUR_KERNEL[0] * cellMedians[idxPrev] + BLUR_KERNEL[1] * cellMedians[idxCurr] + BLUR_KERNEL[2] * cellMedians[idxNext];
             sharpenedCellMedians[idxCurr] = cellMedians[idxCurr] + SHARPENING_FACTOR*(cellMedians[idxCurr] - blurredCellMedians[idxCurr]);
 
+#ifdef DEBUG_DECODER
             std::cout << "Cell median sharpened " << idxCurr << ": " << sharpenedCellMedians[idxCurr] << "\n";
+#endif
 
-            double distanceBlack = std::abs(sharpenedCellMedians[idxCurr] - meanBlack);
-            double distanceWhite = std::abs(sharpenedCellMedians[idxCurr] - meanWhite);
+            const double distanceBlack = std::abs(sharpenedCellMedians[idxCurr] - meanBlack);
+            const double distanceWhite = std::abs(sharpenedCellMedians[idxCurr] - meanWhite);
 
             if (distanceWhite < distanceBlack) {
                 decoding.set(idxCurr, true);
             } else {
                 decoding.set(idxCurr, false);
             }
-
-            // Falls Erkennbarkeit schlecht, vergleiche mit dem äußeren weißen Ring
-            /*
-            if((distanceWhite / distanceBlack) < 2 && (distanceBlack / distanceWhite) < 2) {
-                std::cout << "In cell grid number " << idxCurr << " the distinguishability is very low\n";
-
-                center_calculator_t gridCellCenterCalculator(roi, roiOffset);
-                gridCellCenterCalculator = grid.processGridCellCoordinates(idxCurr, std::move(gridCellCenterCalculator));
-                cv::Point center = gridCellCenterCalculator.getCenter();
-
-                median_calculator_w_radius_t outerRingSectionMedianCalculator(roi, roiOffset, center, 20);
-                outerRingSectionMedianCalculator = grid.processOuterRingCoordinates(std::move(outerRingSectionMedianCalculator));
-                std::cout << "Outer ring section median for "<< idxCurr << ": " << outerRingSectionMedianCalculator.getMedian() << "\n";
-
-                double outerMedianWhite = outerRingSectionMedianCalculator.getMedian();
-
-                distanceWhite = std::abs(sharpenedCellMedians[idxCurr] - outerMedianWhite);
-
-                if (distanceWhite < distanceBlack) {
-                    decoding.set(idx, true);
-                } else {
-                    decoding.set(idx, false);
-                }
-            }
-            */
         }
 
-        /* Sinn dieser Schleife ist es, fehlerhaft erkannte 101 oder 010 Folgen zu korrigieren
-         * die mittige 1 bzw. 0 in 010 oder 101 kann aufgrund der dunklen bzw. hellen Nachbarzellen zu grau sein,
-         * um sie richtig zu erkennen. Allerdings ist ein deutlicher Unterschied zu den Nachbarn zu erkennen.
-         * Hat eine Zelle einen großen Helligkeitsunterschied zu den Nachbarzellen (diffNext und diffPrev sind größer als maxDiffLo,
-         * also der Abstand von Referenzweiß zum Referenzschwarz mulitpliziert mit einem Faktor), kodiert jedoch denselben Wert, die Nachbarzellen
-         * haben jedoch einen geringen Unterschied zueinander (diffPrevNext) und auch einen geringen Unterschied zum Referenzwert (distanceNext und distancePrev),
-         * so ist die mittlere, untersuchte Zelle höchstwahrscheinlich von einer anderen Farbe.
-         */
-        /*
-        for (size_t idx = 0; idx < Grid::NUM_MIDDLE_CELLS; ++ idx) {
-
-            size_t idxCurr = (idx + 1) % Grid::NUM_MIDDLE_CELLS;
-            size_t idxNext = (idx + 2) % Grid::NUM_MIDDLE_CELLS;
-            size_t idxPrev = (idx);
-
-            double diffNext = std::abs(cellMedians[idxCurr] - cellMedians[idxNext]);
-            double diffPrev = std::abs(cellMedians[idxCurr] - cellMedians[idxPrev]);
-            double diffPrevNext = std::abs(cellMedians[idxNext] - cellMedians[idxPrev]);
-            double distanceNext = std::min(std::abs(cellMedians[idxNext] - meanWhite), std::abs(cellMedians[idxNext] - meanWhite));
-            double distancePrev = std::min(std::abs(cellMedians[idxPrev] - meanWhite), std::abs(cellMedians[idxPrev] - meanWhite));
-
-            double maxDiffLo = bwSpread * 0.1;
-            double maxDiffHi = bwSpread * 0.3;
-
-            if (diffNext > maxDiffHi &&
-                diffPrev > maxDiffHi &&
-                diffPrevNext < maxDiffLo &&
-                decoding[idx] == decoding[idxNext] &&
-                decoding[idx] == decoding[idxPrev] &&
-                distanceNext < maxDiffLo &&
-                distancePrev < maxDiffLo
-                    ) {
-
-                    std::cout << "Yes it was you\n";
-                    decoding.set(idxCurr, 1 - decoding[idxNext]);
-            }
-        }*/
-
+#ifdef DEBUG_DECODER
         size_t shift = 9;
         std::cout << "Decoding: ";
         for (size_t i = Grid::NUM_MIDDLE_CELLS + shift - 1; i >= shift; --i) {
             std::cout << decoding[(i)%Grid::NUM_MIDDLE_CELLS];
         }
         std::cout << "\n";
-        /*
-        std::cout << "Center: " << grid.getCenter() << "; radius: " << grid.getRadius() << "\n";
-        std::cout << "Outer ring coords:\n";
-*/
-        std::cout << "\n";
 
-
-#ifdef DEBUG_DECODER
         visualizeDebug(tag, grid, decoding);
 #endif
 

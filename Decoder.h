@@ -142,7 +142,6 @@ private:
             if (Util::pointInBounds(_roi.get().size(), coords - _roiOffset)) {
                 int distance = static_cast<int>(std::hypot((_center.x - coords.x),(_center.y - coords.y)));
                 if (distance <= _radius) {
-                    //std::cout << "x: " << coords.x << ", y: " << coords.y << "; ";
                     const uint8_t value = _roi.get().template at<uint8_t>(coords - _roiOffset);
                     _sum += value;
                     ++_pixelNum;
@@ -228,8 +227,6 @@ private:
         double _sumY;
         size_t _pixelNum;
     };
-
-    // Pawel end
 
     class dummy_functor_t {
     public:
