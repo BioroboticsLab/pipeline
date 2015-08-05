@@ -268,7 +268,7 @@ std::vector<Tag> Localizer::filterTagCandidates(std::vector<Tag> &&candidates)
 {
     assert(_settings.get_tag_size() == _settings.get_tag_size());
     const unsigned int tagSize = _settings.get_tag_size();
-    assert(tagSize = 100);
+    assert(tagSize == 100);
 
     if (candidates.empty()) {
         return candidates;
@@ -280,7 +280,7 @@ std::vector<Tag> Localizer::filterTagCandidates(std::vector<Tag> &&candidates)
 
     for (Tag const& candidate : candidates) {
         cv::Mat const& blob = candidate.getOrigSubImage();
-        assert(blob.cols == tagSize && blob.rows == tagSize);
+        assert(unsigned(blob.cols) == tagSize && unsigned(blob.rows) == tagSize);
         assert(blob.channels() == 1);
 
         caffe::Datum datum;
