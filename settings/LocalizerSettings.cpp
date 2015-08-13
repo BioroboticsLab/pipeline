@@ -30,6 +30,7 @@ unsigned int localizer_settings_t::get_tag_size() {
     return this->getValue<unsigned int>(Localizer::Params::TAG_SIZE);
 }
 
+#ifdef USE_DEEPLOCALIZER
 bool localizer_settings_t::get_deeplocalizer_filter()
 {
     return getValue<bool>(Localizer::Params::DEEPLOCALIZER_FILTER);
@@ -49,6 +50,7 @@ double localizer_settings_t::get_deeplocalizer_probability_threshold()
 {
     return getValue<double>(Localizer::Params::DEEPLOCALIZER_PROBABILITY_THRESHOLD);
 }
+#endif
 
 localizer_settings_t::localizer_settings_t() {
 
@@ -72,6 +74,7 @@ localizer_settings_t::localizer_settings_t() {
     addEntry(
                 setting_entry(Localizer::Params::TAG_SIZE,
                               Localizer::Defaults::TAG_SIZE));
+#ifdef USE_DEEPLOCALIZER
     addEntry(
                 setting_entry(Localizer::Params::DEEPLOCALIZER_FILTER,
                               Localizer::Defaults::DEEPLOCALIZER_FILTER));
@@ -84,6 +87,7 @@ localizer_settings_t::localizer_settings_t() {
     addEntry(
                 setting_entry(Localizer::Params::DEEPLOCALIZER_PROBABILITY_THRESHOLD,
                               Localizer::Defaults::DEEPLOCALIZER_PROBABILITY_THRESHOLD));
+#endif
 }
 
 }
