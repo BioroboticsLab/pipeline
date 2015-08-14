@@ -191,13 +191,13 @@ std::vector<Tag> Localizer::locateTagCandidates(cv::Mat blobImage_old,
             }
 
             if (rec.width < static_cast<int>(_settings.get_tag_size())) {
-                const int offset = abs(rec.width - _settings.get_tag_size());
+                const int offset = abs(rec.width - static_cast<int>(_settings.get_tag_size()));
                 rec.x     = rec.x - offset / 2;
                 rec.width = rec.width + offset;
             }
 
             if (rec.height < static_cast<int>(_settings.get_tag_size())) {
-                const int offset = abs(rec.height - _settings.get_tag_size());
+                const int offset = abs(rec.height - static_cast<int>(_settings.get_tag_size()));
                 rec.y      = rec.y - offset / 2;
                 rec.height = rec.height + offset;
             }
