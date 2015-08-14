@@ -84,13 +84,14 @@ localizer_settings_t::localizer_settings_t() {
     addEntry(
                 setting_entry(Localizer::Params::TAG_SIZE,
                               Localizer::Defaults::TAG_SIZE));
-#ifdef USE_DEEPLOCALIZER
     addEntry(
                 setting_entry(Localizer::Params::MIN_NUM_PIXELS,
                               Localizer::Defaults::MIN_NUM_PIXELS));
     addEntry(
                 setting_entry(Localizer::Params::MAX_NUM_PIXELS,
                               Localizer::Defaults::MAX_NUM_PIXELS));
+
+#ifdef USE_DEEPLOCALIZER
     addEntry(
                 setting_entry(Localizer::Params::DEEPLOCALIZER_FILTER,
                               Localizer::Defaults::DEEPLOCALIZER_FILTER));
