@@ -180,8 +180,15 @@ std::vector<Tag> Localizer::locateTagCandidates(cv::Mat blobImage_old,
     //extract contour bounding boxes for tag candidates
     for (const auto &contour : contours) {
         //filter contours which are too big
-        if (contour.size() < static_cast<unsigned int>( _settings.get_tag_size())) {
+        if (contour.size() < _settings.get_max_num_pixels() &&
+            contour.size() > _settings.get_min_num_pixels())
+        {
             cv::Rect rec = cv::boundingRect(contour) * 2;
+
+            if (rec.width > static_cast<int>(_settings.get_tag_size()) ||
+                rec.height > static_cast<int>(_settings.get_tag_size())) {
+                continue;
+            }
 
             if (rec.width < static_cast<int>(_settings.get_tag_size())) {
                 const int offset = abs(rec.width - _settings.get_tag_size());
@@ -357,8 +364,6 @@ std::vector<Tag> Localizer::filterDuplicates(std::vector<Tag> &&candidates)
                 const cv::Rect overlap = firstRoi & secondRoi;
 
                 if (overlap.area() >= minOverlap) {
-
-                    std::cout << secondTag.getLocalizerScore() << std::endl;
                     overlappingTags.insert({secondIdx, secondTag.getLocalizerScore()});
                     maxScore = std::max(maxScore, secondTag.getLocalizerScore());
                 }

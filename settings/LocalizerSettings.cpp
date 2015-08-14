@@ -50,6 +50,16 @@ double localizer_settings_t::get_deeplocalizer_probability_threshold()
     return getValue<double>(Localizer::Params::DEEPLOCALIZER_PROBABILITY_THRESHOLD);
 }
 
+unsigned int localizer_settings_t::get_min_num_pixels()
+{
+    return getValue<unsigned int>(Localizer::Params::MIN_NUM_PIXELS);
+}
+
+unsigned int localizer_settings_t::get_max_num_pixels()
+{
+    return getValue<unsigned int>(Localizer::Params::MAX_NUM_PIXELS);
+}
+
 localizer_settings_t::localizer_settings_t() {
 
     _base = Localizer::Params::BASE_STANDALONE;
@@ -72,6 +82,12 @@ localizer_settings_t::localizer_settings_t() {
     addEntry(
                 setting_entry(Localizer::Params::TAG_SIZE,
                               Localizer::Defaults::TAG_SIZE));
+    addEntry(
+                setting_entry(Localizer::Params::MIN_NUM_PIXELS,
+                              Localizer::Defaults::MIN_NUM_PIXELS));
+    addEntry(
+                setting_entry(Localizer::Params::MAX_NUM_PIXELS,
+                              Localizer::Defaults::MAX_NUM_PIXELS));
     addEntry(
                 setting_entry(Localizer::Params::DEEPLOCALIZER_FILTER,
                               Localizer::Defaults::DEEPLOCALIZER_FILTER));

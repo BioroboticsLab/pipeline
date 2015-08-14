@@ -18,6 +18,8 @@ PARAMETER(FIRST_DILATION_NUM_ITERATIONS, unsigned int, 4)
 PARAMETER(FIRST_DILATION_SIZE, unsigned int, 2)
 PARAMETER(EROSION_SIZE, unsigned int, 25)
 PARAMETER(SECOND_DILATION_SIZE, unsigned int, 2)
+PARAMETER(MIN_NUM_PIXELS, unsigned int, 50)
+PARAMETER(MAX_NUM_PIXELS, unsigned int, 150)
 PARAMETER(TAG_SIZE, unsigned int, 60)
 
 #ifdef USE_DEEPLOCALIZER
@@ -37,6 +39,8 @@ public:
     unsigned int get_erosion_size();
     unsigned int get_second_dilation_size();
     unsigned int get_tag_size();
+    unsigned int get_min_num_pixels();
+    unsigned int get_max_num_pixels();
     bool get_deeplocalizer_filter();
     std::string get_deeplocalizer_model_file();
     std::string get_deeplocalizer_param_file();
@@ -44,5 +48,6 @@ public:
 
     localizer_settings_t();
 };
+
 }
 }
