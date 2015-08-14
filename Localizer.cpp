@@ -326,13 +326,16 @@ void Localizer::initializeDeepLocalizer()
         const std::string modelPath = _settings.get_deeplocalizer_model_file();
         const std::string paramPath = _settings.get_deeplocalizer_param_file();
 
-        if (boost::filesystem::exists(modelPath) && boost::filesystem::exists(paramPath)) {
-            _caffeNet = std::make_unique<deeplocalizer::CaffeClassifier>(
-                            _settings.get_deeplocalizer_model_file(),
-                            _settings.get_deeplocalizer_param_file());
-            _caffeTransformer = std::make_unique<caffe::DataTransformer<float>>(
+        if (modelPath == _modelPath && paramPath == _paramPath) return;
+
+        if (!boost::filesystem::exists(modelPath) || !boost::filesystem::exists(paramPath)) return;
+
+        _caffeNet = std::make_unique<deeplocalizer::CaffeClassifier>(modelPath, paramPath);
+        _caffeTransformer = std::make_unique<caffe::DataTransformer<float>>(
                             getTransformationParameter(), caffe::TEST);
-        }
+
+        _modelPath = modelPath;
+        _paramPath = paramPath;
     }
 }
 #endif

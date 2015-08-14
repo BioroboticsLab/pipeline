@@ -45,6 +45,9 @@ private:
 
     std::vector<Tag> filterTagCandidates(std::vector<Tag>&& candidates);
 
+    boost::optional<std::string> _modelPath;
+    boost::optional<std::string> _paramPath;
+
     void initializeDeepLocalizer();
 #endif
 
