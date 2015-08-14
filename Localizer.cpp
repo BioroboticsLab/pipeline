@@ -273,7 +273,6 @@ std::vector<Tag> Localizer::locateAllPossibleCandidates(const cv::Mat &grayImage
 #ifdef USE_DEEPLOCALIZER
 std::vector<Tag> Localizer::filterTagCandidates(std::vector<Tag> &&candidates)
 {
-    assert(_settings.get_tag_size() == _settings.get_tag_size());
     const unsigned int tagSize = _settings.get_tag_size();
     assert(tagSize == 100);
 
