@@ -124,9 +124,9 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
 	if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 		set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer")
 		set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-optimize-sibling-calls")
-		set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address")
-		set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=undefined")
-		set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=integer")
+        set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=memory")
+        #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=undefined")
+        #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=integer")
 	endif()
 endif()
 
@@ -138,8 +138,11 @@ add_library(Pipeline STATIC
     ${src_settings} ${hdr_settings}
 )
 
+string(CONCAT DEEPLOCALIZER_CLASSIFIER_INCLUDE_DIR_INTERNAL ${DEEPLOCALIZER_CLASSIFIER_INCLUDE_DIR} "/deeplocalizer/classifier")
+
 set(PIPELINE_INCLUDE_DIRS
     SYSTEM ${DEEPLOCALIZER_CLASSIFIER_INCLUDE_DIR}
+    SYSTEM ${DEEPLOCALIZER_CLASSIFIER_INCLUDE_DIR_INTERNAL}
     SYSTEM ${Caffe_INCLUDE_DIRS}
     SYSTEM ${LMDB_INCLUDE_DIRS}
     SYSTEM ${CUDA_INCLUDE_DIRS}
@@ -165,4 +168,4 @@ target_link_libraries(Pipeline
 )
 
 set_target_properties(Pipeline PROPERTIES PIPELINE_INCLUDES "${PIPELINE_INCLUDE_DIRS}")
-
+set_target_properties(Pipeline PROPERTIES PIPELINE_DEEPLOCALIZER_LIBRARY_DIR "${DEEPLOCALIZER_CLASSIFIER_LIBRARY_DIR}")
