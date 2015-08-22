@@ -48,7 +48,7 @@ private:
     boost::optional<std::string> _modelPath;
     boost::optional<std::string> _paramPath;
 
-    void initializeDeepLocalizer();
+    void initializeDeepLocalizer(deeplocalizer::CaffeClassifier* weightSharingNet);
 #endif
 
     std::vector<Tag> filterDuplicates(std::vector<Tag>&& candidates);
@@ -62,6 +62,11 @@ public:
 
     void loadSettings(settings::localizer_settings_t&& settings);
     void loadSettings(settings::localizer_settings_t const& settings);
+#ifdef USE_DEEPLOCALIZER
+    void loadSettings(settings::localizer_settings_t const& settings,
+                      deeplocalizer::CaffeClassifier* weightSharingNet);
+#endif
+
     settings::localizer_settings_t getSettings() const;
 
     const cv::Mat& getBlob() const;
@@ -75,5 +80,9 @@ public:
     void reset();
     const cv::Mat& getThresholdImage() const;
     void setThresholdImage(const cv::Mat& thresholdImage);
+
+#ifdef USE_DEEPLOCALIZER
+    deeplocalizer::CaffeClassifier* getCaffeNet() const;
+#endif
 };
 }

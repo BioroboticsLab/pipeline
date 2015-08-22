@@ -64,6 +64,11 @@ void Localizer::setThresholdImage(const cv::Mat& thresholdImage) {
     _threshold_image = thresholdImage;
 }
 
+deeplocalizer::CaffeClassifier *Localizer::getCaffeNet() const
+{
+    return _caffeNet.get();
+}
+
 std::vector<Tag> Localizer::process(cv::Mat &&originalImage, cv::Mat &&preprocessedImage){
 
     // locate the tags using the sobel map
@@ -319,7 +324,7 @@ std::vector<Tag> Localizer::filterTagCandidates(std::vector<Tag> &&candidates)
     return candidates;
 }
 
-void Localizer::initializeDeepLocalizer()
+void Localizer::initializeDeepLocalizer(deeplocalizer::CaffeClassifier *weightSharingNet)
 {
     if (_settings.get_deeplocalizer_filter()) {
         const std::string modelPath = _settings.get_deeplocalizer_model_file();
@@ -329,7 +334,7 @@ void Localizer::initializeDeepLocalizer()
 
         if (!boost::filesystem::exists(modelPath) || !boost::filesystem::exists(paramPath)) return;
 
-        _caffeNet = std::make_unique<deeplocalizer::CaffeClassifier>(modelPath, paramPath);
+        _caffeNet = std::make_unique<deeplocalizer::CaffeClassifier>(modelPath, paramPath, false, 256, &weightSharingNet->getNet());
         _caffeTransformer = std::make_unique<caffe::DataTransformer<float>>(
                             getTransformationParameter(), caffe::TEST);
 
@@ -398,7 +403,7 @@ void Localizer::loadSettings(settings::localizer_settings_t &&settings)
     _settings = std::move(settings);
 
 #ifdef USE_DEEPLOCALIZER
-    initializeDeepLocalizer();
+    initializeDeepLocalizer(nullptr);
 #endif
 }
 
@@ -407,8 +412,15 @@ void Localizer::loadSettings(settings::localizer_settings_t const& settings)
     _settings = settings;
 
 #ifdef USE_DEEPLOCALIZER
-    initializeDeepLocalizer();
+    initializeDeepLocalizer(nullptr);
 #endif
+}
+
+void Localizer::loadSettings(const settings::localizer_settings_t &settings, deeplocalizer::CaffeClassifier *weightSharingNet)
+{
+    _settings = settings;
+
+    initializeDeepLocalizer(weightSharingNet);
 }
 
 settings::localizer_settings_t Localizer::getSettings() const
