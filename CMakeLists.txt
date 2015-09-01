@@ -5,6 +5,42 @@ cmake_policy(SET CMP0009 NEW)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 project(pipeline)
+#-----------------------------------------------------------------------
+# CPM configuration
+#-----------------------------------------------------------------------
+set(CPM_MODULE_NAME Pipeline)
+set(CPM_LIB_TARGET_NAME ${CPM_MODULE_NAME})
+
+if ((DEFINED CPM_DIR) AND (DEFINED CPM_UNIQUE_ID) AND (DEFINED CPM_TARGET_NAME))
+  set(CPM_LIB_TARGET_NAME ${CPM_TARGET_NAME})
+  set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CPM_DIR})
+  include(CPM)
+else()
+  set(CPM_DIR "${CMAKE_CURRENT_BINARY_DIR}/cpm-packages" CACHE TYPE STRING)
+  find_package(Git)
+  if(NOT GIT_FOUND)
+    message(FATAL_ERROR "CPM requires Git.")
+  endif()
+  if (NOT EXISTS ${CPM_DIR}/CPM.cmake)
+    message(STATUS "Cloning repo (https://github.com/iauns/cpm)")
+    execute_process(
+      COMMAND "${GIT_EXECUTABLE}" clone https://github.com/iauns/cpm ${CPM_DIR}
+      RESULT_VARIABLE error_code
+      OUTPUT_QUIET ERROR_QUIET)
+    if(error_code)
+      message(FATAL_ERROR "CPM failed to get the hash for HEAD")
+    endif()
+  endif()
+  include(${CPM_DIR}/CPM.cmake)
+endif()
+
+CPM_AddModule(
+    deeplocalizer_classifier
+    GIT_REPOSITORY https://github.com/BioroboticsLab/deeplocalizer_classifier.git
+    GIT_TAG cpm
+)
+
+CPM_InitModule(${CPM_MODULE_NAME})
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/ ${CMAKE_MODULE_PATH})
 
@@ -20,22 +56,8 @@ find_package(LMDB REQUIRED)
 find_package(CUDA REQUIRED)
 find_package(Boost COMPONENTS system filesystem serialization program_options REQUIRED)
 
-file(GLOB src_main RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.cpp)
-file(GLOB hdr_main RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.h *.hpp)
-
-file(GLOB src_common RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} common/*.cpp)
-file(GLOB hdr_common RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} common/*.h common/*.hpp)
-
-file(GLOB src_datastructure RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} datastructure/*.cpp)
-file(GLOB hdr_datastructure RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} datastructure/*.h datastructure/*.hpp)
-
-file(GLOB src_util RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} util/*.cpp)
-file(GLOB hdr_util RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} util/*.h util/*.hpp)
-
-file(GLOB src_settings RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} settings/*.cpp)
-file(GLOB hdr_settings RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} settings/*.h settings/*.hpp)
-
-add_subdirectory(deps)
+file(GLOB_RECURSE src RELEATIVE ${CMAKE_CURRENT_SOURCE_DIR} pipeline/*.cpp)
+file(GLOB_RECURSE hdr RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} pipeline/*.h pipeline/*.hpp)
 
 # remove all previously set compiler and linker flags for debug build
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
@@ -124,40 +146,24 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
 	if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 		set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer")
 		set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-optimize-sibling-calls")
-        set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=memory")
-        #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=undefined")
-        #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=integer")
+		set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address")
+		set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=undefined")
+		set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=integer")
 	endif()
 endif()
 
-add_library(Pipeline STATIC
-    ${src_main} ${hdr_main}
-    ${src_common} ${hdr_common}
-    ${src_datastructure} ${hdr_datastructure}
-    ${src_util} ${hdr_util}
-    ${src_settings} ${hdr_settings}
-)
+add_library(${CPM_LIB_TARGET_NAME} STATIC
+    ${src} ${hdr})
 
-string(CONCAT DEEPLOCALIZER_CLASSIFIER_INCLUDE_DIR_INTERNAL ${DEEPLOCALIZER_CLASSIFIER_INCLUDE_DIR} "/deeplocalizer/classifier")
+add_definitions(-DUSE_DEEPLOCALIZER)
 
-set(PIPELINE_INCLUDE_DIRS
-    SYSTEM ${DEEPLOCALIZER_CLASSIFIER_INCLUDE_DIR}
-    SYSTEM ${DEEPLOCALIZER_CLASSIFIER_INCLUDE_DIR_INTERNAL}
+include_directories(
     SYSTEM ${Caffe_INCLUDE_DIRS}
     SYSTEM ${LMDB_INCLUDE_DIRS}
     SYSTEM ${CUDA_INCLUDE_DIRS}
 )
 
-add_definitions(-DUSE_DEEPLOCALIZER)
-
-include_directories(
-    ${PIPELINE_INCLUDE_DIRS}
-)
-
-link_directories(${DEEPLOCALIZER_CLASSIFIER_LIBRARY_DIR})
-
-target_link_libraries(Pipeline
-    "deeplocalizer-classifier"
+target_link_libraries(${CPM_LIB_TARGET_NAME}
     ${OPENGL_LIBRARIES}
     ${OpenCV_LIBS}
     ${CMAKE_THREAD_LIBS_INIT}
@@ -165,7 +171,5 @@ target_link_libraries(Pipeline
     ${Caffe_LIBRARIES}
     ${LMDB_LIBRARIES}
     ${CUDA_LIBRARIES}
+    ${CPM_LIBRARIES}
 )
-
-set_target_properties(Pipeline PROPERTIES PIPELINE_INCLUDES "${PIPELINE_INCLUDE_DIRS}")
-set_target_properties(Pipeline PROPERTIES PIPELINE_DEEPLOCALIZER_LIBRARY_DIR "${DEEPLOCALIZER_CLASSIFIER_LIBRARY_DIR}")
