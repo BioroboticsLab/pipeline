@@ -34,11 +34,25 @@ else()
   include(${CPM_DIR}/CPM.cmake)
 endif()
 
-CPM_AddModule(
-    deeplocalizer_classifier
-    GIT_REPOSITORY https://github.com/BioroboticsLab/deeplocalizer_classifier.git
-    GIT_TAG cpm
-)
+if(NOT DEFINED USE_DEEPLOCALIZER)
+    set(USE_DEEPLOCALIZER "1")
+
+endif()
+
+if(${USE_DEEPLOCALIZER})
+    message("**********************************************************************************************")
+    message("Using neuronal network to improve localizer")
+    message("Make sure you adapt the following settings:")
+    message("   Set LOCALIZER.DEEPLOCALIZER_MODEL_FILE to your local caffe *.prototxt file")
+    message("   Set LOCALIZER.DEEPLOCALIZER_PARAM_FILE to your local caffe *.caffemodel file")
+    message("To disable this feature set USE_DEEPLOCALIZER to 0 before calling CPM_AddModule(Pipeline ...).")
+    message("**********************************************************************************************")
+    CPM_AddModule(
+        deeplocalizer_classifier
+        GIT_REPOSITORY https://github.com/BioroboticsLab/deeplocalizer_classifier.git
+        GIT_TAG cpm
+    )
+endif()
 
 CPM_InitModule(${CPM_MODULE_NAME})
 
@@ -52,8 +66,12 @@ find_package(Qt5Widgets REQUIRED)
 find_package(Qt5OpenGL REQUIRED)
 find_package(Threads REQUIRED)
 find_package(Caffe REQUIRED)
-find_package(LMDB REQUIRED)
-find_package(CUDA REQUIRED)
+
+if(${USE_DEEPLOCALIZER})
+    find_package(LMDB REQUIRED)
+    find_package(CUDA REQUIRED)
+endif()
+
 find_package(Boost COMPONENTS system filesystem serialization program_options REQUIRED)
 
 file(GLOB_RECURSE src RELEATIVE ${CMAKE_CURRENT_SOURCE_DIR} pipeline/*.cpp)
@@ -155,21 +173,28 @@ endif()
 add_library(${CPM_LIB_TARGET_NAME} STATIC
     ${src} ${hdr})
 
-add_definitions(-DUSE_DEEPLOCALIZER)
 
-include_directories(
-    SYSTEM ${Caffe_INCLUDE_DIRS}
-    SYSTEM ${LMDB_INCLUDE_DIRS}
-    SYSTEM ${CUDA_INCLUDE_DIRS}
-)
+add_definitions("-DUSE_DEEPLOCALIZER=${USE_DEEPLOCALIZER}")
 
-target_link_libraries(${CPM_LIB_TARGET_NAME}
+set(LIBS
     ${OPENGL_LIBRARIES}
     ${OpenCV_LIBS}
     ${CMAKE_THREAD_LIBS_INIT}
     ${Boost_LIBRARIES}
-    ${Caffe_LIBRARIES}
-    ${LMDB_LIBRARIES}
-    ${CUDA_LIBRARIES}
-    ${CPM_LIBRARIES}
-)
+    ${CPM_LIBRARIES})
+
+if(${USE_DEEPLOCALIZER})
+    set(LIBS
+        ${LIBS}
+        ${Caffe_LIBRARIES}
+        ${LMDB_LIBRARIES}
+        ${CUDA_LIBRARIES}
+    )
+    include_directories(
+        SYSTEM ${Caffe_INCLUDE_DIRS}
+        SYSTEM ${LMDB_INCLUDE_DIRS}
+        SYSTEM ${CUDA_INCLUDE_DIRS}
+    )
+endif()
+
+target_link_libraries(${CPM_LIB_TARGET_NAME} ${LIBS})

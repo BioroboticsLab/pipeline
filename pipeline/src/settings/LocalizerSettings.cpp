@@ -30,7 +30,7 @@ unsigned int localizer_settings_t::get_tag_size() {
     return this->getValue<unsigned int>(Localizer::Params::TAG_SIZE);
 }
 
-#ifdef USE_DEEPLOCALIZER
+#if USE_DEEPLOCALIZER
 bool localizer_settings_t::get_deeplocalizer_filter()
 {
     return getValue<bool>(Localizer::Params::DEEPLOCALIZER_FILTER);
@@ -91,7 +91,7 @@ localizer_settings_t::localizer_settings_t() {
                 setting_entry(Localizer::Params::MAX_NUM_PIXELS,
                               Localizer::Defaults::MAX_NUM_PIXELS));
 
-#ifdef USE_DEEPLOCALIZER
+#if USE_DEEPLOCALIZER
     addEntry(
                 setting_entry(Localizer::Params::DEEPLOCALIZER_FILTER,
                               Localizer::Defaults::DEEPLOCALIZER_FILTER));

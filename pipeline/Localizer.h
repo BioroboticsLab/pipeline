@@ -4,7 +4,7 @@
 
 #include "settings/LocalizerSettings.h"
 
-#ifdef USE_DEEPLOCALIZER
+#if USE_DEEPLOCALIZER
 #include <deeplocalizer/classifier/CaffeClassifier.h>
 #endif
 
@@ -39,7 +39,7 @@ private:
 
     std::vector<Tag> locateAllPossibleCandidates(cv::Mat const& grayImage);
 
-#ifdef USE_DEEPLOCALIZER
+#if USE_DEEPLOCALIZER
     std::unique_ptr<deeplocalizer::CaffeClassifier> _caffeNet;
     std::unique_ptr<caffe::DataTransformer<float>> _caffeTransformer;
 
@@ -62,7 +62,7 @@ public:
 
     void loadSettings(settings::localizer_settings_t&& settings);
     void loadSettings(settings::localizer_settings_t const& settings);
-#ifdef USE_DEEPLOCALIZER
+#if USE_DEEPLOCALIZER
     void loadSettings(settings::localizer_settings_t const& settings,
                       deeplocalizer::CaffeClassifier* weightSharingNet);
 #endif
@@ -81,7 +81,7 @@ public:
     const cv::Mat& getThresholdImage() const;
     void setThresholdImage(const cv::Mat& thresholdImage);
 
-#ifdef USE_DEEPLOCALIZER
+#if USE_DEEPLOCALIZER
     deeplocalizer::CaffeClassifier* getCaffeNet() const;
 #endif
 };
