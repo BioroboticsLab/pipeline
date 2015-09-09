@@ -52,6 +52,9 @@ if(${USE_DEEPLOCALIZER})
         GIT_REPOSITORY https://github.com/BioroboticsLab/deeplocalizer_classifier.git
         GIT_TAG cpm
     )
+    CPM_ExportAdditionalDefinition("-DUSE_DEEPLOCALIZER=1")
+else()
+    CPM_ExportAdditionalDefinition("-DUSE_DEEPLOCALIZER=0")
 endif()
 
 CPM_InitModule(${CPM_MODULE_NAME})
