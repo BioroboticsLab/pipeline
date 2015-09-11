@@ -47,11 +47,20 @@ if(${USE_DEEPLOCALIZER})
     message("   Set LOCALIZER.DEEPLOCALIZER_PARAM_FILE to your local caffe *.caffemodel file")
     message("To disable this feature set USE_DEEPLOCALIZER to 0 before calling CPM_AddModule(Pipeline ...).")
     message("**********************************************************************************************")
-    CPM_AddModule(
-        deeplocalizer_classifier
-        GIT_REPOSITORY https://github.com/BioroboticsLab/deeplocalizer_classifier.git
-        GIT_TAG cpm
-    )
+
+	if(NOT DEFINED DEEPLOCALIZER_CLASSIFIER_PATH)
+        CPM_AddModule("deeplocalizer_classifier"
+        		GIT_REPOSITORY "https://github.com/BioroboticsLab/deeplocalizer_classifier.git"
+                GIT_TAG "cpm"
+        )
+	else()
+        CPM_AddModule("deeplocalizer_classifier"
+                SOURCE_DIR "${DEEPLOCALIZER_CLASSIFIER_PATH}"
+        		SOURCE_GHOST_GIT_REPO "https://github.com/BioroboticsLab/deeplocalizer_classifier.git"
+                GIT_TAG "cpm"
+        )
+	endif()
+
     CPM_ExportAdditionalDefinition("-DUSE_DEEPLOCALIZER=1")
 else()
     CPM_ExportAdditionalDefinition("-DUSE_DEEPLOCALIZER=0")
