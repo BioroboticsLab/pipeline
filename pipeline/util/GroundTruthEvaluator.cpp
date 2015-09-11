@@ -6,9 +6,7 @@
 #include "pipeline/datastructure/Tag.h"
 #include "pipeline/datastructure/TagCandidate.h"
 
-#include "legacy/Grid3D.h"
-
-GroundTruthEvaluation::GroundTruthEvaluation(Serialization::Data &&groundTruthData)
+GroundTruthEvaluation::GroundTruthEvaluation(ResultsByFrame &&groundTruthData)
     : _groundTruthData(std::move(groundTruthData))
 {
 }
@@ -19,25 +17,15 @@ void GroundTruthEvaluation::evaluateLocalizer(const int currentFrameNumber, tagl
 
 	// iterate over ground truth data (typed Grid3D), convert them to PipelineGrids
 	// and store them in the std::set taggedGridsOnFrame
-	for (TrackedObject const& object : _groundTruthData.getTrackedObjects())
+    for (GroundTruthGridSPtr const& grid : _groundTruthData.at(currentFrameNumber))
 	{
-		const std::shared_ptr<Grid3D> grid3d = object.maybeGet<Grid3D>(currentFrameNumber);
-		if (!grid3d)
-			continue;
-		// convert to PipelineGrid
-		const auto grid = std::make_shared<PipelineGrid>(
-		            grid3d->getCenter(), grid3d->getPixelRadius(),
-		            grid3d->getZRotation(), grid3d->getYRotation(),
-		            grid3d->getXRotation());
-		grid->setIdArray(grid3d->getIdArray());
-
-		// insert in set
-		if (grid)
-			results.taggedGridsOnFrame.insert(grid);
+        if (grid) {
+            results.taggedGridsOnFrame.insert(grid);
+        }
 	}
 
 	// Detect False Negatives
-	for (const std::shared_ptr<PipelineGrid>& grid : results.taggedGridsOnFrame)
+    for (const GroundTruthGridSPtr& grid : results.taggedGridsOnFrame)
 	{
 		// ROI of ground truth
 		const cv::Rect gridBox = grid->getBoundingBox();

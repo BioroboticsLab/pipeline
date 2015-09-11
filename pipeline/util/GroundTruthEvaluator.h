@@ -5,15 +5,14 @@
 #include <set>
 #include <vector>
 
-#include "source/tracking/serialization/SerializationData.h"
+#include <boost/optional.hpp>
 
-#include "pipeline/common/Grid.h"
+#include "pipeline/datastructure/PipelineGrid.h"
 
 /* shift decoded bits so that bit index 0 is the first bit on the "left side"
  * of the white semicircle */
 #define SHIFT_DECODED_BITS
 
-class PipelineGrid;
 namespace pipeline {
 class Tag;
 class TagCandidate;
@@ -83,7 +82,9 @@ struct DecoderEvaluationResults {
 class GroundTruthEvaluation
 {
 public:
-	explicit GroundTruthEvaluation(Serialization::Data&& groundTruthData);
+    typedef std::map<size_t, std::vector<GroundTruthGridSPtr>> ResultsByFrame;
+
+    explicit GroundTruthEvaluation(ResultsByFrame&& groundTruthData);
 
 	void evaluateLocalizer(const int currentFrameNumber, taglist_t const& taglist);
 	void evaluateEllipseFitter(taglist_t const& taglist);
@@ -98,7 +99,7 @@ public:
 	GroundTruth::DecoderEvaluationResults const& getDecoderResults() const { return _decoderResults; }
 
 private:
-	Serialization::Data _groundTruthData;
+    ResultsByFrame _groundTruthData;
 
 	GroundTruth::LocalizerEvaluationResults     _localizerResults;
 	GroundTruth::EllipseFitterEvaluationResults _ellipsefitterResults;
