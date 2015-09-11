@@ -9,16 +9,16 @@ ExternalProject_Add(
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
     GIT_REPOSITORY https://github.com/BioroboticsLab/deeplocalizer-classifier.git
     TIMEOUT 10
-    BUILD_COMMAND "" 
-    INSTALL_COMMAND 
-        "@CMAKE_COMMAND@"
+    BUILD_COMMAND ""
+    INSTALL_COMMAND
+        "${CMAKE_COMMAND}"
         --build .
         --config ${configuration}
         --
         ${jobs_option}
    )
-   
-   
+
+
 ExternalProject_Get_Property(deeplocalizer-classifier-ext SOURCE_DIR)
 set(DEEPLOCALIZER_CLASSIFIER_INCLUDE_DIR ${SOURCE_DIR}/include CACHE INTERNAL "Path to include dir for deeplocalizer classifier")
 
