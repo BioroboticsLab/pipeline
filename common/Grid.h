@@ -56,7 +56,10 @@ public:
 	void setRadius(double radius);
 	double getRadius() const { return _radius; }
 
-	idarray_t const& getIdArray() const { return _ID; }
+    void setIdArray(idarray_t const& array) {
+        _ID = array;
+    }
+    idarray_t const& getIdArray() const { return _ID; }
 
 	/**
 	 * Axis-aligned minimum bounding box of the grid

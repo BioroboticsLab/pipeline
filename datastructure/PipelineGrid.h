@@ -126,7 +126,7 @@ public:
 		return Grid::getIdArray();
 	}
 	void setIdArray(idarray_t const& array) {
-		_ID = array;
+        Grid::setIdArray(array);
 	}
 
 	double compare(const PipelineGrid &to) const;
