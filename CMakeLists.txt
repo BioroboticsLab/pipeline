@@ -56,8 +56,6 @@ if(${USE_DEEPLOCALIZER})
 	else()
         CPM_AddModule("deeplocalizer_classifier"
                 SOURCE_DIR "${DEEPLOCALIZER_CLASSIFIER_PATH}"
-        		SOURCE_GHOST_GIT_REPO "https://github.com/BioroboticsLab/deeplocalizer_classifier.git"
-                GIT_TAG "cpm"
         		EXPORT_MODULE TRUE
         )
 	endif()
