@@ -6,7 +6,6 @@
 #include "settings/EllipseFitterSettings.h"
 
 #ifdef PipelineStandalone
-#include "../config.h"
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 #endif

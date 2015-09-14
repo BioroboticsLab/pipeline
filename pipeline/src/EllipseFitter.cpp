@@ -343,17 +343,14 @@ foundEllipse:
 	std::partial_sort(candidates.begin(), candidates.begin() + num,
 	                  candidates.end(), compareVote {});
 
-#ifdef PipelineStandalone
-	if (config::DEBUG_MODE_ELLIPSEFITTER) {
-		for (size_t i = 0; i < candidates.size(); ++i) {
+#ifdef DEBUG_MODE_ELLIPSEFITTER
+        for (size_t i = 0; i < candidates.size(); ++i) {
 			Ellipse const& ell = candidates[i];
 			if ((i >= num) || (ell.getVote() < _settings.get_threshold_vote())) {
-				if (config::DEBUG_MODE_ELLIPSEFITTER) {
 					std::cout << "Ignore Ellipse With Vote " << ell.getVote() << std::endl;
 					if (config::DEBUG_MODE_ELLIPSEFITTER_IMAGE) {
 						visualizeEllipse(tag, ell, "ignored_ellipse");
 					}
-				}
 			}
 		}
 	}
@@ -368,28 +365,22 @@ foundEllipse:
 	for (Ellipse const& ell : candidates) {
 #ifdef DEBUG_MODE_ELLIPSEFITTER
 		std::cout << "Add Ellipse With Vote " << ell.getVote() << std::endl;
-#endif
-#ifdef PipelineStandalone
-		if (config::DEBUG_MODE_ELLIPSEFITTER) {
 
 			if (config::DEBUG_MODE_ELLIPSEFITTER_IMAGE) {
 				visualizeEllipse(tag, ell, "added_ellipse");
 			}
-		}
 #endif
 		tag.addCandidate(TagCandidate(ell));
 	}
 	if (tag.getCandidatesConst().empty()) {
 		tag.setValid(false);
 	}
-#ifdef PipelineStandalone
-	if (config::DEBUG_MODE_ELLIPSEFITTER_IMAGE) {
+#ifdef DEBUG_MODE_ELLIPSEFITTER_IMAGE
 		cv::destroyAllWindows();
-	}
-	if (config::DEBUG_MODE_ELLIPSEFITTER) {
+#endif
+#ifdef DEBUG_MODE_ELLIPSEFITTER
 		std::cout << "Found " << tag.getCandidates().size()
 		          << " ellipse candidates for Tag " << tag.getId() << std::endl;
-	}
 #endif
 }
 
