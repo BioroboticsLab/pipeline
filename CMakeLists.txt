@@ -50,7 +50,7 @@ if(${USE_DEEPLOCALIZER})
 	if(NOT DEFINED DEEPLOCALIZER_CLASSIFIER_PATH)
         CPM_AddModule("deeplocalizer_classifier"
         		GIT_REPOSITORY "https://github.com/BioroboticsLab/deeplocalizer_classifier.git"
-                GIT_TAG "cpm"
+                GIT_TAG "master"
         		EXPORT_MODULE TRUE
         )
 	else()
@@ -78,8 +78,6 @@ find_package(Qt5OpenGL REQUIRED)
 find_package(Threads REQUIRED)
 
 if(${USE_DEEPLOCALIZER})
-    find_package(Caffe REQUIRED)
-    find_package(LMDB REQUIRED)
     find_package(CUDA REQUIRED)
 endif()
 
@@ -197,13 +195,9 @@ set(LIBS
 if(${USE_DEEPLOCALIZER})
     set(LIBS
         ${LIBS}
-        ${Caffe_LIBRARIES}
-        ${LMDB_LIBRARIES}
         ${CUDA_LIBRARIES}
     )
     include_directories(
-        SYSTEM ${Caffe_INCLUDE_DIRS}
-        SYSTEM ${LMDB_INCLUDE_DIRS}
         SYSTEM ${CUDA_INCLUDE_DIRS}
     )
 endif()
