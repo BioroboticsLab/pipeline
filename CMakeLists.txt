@@ -51,12 +51,12 @@ if(${USE_DEEPLOCALIZER})
         CPM_AddModule("deeplocalizer_classifier"
         		GIT_REPOSITORY "https://github.com/BioroboticsLab/deeplocalizer_classifier.git"
                 GIT_TAG "master"
-        		EXPORT_MODULE TRUE
+                EXPORT_MODULE TRUE
         )
 	else()
         CPM_AddModule("deeplocalizer_classifier"
                 SOURCE_DIR "${DEEPLOCALIZER_CLASSIFIER_PATH}"
-        		EXPORT_MODULE TRUE
+                EXPORT_MODULE TRUE
         )
 	endif()
 
@@ -179,7 +179,7 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
 	endif()
 endif()
 
-add_library(${CPM_LIB_TARGET_NAME} STATIC
+add_library(${CPM_LIB_TARGET_NAME} SHARED
     ${src} ${hdr})
 
 
