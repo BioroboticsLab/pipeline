@@ -143,7 +143,7 @@ void PipelineGrid::drawContours(cv::Mat& img, const double transparency, const c
 		cv::Point _offset;
 	};
 
-	const int radius = static_cast<int>(std::ceil(_radius));
+    const int radius = static_cast<int>(std::ceil(_radius * FOCAL_LENGTH));
 	const cv::Point subimage_origin( std::max(       0, _center.x - radius), std::max(       0, _center.y - radius) );
 	const cv::Point subimage_end   ( std::min(img.cols, _center.x + radius), std::min(img.rows, _center.y + radius) );
 
@@ -225,7 +225,7 @@ void PipelineGrid::resetCache()
 
 Util::gridconfig_t PipelineGrid::getConfig() const
 {
-	return {_center, _radius / FOCAL_LENGTH, _angle_z, _angle_y, _angle_x};
+    return {_center, _radius, _angle_z, _angle_y, _angle_x};
 }
 
 const std::vector<cv::Point2i> PipelineGrid::getOuterRingEdgeCoordinates()
