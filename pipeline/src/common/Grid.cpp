@@ -83,7 +83,8 @@ Grid::coordinates3D_t Grid::generate_3D_base_coordinates() {
 		result._inner_ring[i]  = p * INNER_RING_RADIUS;
 		result._middle_ring[i] = p * MIDDLE_RING_RADIUS;
 		result._outer_ring[i]  = p * OUTER_RING_RADIUS;
-	}
+        result._background_ring[i]  = p * BACKGROUND_RING_RADIUS;
+    }
 
 	// span a line from one to the other side of the inner ring
 	const double radiusInPoints = static_cast<double>(POINTS_PER_LINE / 2);
@@ -103,6 +104,7 @@ Grid::coordinates3D_t Grid::generate_3D_base_coordinates() {
 		const value_type z_inner_ring  = - std::cos(BULGE_FACTOR * INNER_RING_RADIUS);
 		const value_type z_middle_ring = - std::cos(BULGE_FACTOR * MIDDLE_RING_RADIUS);
 		const value_type z_outer_ring  = - std::cos(BULGE_FACTOR * OUTER_RING_RADIUS);
+        const value_type z_background_ring  = - std::cos(BULGE_FACTOR * BACKGROUND_RING_RADIUS);
 
 		// subtract mean, otherwise rotation will be eccentric
 		for(size_t i = 0; i < POINTS_PER_RING; ++i)
@@ -110,7 +112,8 @@ Grid::coordinates3D_t Grid::generate_3D_base_coordinates() {
 			result._inner_ring[i].z  = z_inner_ring  - z_outer_ring;
 			result._middle_ring[i].z = z_middle_ring - z_outer_ring;
 			result._outer_ring[i].z  = z_outer_ring  - z_outer_ring;
-		}
+            result._background_ring[i].z  = z_background_ring  - z_outer_ring;
+        }
 		for (size_t i = 0; i < POINTS_PER_LINE; ++i)
 		{
 			result._inner_line[i].z -= z_outer_ring;
@@ -182,7 +185,15 @@ void Grid::prepare_visualization_data()
 	// apply rotations and scaling (the basic parameters)
 	const auto points_2d = generate_3D_coordinates_from_parameters_and_project_to_2D();
 
-	// outer ring
+    // background ring
+    {
+        auto &vec = _coordinates2D[INDEX_BACKGROUND_RING];
+        vec.clear();
+
+        vec.insert(vec.end(), points_2d._background_ring.cbegin(), points_2d._background_ring.cend());
+        vec.push_back(points_2d._background_ring[0]); // add first point to close circle
+    }
+    // outer ring
 	{
 		auto &vec = _coordinates2D[INDEX_OUTER_WHITE_RING];
 		vec.clear();
@@ -193,7 +204,7 @@ void Grid::prepare_visualization_data()
 
 	// inner ring: white half
 	{
-		auto &vec = _coordinates2D[INDEX_INNER_WHITE_SEMICIRCLE];
+        auto &vec = _coordinates2D[INDEX_INNER_WHITE_SEMICIRCLE];
 		vec.clear();
 
 		const size_t index_270_deg_begin = POINTS_PER_RING * 3 / 4;
