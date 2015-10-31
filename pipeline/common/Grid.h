@@ -12,11 +12,12 @@ public:
 	static const size_t NUM_MIDDLE_CELLS = 12;
 
 	// indices in polygon vector
-	static const size_t INDEX_OUTER_WHITE_RING       = 0;
-	static const size_t INDEX_INNER_WHITE_SEMICIRCLE = 1;
-	static const size_t INDEX_INNER_BLACK_SEMICIRCLE = 2;
-	static const size_t INDEX_INNER_LINE             = 3;
-	static const size_t INDEX_MIDDLE_CELLS_BEGIN     = 4;
+    static const size_t INDEX_BACKGROUND_RING        = 0;
+    static const size_t INDEX_OUTER_WHITE_RING       = 1;
+    static const size_t INDEX_INNER_WHITE_SEMICIRCLE = 2;
+    static const size_t INDEX_INNER_BLACK_SEMICIRCLE = 3;
+    static const size_t INDEX_INNER_LINE             = 4;
+    static const size_t INDEX_MIDDLE_CELLS_BEGIN     = 5;
 	static const size_t INDEX_MIDDLE_CELLS_END       = INDEX_MIDDLE_CELLS_BEGIN + NUM_MIDDLE_CELLS;
 
 	// total number of cells (non-coding and coding)
@@ -32,7 +33,8 @@ public:
 	static const double INNER_RING_RADIUS;
 	static const double MIDDLE_RING_RADIUS;
 	static const double OUTER_RING_RADIUS;
-	static const double BULGE_FACTOR;
+    static const double BACKGROUND_RING_RADIUS;
+    static const double BULGE_FACTOR;
 
 	static const double FOCAL_LENGTH;
 
@@ -75,7 +77,10 @@ protected:
 	enum RingIndex {
 		INNER_RING = 0,
 		MIDDLE_RING,
-		OUTER_RING
+        OUTER_RING,
+        BACKGROUND_RING,
+        // this must allways be last
+        NUM_RINGS,
 	};
 
 	template<typename POINT>
@@ -85,18 +90,20 @@ protected:
 		typedef POINT                                   point_type;
 		typedef std::array<point_type, POINTS_PER_RING> container_type;
 
-		std::array<container_type, 3> _rings;
+        std::array<container_type, NUM_RINGS> _rings;
 		std::array<point_type, POINTS_PER_LINE> _inner_line;
 
 		container_type &_inner_ring;
 		container_type &_middle_ring;
 		container_type &_outer_ring;
+        container_type &_background_ring;
 
 		// default constructor with member initialization
 		coordinates_t()
 			: _inner_ring(_rings[INNER_RING])
 			, _middle_ring(_rings[MIDDLE_RING])
-			, _outer_ring(_rings[OUTER_RING])
+            , _outer_ring(_rings[OUTER_RING])
+            , _background_ring(_rings[BACKGROUND_RING])
 		{}
 
 		// move constructor, && : r-value reference
@@ -106,7 +113,8 @@ protected:
 			, _inner_ring(_rings[INNER_RING])
 			, _middle_ring(_rings[MIDDLE_RING])
 			, _outer_ring(_rings[OUTER_RING])
-		{}
+            , _background_ring(_rings[BACKGROUND_RING])
+        {}
 
 		// delete copy constructor and assignment operator
 		// -> make struct non-copyable
