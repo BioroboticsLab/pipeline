@@ -5,6 +5,7 @@
 const double Grid::INNER_RING_RADIUS  = 0.4;
 const double Grid::MIDDLE_RING_RADIUS = 0.8;
 const double Grid::OUTER_RING_RADIUS  = 1.0;
+const double Grid::BACKGROUND_RING_RADIUS   = 1.2;
 const double Grid::BULGE_FACTOR       = 0.4;
 const double Grid::FOCAL_LENGTH       = 2.0;
 
