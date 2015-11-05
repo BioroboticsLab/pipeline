@@ -16,7 +16,7 @@ For details see: [Automatic methods for long-term tracking and the detection and
 ### Setup CPM and BioroboticsLab/cmakeconfig for your project
 In your CMakeLists.txt, add:
 ```CMake
-set(CPM_MODULE_NAME BioTrackerLib)
+set(CPM_MODULE_NAME YourModuleNameHere)
 set(CPM_LIB_TARGET_NAME ${CPM_MODULE_NAME})
 
 if ((DEFINED BIOROBOTICS_CMAKE_CONFIG_DIR))
