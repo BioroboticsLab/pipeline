@@ -53,7 +53,7 @@ In your CMakeLists.txt, add:
 ```CMake
 CPM_InitModule(${CPM_MODULE_NAME})
 
-biorobotics_config()
+biorobotics_set_compiler_flags()
 ```
 
 ### Usage
