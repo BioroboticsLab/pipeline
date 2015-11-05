@@ -69,10 +69,6 @@ biorobotics_config()
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/ ${CMAKE_MODULE_PATH})
 
 find_package(OpenCV REQUIRED)
-find_package(OpenGL REQUIRED)
-find_package(Qt5Core REQUIRED)
-find_package(Qt5Widgets REQUIRED)
-find_package(Qt5OpenGL REQUIRED)
 find_package(Threads REQUIRED)
 find_package(Boost COMPONENTS system filesystem serialization program_options REQUIRED)
 
@@ -87,8 +83,13 @@ file(GLOB_RECURSE hdr RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} pipeline/*.h pipeline
 add_library(${CPM_LIB_TARGET_NAME} SHARED ${src} ${hdr})
 add_definitions("-DUSE_DEEPLOCALIZER=${USE_DEEPLOCALIZER}")
 
+include_directories(
+    SYSTEM ${Boost_INCLUDE_DIRS}
+    SYSTEM ${OpenCV_INCLUDE_DIRS}
+    SYSTEM ${Threads_INCLUDE_DIRS}
+)
+
 set(LIBS
-    ${OPENGL_LIBRARIES}
     ${OpenCV_LIBS}
     ${CMAKE_THREAD_LIBS_INIT}
     ${Boost_LIBRARIES}
@@ -96,7 +97,7 @@ set(LIBS
 
 if(${USE_DEEPLOCALIZER})
     set(LIBS ${LIBS} ${CUDA_LIBRARIES})
-    include_directories( SYSTEM ${CUDA_INCLUDE_DIRS})
+    include_directories(SYSTEM ${CUDA_INCLUDE_DIRS})
 endif()
 
 target_link_libraries(${CPM_LIB_TARGET_NAME} ${LIBS})
