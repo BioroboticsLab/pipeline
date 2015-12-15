@@ -261,9 +261,10 @@ std::vector<PipelineGrid> GridFitter::fitGrid(const Tag& tag, const TagCandidate
 		cv::Mat sobelImg;
 		cv::Scharr(blurredRoi, sobelImg, CV_32F, dx, dy);
 
-		double minVal, maxVal;
-		cv::minMaxLoc(sobelImg, &minVal, &maxVal);
-		sobelImg.convertTo(sobelImg, CV_8U, 255.0/(maxVal - minVal), -minVal * 255.0/(maxVal - minVal));
+        static const double ksize = 3.;
+        const double denom = std::pow(2., ksize * 2. - dx - dy - 2);
+
+        sobelImg.convertTo(sobelImg, CV_8UC1, 1. / (2. * denom), 255. / 2.);
 
 		return sobelImg;
 	};
