@@ -3,6 +3,7 @@
 #include <opencv2/opencv.hpp>
 
 #include "../../util/CvHelper.h"
+#include "../../util/Quaternions.h"
 
 #include "../../common/Grid.h"
 
@@ -11,8 +12,8 @@ namespace Util {
 std::array<gridconfig_t, 2> gridCandidatesFromEllipse(const pipeline::Ellipse& ellipse, const double rotation)
 {
 	const cv::Point2i& cen = ellipse.getCen();
-	const cv::Size2i& axes = ellipse.getAxis();
-	const double angle     = ellipse.getAngle();
+    const cv::Size2d& axes = ellipse.getAxis();
+    const double angle     = ellipse.getAngle();
 
 	const double theta_rad    = angle * CV_PI / 180.;
 	const double minor        = axes.height;
@@ -26,11 +27,11 @@ std::array<gridconfig_t, 2> gridCandidatesFromEllipse(const pipeline::Ellipse& e
 	auto getGrid = [&](const double roll) {
 		// TODO: optimize for speed
 		// TODO: add comments
-		const auto rotationMatrix = CvHelper::rotationMatrix_z(theta_rad) * CvHelper::rotationMatrix_x(roll) * CvHelper::rotationMatrix_z(rotation);
+        const auto rotationQuat = Util::getIntrinsicRotationQuatZXZ(theta_rad, roll, rotation);
 
-		const double angle_z = atan2(rotationMatrix(1, 0), rotationMatrix(0, 0));
-		const double angle_y = atan2(-rotationMatrix(2, 0), sqrt(rotationMatrix(2, 1) * rotationMatrix(2, 1) + rotationMatrix(2, 2) * rotationMatrix(2, 2)) );
-		const double angle_x = atan2(rotationMatrix(2, 1), rotationMatrix(2, 2));
+        const double pi = boost::math::constants::pi<double>();
+        assert(!(std::abs(roll - pi / 2) < 0.000001 && std::abs(rotation - pi / 2) < 0.000001));
+        const auto angles = Util::getEulerAngles(rotationQuat);
 
 		// shift correction
 		const double theta_orth = theta_rad + CV_PI / 2.;
@@ -44,7 +45,7 @@ std::array<gridconfig_t, 2> gridCandidatesFromEllipse(const pipeline::Ellipse& e
 		assert(shiftedCen.x > 0);
 		assert(shiftedCen.y > 0);
 
-		return gridconfig_t { shiftedCen, radius, angle_z, angle_y, angle_x };
+        return gridconfig_t { shiftedCen, radius, angles[2], angles[1], angles[0] };
 	};
 
 	return {getGrid(ellipse_roll), getGrid(-ellipse_roll)};

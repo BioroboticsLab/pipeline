@@ -5,6 +5,8 @@
  *      Author: mareikeziese
  */
 
+#include <cmath>
+
 #include "../EllipseFitter.h"
 
 #include "../datastructure/Tag.h"
@@ -44,160 +46,10 @@ void EllipseFitter::loadSettings(const settings::ellipsefitter_settings_t &setti
 	_settings = settings;
 }
 
-void EllipseFitter::detectEllipse(Tag &tag) {
-	detectXieEllipse(tag);
-	return;
-
-	const cv::Mat& subImage = tag.getOrigSubImage();
-	const cv::Mat cannyImage = computeCannyEdgeMap(subImage);
-
-	tag.setCannySubImage(cannyImage);
-
-#ifdef DEBUG_MODE_ELLIPSEFITTER
-	//cv::destroyAllWindows();
-
-	/*	cv::namedWindow("Canny",cv::WINDOW_NORMAL);
-		cv::imshow("Canny", cannyImage);
-		cv::waitKey(0);
-
-		cv::namedWindow("Original", cv::WINDOW_NORMAL);
-		cv::imshow("Original", subImage);
-		cv::waitKey(0);*/
-#endif
-
-
-
-	std::vector<Ellipse> candidates;
-
-	std::vector<std::vector<cv::Point> > contours;
-
-	std::vector<cv::Vec4i> hierarchy;
-	cv::Mat subroiTest = cannyImage.clone();
-	cv::cvtColor(subroiTest, subroiTest, cv::COLOR_GRAY2BGR);
-	cv::findContours(cannyImage, contours, hierarchy,
-	                 CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE, cv::Point(0, 0));
-
-	/// Find the rotated rectangles and ellipses for each contour
-
-	std::vector<cv::RotatedRect> minEllipse(contours.size()+1);
-	std::vector<std::vector<cv::Point> > hulls(contours.size()+1) ;
-
-	std::vector<cv::Point> merged_contour_points;
-
-
-	for (size_t i = 0; i < contours.size(); i++) {
-		std::vector<cv::Point> hull;
-		if(contours[i].size() > 5){
-			//cv::convexHull(contours[i],hulls[i]);
-			minEllipse[i] = cv::fitEllipse(contours[i]);
-
-		}
-		for (size_t j = 0; j < contours[i].size(); j++) {
-			merged_contour_points.push_back(contours[i][j]);
-		}
-
-	}
-
-
-	/// Draw  ellipses of the contours
-	cv::Mat drawing;
-	cv::Scalar color;
-
-	for( size_t i = 0; i< contours.size(); i++ )
-	{
-		cv::RotatedRect ell = minEllipse[i];
-
-		const int width  = static_cast<int>(ell.size.width) / 2 + 1;
-		const int height = static_cast<int>(ell.size.height) / 2 + 1;
-
-		const cv::Size s(std::max(width, height), std::min(width, height));
-
-		Ellipse new_ell(0, ell.center, s, ell.angle, subImage.size());
-
-		///check for the right features to be a comb
-		if ((ell.size.width >= _settings.get_min_major_axis() &&
-		     ell.size.width >= _settings.get_min_minor_axis()) &&
-		    (ell.size.height <= _settings.get_max_major_axis() &&
-		     ell.size.width  <= _settings.get_max_minor_axis()))
-		{
-			color= 	cv::Scalar (0,0,255);
-			new_ell.setVote(calcScore(new_ell,cannyImage));
-			candidates.push_back(new_ell);
-		} else {
-#ifdef DEBUG_MODE_ELLIPSEFITTER
-			color = 	cv::Scalar  (255,0,0);
-			new_ell.setVote(0);
-#endif
-		}
-
-#ifdef DEBUG_MODE_ELLIPSEFITTER
-		ellipse(subroiTest, new_ell.getCen(), new_ell.getAxis(), new_ell.getAngle(), 0, 360,
-		        color);
-
-#endif
-	}
-#ifdef DEBUG_MODE_ELLIPSEFITTER
-	cv::namedWindow("All", cv::WINDOW_NORMAL);
-	cv::imshow("All", subroiTest);
-	cv::waitKey();
-	std::vector<cv::Vec3f> circles;
-#endif
-
-
-
-	const size_t num = std::min<size_t>(3, candidates.size());
-#ifdef DEBUG_MODE_ELLIPSEFITTER
-
-	/*for (size_t i = 0; i < candidates.size(); ++i) {
-		Ellipse const& ell = candidates[i];
-		if ((i >= num) || (ell.getVote() < _settings.get_threshold_vote())) {
-
-			visualizeEllipse(tag, ell, "ignored_ellipse ");
-		}
-	}*/
-
-#endif
-	// remove remaining candidates
-	candidates.erase(candidates.begin() + num, candidates.end());
-	// remove all candidates with vote < RECOGNIZER_THRESHOLD_VOTE
-	candidates.erase(
-	            std::remove_if(candidates.begin(), candidates.end(),
-	                           [&](Ellipse& ell) {return ell.getVote() < _settings.get_threshold_vote();}),
-	        candidates.end());
-	// add remaining candidates to tag
-	for (Ellipse const& ell : candidates) {
-#ifdef DEBUG_MODE_ELLIPSEFITTER
-
-		std::cout << "Add Ellipse With Vote " << ell.getVote() << std::endl;
-
-		visualizeEllipse(tag, ell, "added_ellipse");
-
-#endif
-		tag.addCandidate(TagCandidate(ell));
-	}
-	if (tag.getCandidatesConst().empty()) {
-		if(this->_settings.get_use_xie_as_fallback()){
-#ifdef DEBUG_MODE_ELLIPSEFITTER
-			std::cout<< "start Xie-Detection" << std::endl;
-#endif
-			detectXieEllipse(tag);
-		}else{
-			tag.setValid(false);
-		}
-	}
-#ifdef DEBUG_MODE_ELLIPSEFITTER
-
-	std::cout << "Found " << tag.getCandidates().size()
-	          << " ellipse candidates for Tag " << tag.getId() << std::endl;
-
-#endif
-}
-
-
 /**
  * @param tag for which ellipses should be detected
  */
-void EllipseFitter::detectXieEllipse(Tag &tag) {
+void EllipseFitter::detectEllipse(Tag &tag) {
 	const double ellipsefitter_max_minor = _settings.get_max_minor_axis();
 	const double ellipsefitter_max_major = _settings.get_max_major_axis();
 	const double ellipsefitter_min_major = _settings.get_min_major_axis();
@@ -207,7 +59,7 @@ void EllipseFitter::detectXieEllipse(Tag &tag) {
 	const int threshold_best_vote   = _settings.get_threshold_best_vote();
 
 	const cv::Mat& subImage  = tag.getOrigSubImage();
-	const cv::Mat cannyImage = computeCannyEdgeMap(subImage);
+    const cv::Mat cannyImage = computeCannyEdgeMap(subImage);
 
 	tag.setCannySubImage(cannyImage);
 
@@ -226,7 +78,12 @@ void EllipseFitter::detectXieEllipse(Tag &tag) {
 	}
 
 	// (2) initiate the accumulator array
-	std::vector<int> accu((this->_settings.get_max_minor_axis()) / 2 + 1);
+    // accuracyMultiplier sets the discretization of the accumulator array. A multiplier of 4
+    // leads to a discretization step of 0.25.
+    static const double accuracyMultiplier = 4.;
+    const double accumulatorElements = static_cast<double>(_settings.get_max_minor_axis() / 2.) *
+            accuracyMultiplier + 1;
+    std::vector<size_t> accu(static_cast<size_t>(std::ceil(accumulatorElements)));
 
 	// (3) loop through each edge pixel in ep
 	const size_t epsize = ep.size();
@@ -248,7 +105,7 @@ void EllipseFitter::detectXieEllipse(Tag &tag) {
 					// (5) calculate the ellipse' center, half length of the major axis (a) and orientation (alpha) based on p1 and p2
 					const double centerx = (p1xf + p2xf) / 2;
 					const double centery = (p1yf + p2yf) / 2;
-					const double a       = dist / 2.;
+                    const double a       = dist / 2.;
 					const double alpha   = atan2((p2yf - p1yf), (p2xf - p1xf));
 					// (6) loop through each third edge pixel eventually lying on the ellipse
 					for (size_t lc3 = 0; lc3 < epsize; ++lc3) {
@@ -267,10 +124,12 @@ void EllipseFitter::detectXieEllipse(Tag &tag) {
 								const double sintau = sqrt(1 - costau * costau);
 								const double b      = (a * d * sintau) / sqrt(((a * a) - (d * d * costau * costau)));
 								const double b2     = 2.0 * b;
-								// (8) increment the accumulator for the minor axis' half length (b) just estimated
-								if (b2 <= ellipsefitter_max_minor && b2 >= ellipsefitter_min_minor) {
-									accu[cvRound(b) - 1] += 1;
-								}
+                                const size_t idx    = cvRound(b * accuracyMultiplier);
+                                // (8) increment the accumulator for the minor axis' half length (b) just estimated
+                                if (b2 <= ellipsefitter_max_minor && b2 >= ellipsefitter_min_minor &&
+                                        (idx / accuracyMultiplier) <= a) {
+                                    accu[idx] += 1;
+                                }
 							}
 						}
 					}
@@ -278,23 +137,22 @@ void EllipseFitter::detectXieEllipse(Tag &tag) {
 					// (10) find the maximum within the accumulator, is it above the threshold?
 					const auto max_it  = std::max_element(accu.begin(), accu.end());
 					const auto max_ind = std::distance(accu.begin(), max_it);
+                    const double minor = static_cast<double>(max_ind) / accuracyMultiplier;
 					int vote_minor     = *max_it;
 
-					if (vote_minor >= threshold_edge_pixels) {
+                    if (vote_minor >= (threshold_edge_pixels / accuracyMultiplier)) {
 						// (11) save ellipse parameters
-						const cv::Point2i cen(cvRound(centerx), cvRound(centery));
-						const cv::Size axis(cvRound(a), max_ind);
+                        const double major = a;
+                        const cv::Point2i cen(cvRound(centerx), cvRound(centery));
+                        const cv::Size2d axis(major, minor);
 						const double angle = (alpha * 180) / CV_PI;
 
-						const float j = cvRound(a);
-						const float n = max_ind;
-
-						// more "circular" ellipses are weighted more than very thin ellipses
-						vote_minor = static_cast<int>(vote_minor * (50 * n / j));
+                        // more "circular" ellipses are weighted more than very thin ellipses
+                        vote_minor = static_cast<int>(vote_minor * (50 * minor / major));
 
 						if (candidates.size() == 0) {
-							candidates.emplace_back(vote_minor, cen, axis, angle, tag.getBox().size());
-							if (vote_minor >= threshold_best_vote) {
+                            candidates.emplace_back(vote_minor, cen, axis, angle, tag.getBox().size());
+                            if (vote_minor >= (threshold_best_vote)) {
 								goto foundEllipse;
 							}
 						}
@@ -302,23 +160,24 @@ void EllipseFitter::detectXieEllipse(Tag &tag) {
 							Ellipse& ell = candidates[idx];
 							if (std::abs(ell.getCen().x - cen.x) < 8
 							    && std::abs(ell.getCen().y - cen.y) < 8
-							    && std::abs(ell.getAxis().width - j) < 8
-							    && std::abs(ell.getAxis().height - n) < 8
+                                && std::abs(ell.getAxis().width - major) < 8
+                                && std::abs(ell.getAxis().height - minor) < 8
 							    &&
 							    //check angle in relation to minor/major axis
 							    std::abs(ell.getAngle() - angle) < (180.0 * ell.getAxis().height) / ell.getAxis().width) {
+                                // if candidates are similar, only keep best candidate
 								if (ell.getVote() < vote_minor) {
 									ell.setCen(cen);
-									ell.setAxis(cv::Size2f(j, n));
+                                    ell.setAxis(axis);
 									ell.setAngle(angle);
 									ell.setVote(vote_minor);
-								}
+                                }
 								break;
 							}
 							if (idx == candidates.size() - 1) {
-								candidates.emplace_back(vote_minor, cen, axis, angle, tag.getBox().size());
+                                candidates.emplace_back(vote_minor, cen, axis, angle, tag.getBox().size());
 
-								if (vote_minor >= threshold_best_vote) {
+                                if (vote_minor >= (threshold_best_vote)) {
 									goto foundEllipse;
 								}
 							}
@@ -405,9 +264,9 @@ int EllipseFitter::calcScore(Ellipse ell, cv::Mat canny){
 	mask.setTo(cv::Scalar(0,0,0));
 
 
-	ellipse(mask, ell.getCen(), cv::Size(ell.getAxis().width +2,ell.getAxis().height+2) , ell.getAngle(), 0, 360,
-	        cv::Scalar(255, 255, 255), 3);
-
+    ellipse(mask, ell.getCen(), cv::Size(cvRound(ell.getAxis().width) + 2,
+                                         cvRound(ell.getAxis().height) + 2) ,
+            ell.getAngle(), 0, 360, cv::Scalar(255, 255, 255), 3);
 
 	cv::normalize(mask,mask,0,1,cv::NORM_MINMAX);
 	cv::normalize(canny_cp,canny_cp,0,1, cv::NORM_MINMAX);

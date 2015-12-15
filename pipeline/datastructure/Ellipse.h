@@ -14,7 +14,7 @@ private:
 	// this ellipse' center pixel
 	cv::Point2i _cen;
 	// tuple of axis' length (major_axes_length, minor_axes_length)
-	cv::Size _axis;
+    cv::Size2d _axis;
 	// ellipse' orientation in degrees
 	double _angle;
 	// dimensions of ROI
@@ -41,8 +41,8 @@ public:
 	double getAngle() const       { return _angle; }
 	void   setAngle(double angle) { _angle = angle; }
 
-	cv::Size getAxis() const        { return _axis; }
-	void     setAxis(cv::Size axis) { _axis = axis; }
+    cv::Size2d getAxis() const        { return _axis; }
+    void     setAxis(cv::Size2d axis) { _axis = axis; }
 
 	cv::Point2i getCen() const          { return _cen; }
 	void        setCen(cv::Point2i cen) { _cen = cen; }
@@ -53,7 +53,8 @@ public:
 	// TODO: add caching
 	const cv::Mat getMask(const cv::Size axisBorder = cv::Size(0, 0)) const;
 
-	explicit Ellipse(int vote, cv::Point2i center, cv::Size axis_length, double angle, cv::Size roiSize);
+    explicit Ellipse(int vote, cv::Point2i center, cv::Size2d axis_length, double angle,
+                     cv::Size roiSize);
 	explicit Ellipse();
 };
 
