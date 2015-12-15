@@ -83,14 +83,13 @@ Func PipelineGrid::processLineCoordinates(const cv::Point start, const cv::Point
 	const double len = std::sqrt(dx * dx + dy * dy);
 
 	if (len != 0.) {
-		// TODO: possible division by zero
 		const double dxNorm = static_cast<double>(dx) / len;
-		const double dyNorm = static_cast<double>(dy) / len;
+		const double dyNorm = -1. * static_cast<double>(dy) / len;
 
 		const uint8_t expSobelX = static_cast<uint8_t>(((dxNorm + 1.) / 2.) * 255.);
 		const uint8_t expSobelY = static_cast<uint8_t>(((dyNorm + 1.) / 2.) * 255.);
 
-		coordinateFunction.setExpectedSobelGradient(-expSobelY, expSobelX);
+		coordinateFunction.setExpectedSobelGradient(expSobelY, expSobelX);
 	} else {
 		coordinateFunction.setExpectedSobelGradient(0., 0.);
 	}
