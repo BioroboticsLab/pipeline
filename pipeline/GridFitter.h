@@ -271,7 +271,6 @@ private:
 
 		inline double getNormalizedError() const
 		{
-            //return static_cast<double>(_errorSum) / (static_cast<double>(_pixelNum) * 255.);
             return _errorSum / static_cast<double>(_pixelNum);
         }
 
