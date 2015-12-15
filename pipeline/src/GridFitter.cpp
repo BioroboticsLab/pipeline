@@ -205,7 +205,7 @@ void GridFitter::visualizeDebug(std::multiset<candidate_t> const& grids, const c
 
 GridFitter::candidate_set GridFitter::getInitialCandidates(const cv::Mat &binarizedROI, const cv::Mat& sobelXRoi, const cv::Mat& sobelYRoi, const Ellipse& ellipse_orig, const cv::Mat &roi)
 {
-	static const auto initial_rotations        = Util::linspace<double>(0, 2 * CV_PI, 32);
+    static const auto initial_rotations        = Util::linspace<double>(0, 2 * CV_PI - CV_PI / 32., 32);
 	static const auto initial_position_offsets = Util::linspace<int>(-3, 3, 7);
 
 	// initial search for gradiant descent candidates in ellipse parameter space
