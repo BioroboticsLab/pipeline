@@ -37,12 +37,24 @@ void serialize(Archive &ar, cv::Point2i &point, const unsigned int) {
 	ar & BOOST_SERIALIZATION_NVP(point.y);
 }
 
+template<class Archive>
+void serialize(Archive &ar, cv::Point2f &point, const unsigned int) {
+    ar & BOOST_SERIALIZATION_NVP(point.x);
+    ar & BOOST_SERIALIZATION_NVP(point.y);
+}
 
 // Size (opencv)
 template<class Archive>
 void serialize(Archive &ar, cv::Size_<int>& size, const unsigned int) {
 	ar & BOOST_SERIALIZATION_NVP(size.width);
 	ar & BOOST_SERIALIZATION_NVP(size.height);
+}
+
+// Size (opencv)
+template<class Archive>
+void serialize(Archive &ar, cv::Size_<double>& size, const unsigned int) {
+    ar & BOOST_SERIALIZATION_NVP(size.width);
+    ar & BOOST_SERIALIZATION_NVP(size.height);
 }
 
 
