@@ -208,7 +208,7 @@ GridFitter::candidate_set GridFitter::getInitialCandidates(const cv::Mat &binari
     static const auto initial_rotations        = Util::linspace<double>(0, 2 * CV_PI - CV_PI / 32., 32);
 	static const auto initial_position_offsets = Util::linspace<int>(-3, 3, 7);
 
-	// initial search for gradiant descent candidates in ellipse parameter space
+    // initial search for gradient descent candidates in ellipse parameter space
 	// note that the position offsets have to be evaluated in the inner loop
 	// because shifting a known grid configuration is much faster than
 	// recalculating all coordinates.
@@ -226,11 +226,11 @@ GridFitter::candidate_set GridFitter::getInitialCandidates(const cv::Mat &binari
 					grid.setCenter({config.center.x + pos_x_offset, config.center.y + pos_y_offset});
 					const double error = evaluateCandidate(grid, roi, binarizedROI, sobelXRoi, sobelYRoi, _settings_cache);
 					candidatesForRotation.insert({error, grid.getConfig()});
-				}
+                }
 			}
 			// for each rotation and ellipse candidate, insert the best candiate into gridCandidates
 			gridCandidates.insert(*candidatesForRotation.begin());
-		}
+        }
 	}
 
 	return gridCandidates;
