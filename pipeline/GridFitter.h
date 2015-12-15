@@ -243,32 +243,45 @@ private:
 			assert(Util::pointInBounds(_sobelY.get().size(), coords));
 
 			const uint8_t dx = _sobelX.get().template at<uint8_t>(coords);
-			const uint8_t dy = _sobelY.get().template at<uint8_t>(coords);
+            const uint8_t dy = _sobelY.get().template at<uint8_t>(coords);
 
-			_errorSum += std::abs(static_cast<int16_t>(dx) - static_cast<int16_t>(_expectedX));
-			_errorSum += std::abs(static_cast<int16_t>(dy) - static_cast<int16_t>(_expectedY));
+            double ddx = static_cast<double>(dx) / 128. - 1.;
+            double ddy = static_cast<double>(dy) / 128. - 1.;
+            const double dnorm = std::sqrt(ddx * ddx + ddy * ddy);
+            ddx = dnorm ? ddx / dnorm : 0.;
+            ddy = dnorm ? ddy / dnorm : 0.;
 
-			_pixelNum += 2;
+            const double cosangle = ddx * _expectedX + ddy * _expectedY;
+
+            _errorSum += 1. - std::abs(cosangle);
+            _pixelNum += 1;
 		}
 
 		inline void setExpectedSobelGradient(const uint8_t dx, const uint8_t dy)
 		{
-			_expectedX = dx;
-			_expectedY = dy;
+            double dex = static_cast<double>(dx) / 128. - 1.;
+            double dey = static_cast<double>(dy) / 128. - 1.;
+            const double enorm = std::sqrt(dex * dex + dey * dey);
+            dex = enorm ? dex / enorm : 0.;
+            dey = enorm ? dey / enorm : 0.;
+
+            _expectedX = dex;
+            _expectedY = dey;
 		}
 
 		inline double getNormalizedError() const
 		{
-			return static_cast<double>(_errorSum) / (static_cast<double>(_pixelNum) * 255.);
-		}
+            //return static_cast<double>(_errorSum) / (static_cast<double>(_pixelNum) * 255.);
+            return _errorSum / static_cast<double>(_pixelNum);
+        }
 
 	private:
 		std::reference_wrapper<const cv::Mat> _sobelX;
 		std::reference_wrapper<const cv::Mat> _sobelY;
-		uint8_t _expectedX;
-		uint8_t _expectedY;
-		size_t _errorSum;
-		size_t _pixelNum;
+        double _expectedX;
+        double _expectedY;
+        double _errorSum;
+        size_t _pixelNum;
 	};
 
 	struct expected_white_error_fun_t {
