@@ -121,8 +121,6 @@ void EllipseFitter::detectEllipse(Tag &tag) {
 								// (7) estimate the half length of the minor axis (b)
 								const double f      = pointDistanceNoSqrt(pxf, pyf, p2xf, p2yf);
 								const double costau = (a * a + d * d - f) / (2 * a * d);
-//								const double tau    = acos(costau);
-//								const double sintau = sin(tau);
 								const double sintau = sqrt(1 - costau * costau);
 								const double b      = (a * d * sintau) / sqrt(((a * a) - (d * d * costau * costau)));
 								const double b2     = 2.0 * b;
