@@ -43,6 +43,7 @@ void GridFitter::cacheSettings()
 	_settings_cache.err_func_alpha_outer      = _settings.get_err_func_alpha_outer();
 	_settings_cache.err_func_alpha_outer_edge = _settings.get_err_func_alpha_outer_edge();
 	_settings_cache.err_func_alpha_variance   = _settings.get_err_func_alpha_variance();
+    _settings_cache.sobel_threshold           = _settings.get_sobel_threshold();
 	_settings_cache.gradient_num_initial      = _settings.get_gradient_num_initial();
 	_settings_cache.gradient_num_results      = _settings.get_gradient_num_results();
 	_settings_cache.gradient_error_threshold  = _settings.get_gradient_error_threshold();
@@ -365,13 +366,13 @@ double GridFitter::evaluateCandidate(PipelineGrid& grid, cv::Mat const& roi, cv:
 	}
 
 	{
-		sobel_error_counter_t errorFun(sobelXRoi, sobelYRoi);
+        sobel_error_counter_t errorFun(sobelXRoi, sobelYRoi, settings.sobel_threshold);
 		errorFun = grid.processOuterRingEdgeCoordinates(std::move(errorFun));
 		error += errorFun.getNormalizedError() * settings.err_func_alpha_outer_edge;
 	}
 
 	{
-		sobel_error_counter_t errorFun(sobelXRoi, sobelYRoi);
+        sobel_error_counter_t errorFun(sobelXRoi, sobelYRoi, settings.sobel_threshold);
 		errorFun = grid.processInnerLineCoordinates(std::move(errorFun));
 		error += errorFun.getNormalizedError() * settings.err_func_alpha_inner_edge;
 	}

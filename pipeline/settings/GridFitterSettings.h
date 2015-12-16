@@ -19,6 +19,10 @@ static const std::string ERR_FUNC_ALPHA_VARIANCE = "ERR_FUNC_ALPHA_VARIANCE";
 static const std::string ERR_FUNC_ALPHA_OUTER_EDGE = "ERR_FUNC_ALPHA_OUTER_EDGE";
 static const std::string ERR_FUNC_ALPHA_INNER_EDGE = "ERR_FUNC_ALPHA_INNER_EDGE";
 /*
+ * mininum value of sobel derivatives in error function
+ */
+static const std::string SOBEL_THRESHOLD = "SOBEL_THRESHOLD";
+/*
  * size of neighbourhood area
  */
 static const std::string ADAPTIVE_BLOCK_SIZE = "ADAPTIVE_BLOCK_SIZE";
@@ -47,6 +51,8 @@ static const double ERR_FUNC_ALPHA_VARIANCE = 2.0;
 static const double ERR_FUNC_ALPHA_OUTER_EDGE = 1.0;
 static const double ERR_FUNC_ALPHA_INNER_EDGE = 4.0;
 
+static const double SOBEL_THRESHOLD = 0.1;
+
 static const int ADAPTIVE_BLOCK_SIZE = 23;
 static const double ADAPTIVE_C = 3;
 
@@ -73,6 +79,8 @@ public:
     double get_err_func_alpha_variance();
     double get_err_func_alpha_inner_edge();
     double get_err_func_alpha_outer_edge();
+
+    double get_sobel_threshold();
 
     /*
      * adaptive

@@ -26,6 +26,12 @@ double gridfitter_settings_t::get_err_func_alpha_outer_edge() {
                 Gridfitter::Params::ERR_FUNC_ALPHA_OUTER_EDGE);
 }
 
+double gridfitter_settings_t::get_sobel_threshold()
+{
+    return this->getValue<double>(
+                Gridfitter::Params::SOBEL_THRESHOLD);
+}
+
 int gridfitter_settings_t::get_adaptive_block_size() {
     return this->getValue<int>(Gridfitter::Params::ADAPTIVE_BLOCK_SIZE);
 }
@@ -90,6 +96,9 @@ gridfitter_settings_t::gridfitter_settings_t() {
     addEntry(
                 setting_entry(Params::ERR_FUNC_ALPHA_VARIANCE,
                               Defaults::ERR_FUNC_ALPHA_VARIANCE));
+    addEntry(
+                setting_entry(Params::SOBEL_THRESHOLD,
+                              Defaults::SOBEL_THRESHOLD));
     /*
          * adaptive
          */

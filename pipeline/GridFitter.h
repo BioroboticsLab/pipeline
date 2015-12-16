@@ -58,6 +58,7 @@ private:
 		double err_func_alpha_variance;
 		double err_func_alpha_inner_edge;
 		double err_func_alpha_outer_edge;
+        double sobel_threshold;
 		size_t gradient_num_initial;
 		size_t gradient_num_results;
 		double gradient_error_threshold;
@@ -225,9 +226,11 @@ private:
 
 	class sobel_error_counter_t {
 	public:
-		explicit sobel_error_counter_t(const cv::Mat& sobelX, const cv::Mat& sobelY)
+        explicit sobel_error_counter_t(const cv::Mat& sobelX, const cv::Mat& sobelY,
+                                       const double gradientThresh)
 		    : _sobelX(sobelX), _sobelY(sobelY)
-		    , _expectedX(0), _expectedY(0)
+            , _gradientThresh(gradientThresh)
+            , _expectedX(0), _expectedY(0)
 		    , _errorSum(0), _pixelNum(0)
 		{}
 
@@ -251,9 +254,13 @@ private:
             ddx = dnorm ? ddx / dnorm : 0.;
             ddy = dnorm ? ddy / dnorm : 0.;
 
-            const double cosangle = ddx * _expectedX + ddy * _expectedY;
+            if (ddx > _gradientThresh || ddy > _gradientThresh) {
+                const double cosangle = ddx * _expectedX + ddy * _expectedY;
+                _errorSum += 1. - std::abs(cosangle);
+            } else {
+                _errorSum += 1;
+            }
 
-            _errorSum += 1. - std::abs(cosangle);
             _pixelNum += 1;
 		}
 
@@ -277,6 +284,7 @@ private:
 	private:
 		std::reference_wrapper<const cv::Mat> _sobelX;
 		std::reference_wrapper<const cv::Mat> _sobelY;
+        double _gradientThresh;
         double _expectedX;
         double _expectedY;
         double _errorSum;
