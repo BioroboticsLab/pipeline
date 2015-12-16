@@ -70,7 +70,9 @@ struct DecoderEvaluationResults {
 			double sum = 0.;
             size_t numSettable = 0;
 			for (const result_t& result : evaluationResults) {
-                if (result.pipelineGrid.isSettable() && result.pipelineGrid.getHasBeenSet()) {
+                if (result.pipelineGrid.get().isSettable() &&
+                    result.pipelineGrid.get().getHasBeenSet())
+                {
                     sum += (static_cast<double>(result.hammingDistance) / Grid::NUM_MIDDLE_CELLS);
                     ++numSettable;
                 }
