@@ -6,6 +6,7 @@
 
 #if USE_DEEPLOCALIZER
 #include <deeplocalizer/classifier/CaffeClassifier.h>
+#include <caffe/data_transformer.hpp>
 #endif
 
 namespace pipeline {

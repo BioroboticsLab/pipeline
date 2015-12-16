@@ -7,6 +7,7 @@
 #include "../datastructure/Tag.h"
 
 #if USE_DEEPLOCALIZER
+#include <caffe/data_transformer.hpp>
 #include <deeplocalizer/classifier/DataReader.h>
 
 namespace {
