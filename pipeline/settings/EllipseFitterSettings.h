@@ -49,7 +49,7 @@ static const int MAX_MAJOR_AXIS = 54;
 static const int MIN_MINOR_AXIS = 30;
 static const int MAX_MINOR_AXIS = 54;
 
-static const double ELLIPSE_REGULARISATION = 50;
+static const double ELLIPSE_REGULARISATION = 10;
 
 static const int THRESHOLD_EDGE_PIXELS = 25;
 static const int THRESHOLD_VOTE = 1000;
