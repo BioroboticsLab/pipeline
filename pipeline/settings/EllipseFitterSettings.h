@@ -26,6 +26,8 @@ static const std::string MAX_MAJOR_AXIS = "MAX_MAJOR_AXIS";
 static const std::string MIN_MINOR_AXIS = "MIN_MINOR_AXIS";
 static const std::string MAX_MINOR_AXIS = "MAX_MINOR_AXIS";
 
+static const std::string ELLIPSE_REGULARISATION = "ELLIPSE_REGULARISATION";
+
 /**
  * voting
  */
@@ -42,11 +44,12 @@ static const int CANNY_VALUES_DISTANCE = 20;
 static const int CANNY_MEAN_MIN = 12;
 static const int CANNY_MEAN_MAX = 15;
 
-
 static const int MIN_MAJOR_AXIS = 42;
 static const int MAX_MAJOR_AXIS = 54;
 static const int MIN_MINOR_AXIS = 30;
 static const int MAX_MINOR_AXIS = 54;
+
+static const double ELLIPSE_REGULARISATION = 50;
 
 static const int THRESHOLD_EDGE_PIXELS = 25;
 static const int THRESHOLD_VOTE = 1000;
@@ -65,6 +68,7 @@ public:
     int get_max_major_axis();
     int get_min_minor_axis();
     int get_max_minor_axis();
+    double get_ellipse_regularisation();
     int get_threshold_edge_pixels();
     int get_threshold_vote();
     int get_threshold_best_vote();

@@ -35,6 +35,11 @@ int ellipsefitter_settings_t::get_max_minor_axis() {
     return this->getValue<int>(EllipseFitter::Params::MAX_MAJOR_AXIS);
 }
 
+double ellipsefitter_settings_t::get_ellipse_regularisation()
+{
+    return this->getValue<double>(EllipseFitter::Params::ELLIPSE_REGULARISATION);
+}
+
 int ellipsefitter_settings_t::get_threshold_edge_pixels() {
     return this->getValue<int>(EllipseFitter::Params::THRESHOLD_EDGE_PIXELS);
 }
@@ -89,6 +94,10 @@ ellipsefitter_settings_t::ellipsefitter_settings_t() {
     addEntry(
                 setting_entry(EllipseFitter::Params::MAX_MINOR_AXIS,
                               EllipseFitter::Defaults::MAX_MINOR_AXIS));
+
+    addEntry(
+                setting_entry(EllipseFitter::Params::ELLIPSE_REGULARISATION,
+                              EllipseFitter::Defaults::ELLIPSE_REGULARISATION));
 
     addEntry(
                 setting_entry(EllipseFitter::Params::THRESHOLD_EDGE_PIXELS,

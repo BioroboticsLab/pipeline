@@ -55,6 +55,8 @@ void EllipseFitter::detectEllipse(Tag &tag) {
 	const double ellipsefitter_min_major = _settings.get_min_major_axis();
 	const double ellipsefitter_min_minor = _settings.get_min_minor_axis();
 
+    const double ellipse_regularisation = _settings.get_ellipse_regularisation();
+
 	const int threshold_edge_pixels = _settings.get_threshold_edge_pixels();
 	const int threshold_best_vote   = _settings.get_threshold_best_vote();
 
@@ -148,7 +150,7 @@ void EllipseFitter::detectEllipse(Tag &tag) {
 						const double angle = (alpha * 180) / CV_PI;
 
                         // more "circular" ellipses are weighted more than very thin ellipses
-                        vote_minor = static_cast<int>(vote_minor * (50 * minor / major));
+                        vote_minor = static_cast<int>(vote_minor * (ellipse_regularisation * minor / major));
 
 						if (candidates.size() == 0) {
                             candidates.emplace_back(vote_minor, cen, axis, angle, tag.getBox().size());
