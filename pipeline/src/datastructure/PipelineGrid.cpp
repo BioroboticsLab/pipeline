@@ -15,6 +15,8 @@ static const cv::Scalar blackC1(0);
 PipelineGrid::PipelineGrid(cv::Point2i center, double radius, double angle_z, double angle_y, double angle_x, double error)
 	: Grid(center, radius, angle_z, angle_y, angle_x)
 	, _error(error)
+    , _isSettable(true)
+    , _hasBeenSet(true)
 {
 	resetCache();
 }

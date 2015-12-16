@@ -129,6 +129,22 @@ public:
 		_ID = array;
 	}
 
+    bool isSettable() const {
+        return _isSettable;
+    }
+
+    void setSettable(const bool settable) {
+        _isSettable = settable;
+    }
+
+    bool getHasBeenSet() const {
+        return _hasBeenSet;
+    }
+
+    void setHasBeenSet(const bool hasBeenSet) {
+        _hasBeenSet = hasBeenSet;
+    }
+
 	double compare(const PipelineGrid &to) const;
 
 	double getError() const { return _error; }
@@ -153,6 +169,11 @@ private:
 	std::array<cached_coordinates_t, NUM_MIDDLE_CELLS> _gridCellCoordinates;
 
 	double _error;
+
+    /* TODO: legacy variables from old grid model, required for accurate groundtruth evaluation
+     * should be moved to a seperate GroundTruthGrid class in the future */
+    bool _isSettable;
+    bool _hasBeenSet;
 
 	// returns the bounding box of a single polygon (identified by the index
 	// of the polygon area [0, Grid::NUM_MIDDLE_CELLS)

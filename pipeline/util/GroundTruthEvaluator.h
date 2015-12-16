@@ -68,10 +68,14 @@ struct DecoderEvaluationResults {
 	boost::optional<double> getAverageHammingDistanceNormalized() const {
 		if (!evaluationResults.empty()) {
 			double sum = 0.;
+            size_t numSettable = 0;
 			for (const result_t& result : evaluationResults) {
-				sum += (static_cast<double>(result.hammingDistance) / Grid::NUM_MIDDLE_CELLS);
+                if (result.pipelineGrid.isSettable() && result.pipelineGrid.getHasBeenSet()) {
+                    sum += (static_cast<double>(result.hammingDistance) / Grid::NUM_MIDDLE_CELLS);
+                    ++numSettable;
+                }
 			}
-			return (sum / evaluationResults.size());
+            return (sum / numSettable);
 		} else return boost::optional<double>();
 	}
 
