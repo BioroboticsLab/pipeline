@@ -80,7 +80,7 @@ endif()
 file(GLOB_RECURSE src RELEATIVE ${CMAKE_CURRENT_SOURCE_DIR} pipeline/*.cpp)
 file(GLOB_RECURSE hdr RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} pipeline/*.h pipeline/*.hpp)
 
-add_library(${CPM_LIB_TARGET_NAME} ${src} ${hdr})
+add_library(${CPM_LIB_TARGET_NAME} STATIC ${src} ${hdr})
 add_definitions("-DUSE_DEEPLOCALIZER=${USE_DEEPLOCALIZER}")
 
 include_directories(
