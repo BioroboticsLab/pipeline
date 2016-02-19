@@ -102,7 +102,7 @@ std::vector<Tag> Localizer::process(cv::Mat &&originalImage, cv::Mat &&preproces
         taglist = filterTagCandidates(std::move(taglist));
     }
 
-    //taglist = filterDuplicates(std::move(taglist));
+    taglist = filterDuplicates(std::move(taglist));
 
     return taglist;
 }
@@ -291,7 +291,7 @@ std::vector<Tag> Localizer::filterTagCandidates(std::vector<Tag> &&candidates)
 
 std::vector<Tag> Localizer::filterDuplicates(std::vector<Tag> &&candidates)
 {
-    const double minOverlap = std::pow(_settings.get_tag_size() / 1.5, 2);
+    const double minOverlap = std::pow(_settings.get_tag_size() / 3., 2.);
 
     std::set<size_t> removalIndices;
 
