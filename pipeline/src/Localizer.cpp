@@ -1,5 +1,6 @@
 #include "../Localizer.h"
 
+#include <boost/filesystem.hpp>
 #include <boost/range/adaptor/reversed.hpp>
 
 #include <opencv2/highgui/highgui.hpp>
@@ -21,41 +22,81 @@ cv::Rect operator*(const cv::Rect rectangle, double scale) {
 
 namespace pipeline {
 
-Localizer::Localizer()
+Localizer::Localizer(const settings::localizer_settings_t &settings)
+    : _settings(settings)
+    , _modelPath(_settings.get_deeplocalizer_model_file())
+    , _paramPath(_settings.get_deeplocalizer_param_file())
 {
+    initializeFilterNet();
 }
 
-const cv::Mat& Localizer::getBlob() const {
+void Localizer::initializeFilterNet()
+{
+    if (_settings.get_deeplocalizer_filter()) {
+        if (!boost::filesystem::exists(_modelPath) || !boost::filesystem::exists(_paramPath)) {
+            _filterNet = std::unique_ptr<mx::MXNetPredictor>();
+        } else {
+            const auto tagSize = _settings.get_tag_size();
+            _filterNet = std::make_unique<mx::MXNetPredictor>(
+                            _modelPath, _paramPath, tagSize, tagSize, mx::CPU);
+        }
+    }
+}
+
+void Localizer::loadSettings(settings::localizer_settings_t &&settings)
+{
+    _settings = std::move(settings);
+
+    initializeFilterNet();
+}
+
+void Localizer::loadSettings(settings::localizer_settings_t const& settings)
+{
+    _settings = settings;
+
+    initializeFilterNet();
+}
+
+settings::localizer_settings_t Localizer::getSettings() const
+{
+    return _settings;
+}
+
+const cv::Mat& Localizer::getBlob() const
+{
     return _blob;
 }
 
-void Localizer::setBlob(const cv::Mat& blob) {
+void Localizer::setBlob(const cv::Mat& blob)
+{
     _blob = blob;
 }
 
-const cv::Mat& Localizer::getCannyMap() const {
+const cv::Mat& Localizer::getCannyMap() const
+{
     return _canny_map;
 }
 
-void Localizer::setCannyMap(const cv::Mat& cannyMap) {
+void Localizer::setCannyMap(const cv::Mat& cannyMap)
+{
     _canny_map = cannyMap;
 }
 
-const cv::Mat& Localizer::getThresholdImage() const {
+const cv::Mat& Localizer::getThresholdImage() const
+{
     return _threshold_image;
 }
 
-void Localizer::setThresholdImage(const cv::Mat& thresholdImage) {
+void Localizer::setThresholdImage(const cv::Mat& thresholdImage)
+{
     _threshold_image = thresholdImage;
 }
 
-std::vector<Tag> Localizer::process(cv::Mat &&originalImage, cv::Mat &&preprocessedImage){
-
-    // locate the tags using the sobel map
+std::vector<Tag> Localizer::process(cv::Mat &&originalImage, cv::Mat &&preprocessedImage)
+{
     _blob = highlightTags(preprocessedImage);
 
     std::vector<Tag> taglist= locateTagCandidates(_blob, _canny_map,originalImage);
-    //std::vector<Tag> taglist= locateAllPossibleCandidates(originalImage);
 
     if (_settings.get_deeplocalizer_filter()) {
         taglist = filterTagCandidates(std::move(taglist));
@@ -66,7 +107,8 @@ std::vector<Tag> Localizer::process(cv::Mat &&originalImage, cv::Mat &&preproces
     return taglist;
 }
 
-cv::Mat Localizer::highlightTags(const cv::Mat &grayImage)  {
+cv::Mat Localizer::highlightTags(const cv::Mat &grayImage)
+{
     cv::Mat image;
     grayImage.copyTo(image);
     cv::Mat binarizedImage;
@@ -151,7 +193,8 @@ cv::Mat Localizer::highlightTags(const cv::Mat &grayImage)  {
 }
 
 std::vector<Tag> Localizer::locateTagCandidates(cv::Mat blobImage_old,
-                                                cv::Mat /*cannyEdgeMap*/, cv::Mat grayImage) {
+                                                cv::Mat /*cannyEdgeMap*/, cv::Mat grayImage)
+{
     std::vector<Tag>  taglist;
     std::vector<std::vector<cv::Point2i> > contours;
 
@@ -217,65 +260,21 @@ std::vector<Tag> Localizer::locateTagCandidates(cv::Mat blobImage_old,
     return taglist;
 }
 
-std::vector<Tag> Localizer::locateAllPossibleCandidates(const cv::Mat &grayImage)
-{
-    const int roiSize  = _settings.get_tag_size();
-    const int stepSize = static_cast<int>(roiSize * 0.45);
-
-    cv::Mat imageWithBorder;
-    cv::copyMakeBorder(grayImage, imageWithBorder, roiSize, roiSize, roiSize, roiSize, cv::BORDER_REPLICATE);
-
-    std::vector<Tag> taglist;
-
-    auto addRoi = [&](const int x, const int y) {
-        const cv::Rect roi(x, y, roiSize, roiSize);
-        const cv::Mat subImage(imageWithBorder, roi);
-
-        const cv::Rect originalImageRoi(x - roiSize, y - roiSize, roiSize, roiSize);
-        Tag tag(originalImageRoi, subImage.clone(), taglist.size() + 1);
-
-        taglist.push_back(tag);
-    };
-
-    int y = roiSize + 1;
-    do {
-
-        int x = roiSize + 1;
-        do {
-            addRoi(x, y);
-
-            x += stepSize;
-        } while (x < (grayImage.size[1] + roiSize - 1));
-
-        y += stepSize;
-    } while (y < (grayImage.size[0] + roiSize - 1));
-
-    return taglist;
-}
-
 std::vector<Tag> Localizer::filterTagCandidates(std::vector<Tag> &&candidates)
 {
-    const unsigned int tagSize = _settings.get_tag_size();
-    assert(tagSize == 100);
+    assert(_filterNet);
 
     if (candidates.empty()) {
         return candidates;
     }
 
-    for (Tag const& candidate : candidates) {
+    for (Tag& candidate : candidates) {
         cv::Mat const& blob = candidate.getOrigSubImage();
-        assert(unsigned(blob.cols) == tagSize && unsigned(blob.rows) == tagSize);
+        assert(unsigned(blob.cols) == _settings.get_tag_size() &&
+               unsigned(blob.rows) == _settings.get_tag_size());
         assert(blob.channels() == 1);
 
-        // TODO
-    }
-
-    std::vector<std::vector<float>> probabilityMatrix; // TODO
-
-    assert(probabilityMatrix.size() == candidates.size());
-
-    for (size_t idx = 0; idx < probabilityMatrix.size(); ++idx) {
-        candidates[idx].setLocalizerScore(probabilityMatrix[idx][1]);
+        candidate.setLocalizerScore(_filterNet->predict(blob));
     }
 
     const double threshold = _settings.get_deeplocalizer_probability_threshold();
@@ -289,22 +288,6 @@ std::vector<Tag> Localizer::filterTagCandidates(std::vector<Tag> &&candidates)
 
     return candidates;
 }
-
-/*
-void Localizer::initializeDeepLocalizer(deeplocalizer::CaffeClassifier *weightSharingNet)
-{
-    if (_settings.get_deeplocalizer_filter()) {
-        const std::string modelPath = _settings.get_deeplocalizer_model_file();
-        const std::string paramPath = _settings.get_deeplocalizer_param_file();
-
-        if (modelPath == _modelPath && paramPath == _paramPath) return;
-
-        if (!boost::filesystem::exists(modelPath) || !boost::filesystem::exists(paramPath)) return;
-
-        // TODO
-    }
-}
-*/
 
 std::vector<Tag> Localizer::filterDuplicates(std::vector<Tag> &&candidates)
 {
@@ -357,21 +340,5 @@ std::vector<Tag> Localizer::filterDuplicates(std::vector<Tag> &&candidates)
     }
 
     return candidates;
-}
-
-
-void Localizer::loadSettings(settings::localizer_settings_t &&settings)
-{
-    _settings = std::move(settings);
-}
-
-void Localizer::loadSettings(settings::localizer_settings_t const& settings)
-{
-    _settings = settings;
-}
-
-settings::localizer_settings_t Localizer::getSettings() const
-{
-    return _settings;
 }
 }

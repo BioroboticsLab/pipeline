@@ -43,6 +43,8 @@ else()
         SOURCE_DIR "${CMAKECONFIG_PATH}")
 endif()
 
+include_mxnetpredict()
+
 CPM_InitModule(${CPM_MODULE_NAME})
 
 biorobotics_config()
