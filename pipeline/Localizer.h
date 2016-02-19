@@ -2,9 +2,11 @@
 
 #include <opencv2/opencv.hpp>
 
-#include <mxnetpredictor/MXNetPredictor.h>
-
 #include "settings/LocalizerSettings.h"
+
+namespace mx {
+class MXNetPredictor;
+}
 
 namespace pipeline {
 

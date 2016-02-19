@@ -5,6 +5,8 @@
 
 #include <opencv2/highgui/highgui.hpp>
 
+#include <mxnetpredictor/MXNetPredictor.h>
+
 #include "../datastructure/Tag.h"
 
 /**
