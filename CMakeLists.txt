@@ -43,25 +43,6 @@ else()
         SOURCE_DIR "${CMAKECONFIG_PATH}")
 endif()
 
-if(NOT DEFINED USE_DEEPLOCALIZER)
-    set(USE_DEEPLOCALIZER "1")
-
-endif()
-
-if(${USE_DEEPLOCALIZER})
-    message("**********************************************************************************************")
-    message("Using neuronal network to improve localizer")
-    message("Make sure you adapt the following settings:")
-    message("   Set LOCALIZER.DEEPLOCALIZER_MODEL_FILE to your local caffe *.prototxt file")
-    message("   Set LOCALIZER.DEEPLOCALIZER_PARAM_FILE to your local caffe *.caffemodel file")
-    message("To disable this feature set USE_DEEPLOCALIZER to 0 before calling CPM_AddModule(Pipeline ...).")
-    message("**********************************************************************************************")
-    include_deeplocalizer_classifier()
-    CPM_ExportAdditionalDefinition("-DUSE_DEEPLOCALIZER=1")
-else()
-    CPM_ExportAdditionalDefinition("-DUSE_DEEPLOCALIZER=0")
-endif()
-
 CPM_InitModule(${CPM_MODULE_NAME})
 
 biorobotics_config()
@@ -72,16 +53,8 @@ find_package(OpenCV REQUIRED)
 find_package(Threads REQUIRED)
 find_package(Boost COMPONENTS system filesystem serialization program_options REQUIRED)
 
-if(${USE_DEEPLOCALIZER})
-    find_package(CUDA REQUIRED)
-endif()
-
-
 file(GLOB_RECURSE src RELEATIVE ${CMAKE_CURRENT_SOURCE_DIR} pipeline/*.cpp)
 file(GLOB_RECURSE hdr RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} pipeline/*.h pipeline/*.hpp)
-
-add_library(${CPM_LIB_TARGET_NAME} STATIC ${src} ${hdr})
-add_definitions("-DUSE_DEEPLOCALIZER=${USE_DEEPLOCALIZER}")
 
 include_directories(
     SYSTEM ${Boost_INCLUDE_DIRS}
@@ -95,9 +68,5 @@ set(LIBS
     ${Boost_LIBRARIES}
     ${CPM_LIBRARIES})
 
-if(${USE_DEEPLOCALIZER})
-    set(LIBS ${LIBS} ${CUDA_LIBRARIES})
-    include_directories(SYSTEM ${CUDA_INCLUDE_DIRS})
-endif()
-
+add_library(${CPM_LIB_TARGET_NAME} STATIC ${src} ${hdr})
 target_link_libraries(${CPM_LIB_TARGET_NAME} ${LIBS})

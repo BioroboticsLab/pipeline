@@ -21,13 +21,10 @@ PARAMETER(SECOND_DILATION_SIZE, unsigned int, 2)
 PARAMETER(MIN_NUM_PIXELS, unsigned int, 50)
 PARAMETER(MAX_NUM_PIXELS, unsigned int, 150)
 PARAMETER(TAG_SIZE, unsigned int, 60)
-
-#if USE_DEEPLOCALIZER
 PARAMETER(DEEPLOCALIZER_FILTER, bool, false)
 PARAMETER(DEEPLOCALIZER_MODEL_FILE, std::string, "")
 PARAMETER(DEEPLOCALIZER_PARAM_FILE, std::string, "")
 PARAMETER(DEEPLOCALIZER_PROBABILITY_THRESHOLD, double, 0.5f)
-#endif
 
 }
 
@@ -41,12 +38,10 @@ public:
     unsigned int get_tag_size();
     unsigned int get_min_num_pixels();
     unsigned int get_max_num_pixels();
-#if USE_DEEPLOCALIZER
     bool get_deeplocalizer_filter();
     std::string get_deeplocalizer_model_file();
     std::string get_deeplocalizer_param_file();
     double get_deeplocalizer_probability_threshold();
-#endif
 
     localizer_settings_t();
 };

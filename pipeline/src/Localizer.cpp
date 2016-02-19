@@ -6,22 +6,6 @@
 
 #include "../datastructure/Tag.h"
 
-#if USE_DEEPLOCALIZER
-#include <caffe/data_transformer.hpp>
-#include <deeplocalizer/classifier/DataReader.h>
-
-namespace {
-const caffe::TransformationParameter& getTransformationParameter() {
-    static caffe::TransformationParameter param;
-    param.set_scale(1.f / 255.f);
-
-    return param;
-}
-
-}
-
-#endif
-
 /**
  * Scales a given OpenCV rectangle by a factor, conserving the rectangle's center.
  *
@@ -38,9 +22,6 @@ cv::Rect operator*(const cv::Rect rectangle, double scale) {
 namespace pipeline {
 
 Localizer::Localizer()
-#if USE_DEEPLOCALIZER
-    : _caffeNet(nullptr)
-#endif
 {
 }
 
@@ -68,13 +49,6 @@ void Localizer::setThresholdImage(const cv::Mat& thresholdImage) {
     _threshold_image = thresholdImage;
 }
 
-#if USE_DEEPLOCALIZER
-deeplocalizer::CaffeClassifier *Localizer::getCaffeNet() const
-{
-    return nullptr; //_caffeNet.get();
-}
-#endif
-
 std::vector<Tag> Localizer::process(cv::Mat &&originalImage, cv::Mat &&preprocessedImage){
 
     // locate the tags using the sobel map
@@ -83,11 +57,9 @@ std::vector<Tag> Localizer::process(cv::Mat &&originalImage, cv::Mat &&preproces
     std::vector<Tag> taglist= locateTagCandidates(_blob, _canny_map,originalImage);
     //std::vector<Tag> taglist= locateAllPossibleCandidates(originalImage);
 
-#if USE_DEEPLOCALIZER
     if (_settings.get_deeplocalizer_filter()) {
         taglist = filterTagCandidates(std::move(taglist));
     }
-#endif
 
     //taglist = filterDuplicates(std::move(taglist));
 
@@ -281,7 +253,6 @@ std::vector<Tag> Localizer::locateAllPossibleCandidates(const cv::Mat &grayImage
     return taglist;
 }
 
-#if USE_DEEPLOCALIZER
 std::vector<Tag> Localizer::filterTagCandidates(std::vector<Tag> &&candidates)
 {
     const unsigned int tagSize = _settings.get_tag_size();
@@ -291,26 +262,15 @@ std::vector<Tag> Localizer::filterTagCandidates(std::vector<Tag> &&candidates)
         return candidates;
     }
 
-    _caffeNet->setBatchSize(candidates.size());
-
-    std::vector<caffe::Datum> data;
-
     for (Tag const& candidate : candidates) {
         cv::Mat const& blob = candidate.getOrigSubImage();
         assert(unsigned(blob.cols) == tagSize && unsigned(blob.rows) == tagSize);
         assert(blob.channels() == 1);
 
-        caffe::Datum datum;
-        caffe::CVMatToDatum(blob, &datum);
-
-        data.push_back(std::move(datum));
+        // TODO
     }
 
-    caffe::Blob<float> caffeData;
-    caffeData.Reshape(candidates.size(), 1, tagSize, tagSize);
-    _caffeTransformer->Transform(data, &caffeData);
-
-    std::vector<std::vector<float>> probabilityMatrix = _caffeNet->forward(caffeData);
+    std::vector<std::vector<float>> probabilityMatrix; // TODO
 
     assert(probabilityMatrix.size() == candidates.size());
 
@@ -330,6 +290,7 @@ std::vector<Tag> Localizer::filterTagCandidates(std::vector<Tag> &&candidates)
     return candidates;
 }
 
+/*
 void Localizer::initializeDeepLocalizer(deeplocalizer::CaffeClassifier *weightSharingNet)
 {
     if (_settings.get_deeplocalizer_filter()) {
@@ -340,19 +301,10 @@ void Localizer::initializeDeepLocalizer(deeplocalizer::CaffeClassifier *weightSh
 
         if (!boost::filesystem::exists(modelPath) || !boost::filesystem::exists(paramPath)) return;
 
-        caffe::Net<float> * net = nullptr;
-
-        if(weightSharingNet) {
-            net = &weightSharingNet->getNet();
-        }
-        _caffeNet = std::make_unique<deeplocalizer::CaffeClassifier>(modelPath, paramPath, false, 256, net);
-        _caffeTransformer = std::make_unique<caffe::DataTransformer<float>>(
-                            getTransformationParameter(), caffe::TEST);
-        _modelPath = modelPath;
-        _paramPath = paramPath;
+        // TODO
     }
 }
-#endif
+*/
 
 std::vector<Tag> Localizer::filterDuplicates(std::vector<Tag> &&candidates)
 {
@@ -411,29 +363,12 @@ std::vector<Tag> Localizer::filterDuplicates(std::vector<Tag> &&candidates)
 void Localizer::loadSettings(settings::localizer_settings_t &&settings)
 {
     _settings = std::move(settings);
-
-#if USE_DEEPLOCALIZER
-    initializeDeepLocalizer(nullptr);
-#endif
 }
 
 void Localizer::loadSettings(settings::localizer_settings_t const& settings)
 {
     _settings = settings;
-
-#if USE_DEEPLOCALIZER
-    initializeDeepLocalizer(nullptr);
-#endif
 }
-
-#if USE_DEEPLOCALIZER
-void Localizer::loadSettings(const settings::localizer_settings_t &settings, deeplocalizer::CaffeClassifier *weightSharingNet)
-{
-    _settings = settings;
-
-    initializeDeepLocalizer(weightSharingNet);
-}
-#endif
 
 settings::localizer_settings_t Localizer::getSettings() const
 {

@@ -4,11 +4,6 @@
 
 #include "settings/LocalizerSettings.h"
 
-#if USE_DEEPLOCALIZER
-#include <deeplocalizer/classifier/CaffeClassifier.h>
-#include <caffe/data_transformer.hpp>
-#endif
-
 namespace pipeline {
 
 class BoundingBox;
@@ -40,17 +35,15 @@ private:
 
     std::vector<Tag> locateAllPossibleCandidates(cv::Mat const& grayImage);
 
-#if USE_DEEPLOCALIZER
+    /*
     std::unique_ptr<deeplocalizer::CaffeClassifier> _caffeNet;
     std::unique_ptr<caffe::DataTransformer<float>> _caffeTransformer;
+    */
 
     std::vector<Tag> filterTagCandidates(std::vector<Tag>&& candidates);
 
     boost::optional<std::string> _modelPath;
     boost::optional<std::string> _paramPath;
-
-    void initializeDeepLocalizer(deeplocalizer::CaffeClassifier* weightSharingNet);
-#endif
 
     std::vector<Tag> filterDuplicates(std::vector<Tag>&& candidates);
 
@@ -63,10 +56,6 @@ public:
 
     void loadSettings(settings::localizer_settings_t&& settings);
     void loadSettings(settings::localizer_settings_t const& settings);
-#if USE_DEEPLOCALIZER
-    void loadSettings(settings::localizer_settings_t const& settings,
-                      deeplocalizer::CaffeClassifier* weightSharingNet);
-#endif
 
     settings::localizer_settings_t getSettings() const;
 
@@ -81,9 +70,5 @@ public:
     void reset();
     const cv::Mat& getThresholdImage() const;
     void setThresholdImage(const cv::Mat& thresholdImage);
-
-#if USE_DEEPLOCALIZER
-    deeplocalizer::CaffeClassifier* getCaffeNet() const;
-#endif
 };
 }
