@@ -24,23 +24,30 @@ cv::Rect operator*(const cv::Rect rectangle, double scale) {
 
 namespace pipeline {
 
+Localizer::Localizer() {}
+
 Localizer::Localizer(const settings::localizer_settings_t &settings)
     : _settings(settings)
-    , _modelPath(_settings.get_deeplocalizer_model_file())
-    , _paramPath(_settings.get_deeplocalizer_param_file())
 {
     initializeFilterNet();
+}
+
+Localizer::~Localizer()
+{
+
 }
 
 void Localizer::initializeFilterNet()
 {
     if (_settings.get_deeplocalizer_filter()) {
-        if (!boost::filesystem::exists(_modelPath) || !boost::filesystem::exists(_paramPath)) {
+        const std::string modelPath = _settings.get_deeplocalizer_model_file();
+        const std::string paramPath = _settings.get_deeplocalizer_param_file();
+        if (!boost::filesystem::exists(modelPath) || !boost::filesystem::exists(paramPath)) {
             _filterNet = std::unique_ptr<mx::MXNetPredictor>();
         } else {
             const auto tagSize = _settings.get_tag_size();
             _filterNet = std::make_unique<mx::MXNetPredictor>(
-                            _modelPath, _paramPath, tagSize, tagSize, mx::CPU);
+                            modelPath, paramPath, tagSize, tagSize, mx::CPU);
         }
     }
 }
@@ -271,7 +278,9 @@ std::vector<Tag> Localizer::filterTagCandidates(std::vector<Tag> &&candidates)
     }
 
     for (Tag& candidate : candidates) {
+        // TODO: check if float
         cv::Mat const& blob = candidate.getOrigSubImage();
+
         assert(unsigned(blob.cols) == _settings.get_tag_size() &&
                unsigned(blob.rows) == _settings.get_tag_size());
         assert(blob.channels() == 1);

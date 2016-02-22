@@ -68,7 +68,8 @@ set(LIBS
     ${OpenCV_LIBS}
     ${CMAKE_THREAD_LIBS_INIT}
     ${Boost_LIBRARIES}
-    ${CPM_LIBRARIES})
+    ${CPM_LIBRARIES}
+)
 
 add_library(${CPM_LIB_TARGET_NAME} STATIC ${src} ${hdr})
 target_link_libraries(${CPM_LIB_TARGET_NAME} ${LIBS})

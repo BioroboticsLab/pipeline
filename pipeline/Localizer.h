@@ -15,11 +15,12 @@ class Tag;
 
 class Localizer {
 public:
+    Localizer();
     Localizer(settings::localizer_settings_t const& settings);
 #ifdef PipelineStandalone
     Localizer(const std::string &configFile);
 #endif
-    virtual ~Localizer() {}
+    virtual ~Localizer();
 
     void loadSettings(settings::localizer_settings_t&& settings);
     void loadSettings(settings::localizer_settings_t const& settings);
@@ -44,8 +45,6 @@ private:
 
     settings::localizer_settings_t _settings;
 
-    std::string _modelPath;
-    std::string _paramPath;
     std::unique_ptr<mx::MXNetPredictor> _filterNet;
 
     void initializeFilterNet();
