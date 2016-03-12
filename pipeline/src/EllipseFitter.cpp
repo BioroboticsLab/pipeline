@@ -60,10 +60,10 @@ void EllipseFitter::detectEllipse(Tag &tag) {
 	const int threshold_edge_pixels = _settings.get_threshold_edge_pixels();
 	const int threshold_best_vote   = _settings.get_threshold_best_vote();
 
-	const cv::Mat& subImage  = tag.getOrigSubImage();
+    const cv::Mat& subImage  = tag.getRepresentations().orig;
     const cv::Mat cannyImage = computeCannyEdgeMap(subImage);
 
-	tag.setCannySubImage(cannyImage);
+	tag.setEdgeSubImage(cannyImage);
 
 	//edge_pixel array, all edge pixels are stored in this array
 	std::vector<cv::Point2i> ep;
@@ -151,7 +151,7 @@ void EllipseFitter::detectEllipse(Tag &tag) {
                         vote_minor = static_cast<int>(vote_minor * (ellipse_regularisation * minor / major));
 
 						if (candidates.size() == 0) {
-                            candidates.emplace_back(vote_minor, cen, axis, angle, tag.getBox().size());
+                            candidates.emplace_back(vote_minor, cen, axis, angle, tag.getRepresentations().roi.size());
                             if (vote_minor >= (threshold_best_vote)) {
 								goto foundEllipse;
 							}
@@ -175,7 +175,7 @@ void EllipseFitter::detectEllipse(Tag &tag) {
 								break;
 							}
 							if (idx == candidates.size() - 1) {
-                                candidates.emplace_back(vote_minor, cen, axis, angle, tag.getBox().size());
+                                candidates.emplace_back(vote_minor, cen, axis, angle, tag.getRepresentations().roi.size());
 
                                 if (vote_minor >= (threshold_best_vote)) {
 									goto foundEllipse;
@@ -244,7 +244,7 @@ foundEllipse:
 }
 
 void EllipseFitter::visualizeEllipse(Tag const& tag, Ellipse const& ell, std::string const& title) {
-	cv::Mat subroiTest = tag.getOrigSubImage().clone();
+    cv::Mat subroiTest = tag.getRepresentations().orig.clone();
 	ellipse(subroiTest, ell.getCen(), ell.getAxis(), ell.getAngle(), 0, 360, cv::Scalar(0, 0, 255));
 	std::string text = "Score " + std::to_string(ell.getVote());
 	cv::putText(subroiTest, text, cv::Point(10, 30), cv::FONT_HERSHEY_COMPLEX_SMALL,

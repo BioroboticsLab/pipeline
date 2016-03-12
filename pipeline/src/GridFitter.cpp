@@ -143,7 +143,7 @@ void GridFitter::visualizeDebug(std::multiset<candidate_t> const& grids, const c
 
 		PipelineGrid grid(candidate.config);
 
-		images.push_back(tag.getOrigSubImage());
+        images.push_back(tag.getRepresentations().orig);
 		images.push_back(roiCpy);
 
 		cv::Mat origCopy;
@@ -162,7 +162,7 @@ void GridFitter::visualizeDebug(std::multiset<candidate_t> const& grids, const c
 		images.push_back(blendedBin);
 
 		cv::Mat blended;
-		cv::addWeighted(tag.getOrigSubImage(), 0.8, grid.getProjectedImage(roiSize), 0.2, 0.0, blended);
+        cv::addWeighted(tag.getRepresentations().orig, 0.8, grid.getProjectedImage(roiSize), 0.2, 0.0, blended);
 		images.push_back(blended);
 
 		cv::Mat cannyBlendedX;
@@ -246,9 +246,9 @@ std::vector<PipelineGrid> GridFitter::fitGrid(const Tag& tag, const TagCandidate
 	const Ellipse& ellipse_orig = candidate.getEllipse();
 
 	// region of interest of tag candidate
-	const cv::Size2i roiSize = tag.getBox().size();
+    const cv::Size2i roiSize = tag.getRepresentations().roi.size();
 	cv::Mat roi;
-    tag.getOrigSubImage().copyTo(roi);
+    tag.getRepresentations().orig.copyTo(roi);
 
 	cv::Mat binarizedROI(roiSize, CV_8UC1);
 	cv::adaptiveThreshold(roi, binarizedROI, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C,
@@ -308,7 +308,7 @@ std::vector<PipelineGrid> GridFitter::fitGrid(const Tag& tag, const TagCandidate
 		size_t idx = 0;
 		for (candidate_t const& gridCandidate : bestGrids) {
 			Util::gridconfig_t const& config = gridCandidate.config;
-			results.emplace_back(config.center + tag.getBox().tl(), config.radius, config.angle_z,
+            results.emplace_back(config.center + tag.getRepresentations().roi.tl(), config.radius, config.angle_z,
 								 config.angle_y, config.angle_x, gridCandidate.error);
 
 			++idx;

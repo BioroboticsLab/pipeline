@@ -60,9 +60,9 @@ std::vector<decoding_t> Decoder::getDecodings(const Tag &tag, TagCandidate &cand
     static const double SHARPENING_FACTOR = 2.0;
 
     // region of interest of tag candidate
-    const cv::Mat& roi = tag.getOrigSubImage();
+    const cv::Mat& roi = tag.getRepresentations().orig;
 
-    const cv::Point roiOffset = tag.getBox().tl();
+    const cv::Point roiOffset = tag.getRepresentations().roi.tl();
 
     std::vector<decoding_t> decodings;
     for (PipelineGrid& grid : candidate.getGrids()) {
@@ -162,23 +162,23 @@ std::vector<decoding_t> Decoder::getDecodings(const Tag &tag, TagCandidate &cand
 
 void Decoder::visualizeDebug(const Tag &tag, PipelineGrid &grid, pipeline::decoding_t const& decoding) const
 {
-    grid.setCenter(grid.getCenter() - tag.getBox().tl());
+    grid.setCenter(grid.getCenter() - tag.getRepresentations().roi.tl());
 
-    cv::Mat roi = tag.getOrigSubImage();
+    cv::Mat roi = tag.getRepresentations().orig;
     cv::Size roiSize = roi.size();
 
     std::vector<cv::Mat> images;
 
-    images.push_back(tag.getOrigSubImage());
+    images.push_back(tag.getRepresentations().orig);
 
     images.push_back(grid.getProjectedImage(roiSize));
 
     cv::Mat blended;
-    cv::addWeighted(tag.getOrigSubImage(), 0.8, grid.getProjectedImage(roiSize), 0.2, 0.0, blended);
+    cv::addWeighted(tag.getRepresentations().orig, 0.8, grid.getProjectedImage(roiSize), 0.2, 0.0, blended);
     images.push_back(blended);
 
     cv::Mat origCopyOverlay;
-    tag.getOrigSubImage().copyTo(origCopyOverlay);
+    tag.getRepresentations().orig.copyTo(origCopyOverlay);
     grid.drawContours(origCopyOverlay, 0.5);
     images.push_back(origCopyOverlay);
 
@@ -188,7 +188,7 @@ void Decoder::visualizeDebug(const Tag &tag, PipelineGrid &grid, pipeline::decod
 
     const auto canvas = CvHelper::makeCanvas(images, images[0].rows + 10, 1);
 
-    grid.setCenter(grid.getCenter() + tag.getBox().tl());
+    grid.setCenter(grid.getCenter() + tag.getRepresentations().roi.tl());
 
     std::string title("decoding: " + decoding.to_string());
     cv::namedWindow(title);

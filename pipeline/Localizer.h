@@ -2,6 +2,7 @@
 
 #include <opencv2/opencv.hpp>
 
+#include "datastructure/PreprocessorResults.h"
 #include "settings/LocalizerSettings.h"
 
 namespace mx {
@@ -33,7 +34,7 @@ public:
     const cv::Mat& getGrayImage() const;
     void setGrayImage(const cv::Mat& grayImage);
 
-    std::vector<Tag> process(cv::Mat &&originalImage, cv::Mat &&preprocessedImage);
+    std::vector<Tag> process(PreprocessorResult&& preprocessorResult);
     void reset();
     const cv::Mat& getThresholdImage() const;
     void setThresholdImage(const cv::Mat& thresholdImage);
@@ -63,8 +64,7 @@ private:
      * @param blobImage binary comb image with highlighted tag candidates
      * @return boundingBoxes output vector of size-filtered bounding boxes
      */
-    std::vector<Tag> locateTagCandidates(cv::Mat blobImage, cv::Mat preprocessedImage, cv::Mat grayImage);
-    std::vector<Tag> locateAllPossibleCandidates(cv::Mat const& grayImage, const cv::Mat &preprocessedImage);
+    std::vector<Tag> locateTagCandidates(cv::Mat const& blobs, PreprocessorResult const& preprocessorResults);
     std::vector<Tag> filterTagCandidates(std::vector<Tag>&& candidates);
     std::vector<Tag> filterDuplicates(std::vector<Tag>&& candidates);
 };

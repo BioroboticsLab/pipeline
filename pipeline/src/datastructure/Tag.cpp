@@ -1,44 +1,27 @@
-/*
- * Tag.cpp
- *
- *  Created on: 17.08.2014
- *      Author: mareikeziese
- */
-
 #include "../../datastructure//Tag.h"
+
 #include <utility> // std::move
 
 namespace pipeline {
-/**************************************
-*
-*           constructor
-*
-**************************************/
 
-Tag::Tag(cv::Rect rec, cv::Mat subImage, int id, double score)
-    : _box(rec)
-    , _origSubImage(subImage)
-    , _valid(true)
+Tag::Tag(cv::Rect roi, int id)
+    : _valid(true)
     , _id(id)
-    , _localizerScore(score)
 {
+    _representations.roi = roi;
 }
 
-Tag::Tag(cv::Rect rec, cv::Mat subImage, int id)
-    : Tag(rec, subImage, id, 0)
+Tag::Tag(cv::Rect roi, int id, const PreprocessorResult &preprocessorResult)
+    : _valid(true)
+    , _id(id)
 {
+    cv::Mat origSubImage(preprocessorResult.originalImage, roi);
+    _representations.orig = origSubImage.clone();
+    cv::Mat edgeSubImage(preprocessorResult.preprocessedImage, roi);
+    _representations.edges = edgeSubImage.clone();
+    cv::Mat claheSubImage(preprocessorResult.claheImage, roi);
+    _representations.clahe = claheSubImage.clone();
 }
-
-Tag::Tag(cv::Rect rec, int id)
-    : Tag(rec, cv::Mat(), id)
-{
-}
-
-/**************************************
-*
-*           getter/setter
-*
-**************************************/
 
 std::vector<TagCandidate>& Tag::getCandidates() {
 	return _candidates;
@@ -52,20 +35,17 @@ void Tag::setCandidates(std::vector<TagCandidate>&& candidates) {
 	_candidates = std::move(candidates);
 }
 
-const cv::Mat& Tag::getCannySubImage() const {
-	return _cannySubImage;
+void Tag::setEdgeSubImage(const cv::Mat& edgeSubImage) {
+    _representations.edges = edgeSubImage;
 }
 
-void Tag::setCannySubImage(const cv::Mat& cannySubImage) {
-	_cannySubImage = cannySubImage;
-}
-
-const cv::Mat& Tag::getOrigSubImage() const {
-	return _origSubImage;
+void Tag::setClaheSubImage(const cv::Mat &claheSubImage)
+{
+    _representations.clahe = claheSubImage;
 }
 
 void Tag::setOrigSubImage(const cv::Mat& origSubImage) {
-	_origSubImage = origSubImage;
+    _representations.orig = origSubImage;
 }
 
 bool Tag::isValid() const {
@@ -81,25 +61,20 @@ int Tag::getId() const {
 }
 
 void Tag::setId(int id) {
-	this->_id = id;
+    _id = id;
 }
 
-const cv::Rect& Tag::getBox() const {
-	return _box;
+void Tag::setRoi(const cv::Rect& box) {
+    _representations.roi = box;
 }
-
-void Tag::setBox(const cv::Rect& box) {
-	_box = box;
-}
-
-/**************************************
-*
-*           stuff
-*
-**************************************/
 
 void Tag::addCandidate(TagCandidate c){
-	this->_candidates.push_back(c);
+    _candidates.push_back(c);
+}
+
+const Tag::Representations &Tag::getRepresentations() const
+{
+    return _representations;
 }
 
 bool operator<(const Tag &lhs, const Tag &rhs)
