@@ -63,8 +63,8 @@ private:
      * @param blobImage binary comb image with highlighted tag candidates
      * @return boundingBoxes output vector of size-filtered bounding boxes
      */
-    std::vector<Tag> locateTagCandidates(cv::Mat blobImage, cv::Mat cannyEdgeMap, cv::Mat grayImage);
-    std::vector<Tag> locateAllPossibleCandidates(cv::Mat const& grayImage);
+    std::vector<Tag> locateTagCandidates(cv::Mat blobImage, cv::Mat preprocessedImage, cv::Mat grayImage);
+    std::vector<Tag> locateAllPossibleCandidates(cv::Mat const& grayImage, const cv::Mat &preprocessedImage);
     std::vector<Tag> filterTagCandidates(std::vector<Tag>&& candidates);
     std::vector<Tag> filterDuplicates(std::vector<Tag>&& candidates);
 };

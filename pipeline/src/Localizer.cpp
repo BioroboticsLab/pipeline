@@ -43,6 +43,7 @@ void Localizer::initializeFilterNet()
         const std::string modelPath = _settings.get_deeplocalizer_model_file();
         const std::string paramPath = _settings.get_deeplocalizer_param_file();
         if (!boost::filesystem::exists(modelPath) || !boost::filesystem::exists(paramPath)) {
+            std::cerr << "Invalid path. Could not initialize FilterNet" << std::endl;
             _filterNet = std::unique_ptr<mx::MXNetPredictor>();
         } else {
             const auto tagSize = _settings.get_tag_size();
@@ -105,13 +106,14 @@ std::vector<Tag> Localizer::process(cv::Mat &&originalImage, cv::Mat &&preproces
 {
     _blob = highlightTags(preprocessedImage);
 
-    std::vector<Tag> taglist= locateTagCandidates(_blob, _canny_map,originalImage);
+    //std::vector<Tag> taglist= locateTagCandidates(_blob, preprocessedImage, originalImage);
+    std::vector<Tag> taglist= locateAllPossibleCandidates(originalImage, preprocessedImage);
 
     if (_settings.get_deeplocalizer_filter()) {
         taglist = filterTagCandidates(std::move(taglist));
     }
 
-    taglist = filterDuplicates(std::move(taglist));
+    //taglist = filterDuplicates(std::move(taglist));
 
     return taglist;
 }
@@ -201,8 +203,49 @@ cv::Mat Localizer::highlightTags(const cv::Mat &grayImage)
     return imageCopy;
 }
 
+std::vector<Tag> Localizer::locateAllPossibleCandidates(const cv::Mat &grayImage, const cv::Mat &preprocessedImage)
+{
+    const int roiSize  = _settings.get_tag_size();
+    const int stepSize = static_cast<int>(roiSize * 0.45);
+
+    cv::Mat imageWithBorder;
+    cv::copyMakeBorder(grayImage, imageWithBorder, roiSize, roiSize, roiSize, roiSize, cv::BORDER_REPLICATE);
+    cv::Mat ppWithBorder;
+    cv::copyMakeBorder(preprocessedImage, ppWithBorder, roiSize, roiSize, roiSize, roiSize, cv::BORDER_REPLICATE);
+
+    std::vector<Tag> taglist;
+
+    auto addRoi = [&](const int x, const int y) {
+        const cv::Rect roi(x, y, roiSize, roiSize);
+        const cv::Mat subImage(imageWithBorder, roi);
+
+        const cv::Rect originalImageRoi(x - roiSize, y - roiSize, roiSize, roiSize);
+        Tag tag(originalImageRoi, subImage.clone(), taglist.size() + 1);
+
+        const cv::Mat subImagePp(ppWithBorder, roi);
+        tag.setCannySubImage(subImagePp.clone());
+
+        taglist.push_back(tag);
+    };
+
+    int y = roiSize + 1;
+    do {
+
+        int x = roiSize + 1;
+        do {
+            addRoi(x, y);
+
+            x += stepSize;
+        } while (x < (grayImage.size[1] + roiSize - 1));
+
+        y += stepSize;
+    } while (y < (grayImage.size[0] + roiSize - 1));
+
+    return taglist;
+}
+
 std::vector<Tag> Localizer::locateTagCandidates(cv::Mat blobImage_old,
-                                                cv::Mat /*cannyEdgeMap*/, cv::Mat grayImage)
+                                                cv::Mat preprocessedImage, cv::Mat grayImage)
 {
     std::vector<Tag>  taglist;
     std::vector<std::vector<cv::Point2i> > contours;
@@ -260,6 +303,8 @@ std::vector<Tag> Localizer::locateTagCandidates(cv::Mat blobImage_old,
             cv::Mat sub_image_orig(grayImage, rec);
             cv::Mat subImageOrig_cp = sub_image_orig.clone();
             tag.setOrigSubImage(subImageOrig_cp);
+            cv::Mat sub_image_pp(preprocessedImage, rec);
+            tag.setCannySubImage(sub_image_pp.clone());
 
             taglist.push_back(tag);
 
@@ -279,13 +324,23 @@ std::vector<Tag> Localizer::filterTagCandidates(std::vector<Tag> &&candidates)
 
     for (Tag& candidate : candidates) {
         // TODO: check if float
-        cv::Mat const& blob = candidate.getOrigSubImage();
+        cv::Mat blob;// = candidate.getCannySubImage().clone();
+        candidate.getCannySubImage().convertTo(blob, CV_32FC1, 1. / 255.);
 
         assert(unsigned(blob.cols) == _settings.get_tag_size() &&
                unsigned(blob.rows) == _settings.get_tag_size());
         assert(blob.channels() == 1);
 
-        candidate.setLocalizerScore(_filterNet->predict(blob));
+        const float prob = _filterNet->predict(blob);
+
+        /*
+        cv::namedWindow(std::to_string(prob), cv::WINDOW_AUTOSIZE);
+        cv::imshow(std::to_string(prob), blob);
+        cv::waitKey(0);
+        cv::destroyWindow(std::to_string(prob));
+        */
+
+        candidate.setLocalizerScore(prob);
     }
 
     const double threshold = _settings.get_deeplocalizer_probability_threshold();
