@@ -43,8 +43,7 @@ void Localizer::initializeFilterNet()
         const std::string modelPath = _settings.get_deeplocalizer_model_file();
         const std::string paramPath = _settings.get_deeplocalizer_param_file();
         if (!boost::filesystem::exists(modelPath) || !boost::filesystem::exists(paramPath)) {
-            std::cerr << "Invalid path. Could not initialize FilterNet" << std::endl;
-            _filterNet = std::unique_ptr<mx::MXNetPredictor>();
+            throw std::runtime_error( "Invalid path. Could not initalize FilterNet");
         } else {
             const auto tagSize = _settings.get_tag_size();
             _filterNet = std::make_unique<mx::MXNetPredictor>(
