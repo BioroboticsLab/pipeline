@@ -12,8 +12,7 @@ Tag::Tag(cv::Rect roi, int id)
 }
 
 Tag::Tag(cv::Rect roi, int id, const PreprocessorResult &preprocessorResult)
-    : _valid(true)
-    , _id(id)
+    : Tag(roi, id)
 {
     cv::Mat origSubImage(preprocessorResult.originalImage, roi);
     _representations.orig = origSubImage.clone();
