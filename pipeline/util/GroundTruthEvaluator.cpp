@@ -34,7 +34,7 @@ void GroundTruthEvaluation::evaluateLocalizer(const int currentFrameNumber, tagl
 		for (const pipeline::Tag& tag : taglist)
 		{
 			// ROI of pipeline tag
-            const cv::Rect& tagBox = tag.getRepresentations().roi;
+            const cv::Rect& tagBox = tag.getRoi();
 
 			// target property is complete containment
 			if (tagBox.contains(gridBox.tl())
@@ -58,7 +58,7 @@ void GroundTruthEvaluation::evaluateLocalizer(const int currentFrameNumber, tagl
 	for (const pipeline::Tag& tag : taglist)
 	{
 		// ROI of pipeline tag
-        const cv::Rect& tagBox = tag.getRepresentations().roi;
+        const cv::Rect& tagBox = tag.getRoi();
 
 		bool inGroundTruth = false;
 
@@ -317,8 +317,8 @@ GroundTruthEvaluation::gridcomparison_t GroundTruthEvaluation::compareGrids(cons
 		const pipeline::Ellipse& ellipse = candidate.getEllipse();
 
 		for (cv::Point const& point : outerPoints) {
-            cv::Point rel_point(point.x - detectedTag.getRepresentations().roi.x,
-                                point.y - detectedTag.getRepresentations().roi.y);
+            cv::Point rel_point(point.x - detectedTag.getRoi().x,
+                                point.y - detectedTag.getRoi().y);
 			sumDeviation += deviation(ellipse.getCen(), ellipse.getAxis(),
 			                          ellipse.getAngle(), rel_point);
 		}

@@ -62,7 +62,7 @@ std::vector<decoding_t> Decoder::getDecodings(const Tag &tag, TagCandidate &cand
     // region of interest of tag candidate
     const cv::Mat& roi = tag.getRepresentations().orig;
 
-    const cv::Point roiOffset = tag.getRepresentations().roi.tl();
+    const cv::Point roiOffset = tag.getRoi().tl();
 
     std::vector<decoding_t> decodings;
     for (PipelineGrid& grid : candidate.getGrids()) {
@@ -162,7 +162,7 @@ std::vector<decoding_t> Decoder::getDecodings(const Tag &tag, TagCandidate &cand
 
 void Decoder::visualizeDebug(const Tag &tag, PipelineGrid &grid, pipeline::decoding_t const& decoding) const
 {
-    grid.setCenter(grid.getCenter() - tag.getRepresentations().roi.tl());
+    grid.setCenter(grid.getCenter() - tag.getRoi().tl());
 
     cv::Mat roi = tag.getRepresentations().orig;
     cv::Size roiSize = roi.size();
@@ -188,7 +188,7 @@ void Decoder::visualizeDebug(const Tag &tag, PipelineGrid &grid, pipeline::decod
 
     const auto canvas = CvHelper::makeCanvas(images, images[0].rows + 10, 1);
 
-    grid.setCenter(grid.getCenter() + tag.getRepresentations().roi.tl());
+    grid.setCenter(grid.getCenter() + tag.getRoi().tl());
 
     std::string title("decoding: " + decoding.to_string());
     cv::namedWindow(title);

@@ -316,8 +316,8 @@ std::vector<Tag> Localizer::filterDuplicates(std::vector<Tag> &&candidates)
 
                 pipeline::Tag const& secondTag = candidates.at(secondIdx);
 
-                const cv::Rect firstRoi = firstTag.getRepresentations().roi;
-                const cv::Rect secondRoi = secondTag.getRepresentations().roi;
+                const cv::Rect firstRoi = firstTag.getRoi();
+                const cv::Rect secondRoi = secondTag.getRoi();
                 const cv::Rect overlap = firstRoi & secondRoi;
 
                 if (overlap.area() >= minOverlap) {

@@ -246,7 +246,7 @@ std::vector<PipelineGrid> GridFitter::fitGrid(const Tag& tag, const TagCandidate
 	const Ellipse& ellipse_orig = candidate.getEllipse();
 
 	// region of interest of tag candidate
-    const cv::Size2i roiSize = tag.getRepresentations().roi.size();
+    const cv::Size2i roiSize = tag.getRoi().size();
 	cv::Mat roi;
     tag.getRepresentations().orig.copyTo(roi);
 
@@ -308,7 +308,7 @@ std::vector<PipelineGrid> GridFitter::fitGrid(const Tag& tag, const TagCandidate
 		size_t idx = 0;
 		for (candidate_t const& gridCandidate : bestGrids) {
 			Util::gridconfig_t const& config = gridCandidate.config;
-            results.emplace_back(config.center + tag.getRepresentations().roi.tl(), config.radius, config.angle_z,
+            results.emplace_back(config.center + tag.getRoi().tl(), config.radius, config.angle_z,
 								 config.angle_y, config.angle_x, gridCandidate.error);
 
 			++idx;

@@ -4,12 +4,14 @@
 
 namespace pipeline {
 
+Tag::Tag()
+{}
+
 Tag::Tag(cv::Rect roi, int id)
-    : _valid(true)
+    : _roi(roi)
+    , _valid(true)
     , _id(id)
-{
-    _representations.roi = roi;
-}
+{}
 
 Tag::Tag(cv::Rect roi, int id, const PreprocessorResult &preprocessorResult)
     : Tag(roi, id)
@@ -63,8 +65,13 @@ void Tag::setId(int id) {
     _id = id;
 }
 
+cv::Rect Tag::getRoi() const
+{
+    return _roi;
+}
+
 void Tag::setRoi(const cv::Rect& box) {
-    _representations.roi = box;
+    _roi = box;
 }
 
 void Tag::addCandidate(TagCandidate c){

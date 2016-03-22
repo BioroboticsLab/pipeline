@@ -2,6 +2,8 @@
 
 #include <opencv2/core.hpp>
 
+#include "serialization.hpp"
+
 namespace pipeline {
 
 struct PreprocessorResult {
