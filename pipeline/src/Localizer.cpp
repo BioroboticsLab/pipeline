@@ -118,87 +118,71 @@ std::vector<Tag> Localizer::process(PreprocessorResult&& preprocesorResult)
 
 cv::Mat Localizer::highlightTags(const cv::Mat &grayImage)
 {
-    cv::Mat image;
-    grayImage.copyTo(image);
-    cv::Mat binarizedImage;
-
+    cv::Mat thresholded = grayImage.clone();
     // Threshold each block (3x3 grid) of the image separately to
     // correct for minor differences in contrast across the image.
-    for (int i = 0; i < image.rows / 100; i++) {
-        for (int j = 0; j < image.cols / 100; j++) {
-            cv::Mat block = image.rowRange(100*i, 100*(i+1)).colRange(100*j, 100*(j+1));
+    for (int i = 0; i < thresholded.rows / 100; i++) {
+        for (int j = 0; j < thresholded.cols / 100; j++) {
+            cv::Mat block = thresholded.rowRange(100*i, 100*(i+1)).colRange(100*j, 100*(j+1));
             cv::Scalar mean_sobel = mean(block);
             double average_value = mean_sobel.val[0];
-            cv::threshold(block, block, average_value+ _settings.get_binary_threshold(), 255, cv::THRESH_BINARY);
+            cv::threshold(block, block, average_value + _settings.get_binary_threshold(),
+                          255, cv::THRESH_BINARY);
         }
     }
+    setThresholdImage(thresholded);
 
-    cv::Mat imageCopy;
-    setThresholdImage(image);
-    image.copyTo(imageCopy);
+    const cv::Mat structDilation = cv::getStructuringElement(
+                cv::MORPH_ELLIPSE,
+                cv::Size(2 * _settings.get_first_dilation_size() + 1,
+                         2 * _settings.get_first_dilation_size() + 1),
+                cv::Point(_settings.get_first_dilation_size(),
+                          _settings.get_first_dilation_size())
+    );
 
-#ifdef PipelineStandalone
-#ifdef DEBUG_LOCALIZER
-    cv::namedWindow("binarized Image", cv::WINDOW_AUTOSIZE);
-    cv::imshow("binarized Image", imageCopy);
-    cv::waitKey(0);
-    cv::destroyWindow("binarized Image");
-#endif
-#endif
-
-    cv::Mat imageCopy2 = binarizedImage.clone();
-
-    cv::Mat dilatedImage = cv::getStructuringElement(cv::MORPH_ELLIPSE,
-                                                     cv::Size(2 * _settings.get_first_dilation_size() + 1,
-                                                              2 * _settings.get_first_dilation_size() + 1),
-                                                     cv::Point(_settings.get_first_dilation_size(),
-                                                               _settings.get_first_dilation_size()));
-    cv::dilate(imageCopy, imageCopy, dilatedImage, cv::Point(-1, -1),
+    cv::Mat dilated;
+    cv::dilate(thresholded, dilated, structDilation, cv::Point(-1, -1),
                _settings.get_first_dilation_num_iterations());
 
-#ifdef PipelineStandalone
-#ifdef DEBUG_LOCALIZER
-    cv::namedWindow("First Dilate", cv::WINDOW_AUTOSIZE);
-    cv::imshow("First Dilate", imageCopy);
-    cv::waitKey(0);
-    cv::destroyWindow("First Dilate");
-#endif
-#endif
 
-    //erosion
-    cv::Mat erodedImage = cv::getStructuringElement(cv::MORPH_ELLIPSE,
-                                                    cv::Size(2 * _settings.get_erosion_size() + 1,
-                                                             2 * _settings.get_erosion_size() + 1),
-                                                    cv::Point(_settings.get_erosion_size(),
-                                                              _settings.get_erosion_size()));
-    cv::erode(imageCopy, imageCopy, erodedImage);
+    const cv::Mat structErosion = cv::getStructuringElement(
+                cv::MORPH_ELLIPSE,
+                cv::Size(2 * _settings.get_erosion_size() + 1,
+                         2 * _settings.get_erosion_size() + 1),
+                cv::Point(_settings.get_erosion_size(),
+                          _settings.get_erosion_size())
+    );
+    cv::Mat eroded;
+    cv::erode(dilated, eroded, structErosion);
 
-#ifdef PipelineStandalone
-#ifdef DEBUG_LOCALIZER
-    cv::namedWindow("First Erode", cv::WINDOW_AUTOSIZE);
-    cv::imshow("First Erode", imageCopy);
-    cv::waitKey(0);
-    cv::destroyWindow("First Erode");
-#endif
-#endif
 
-    dilatedImage = cv::getStructuringElement(cv::MORPH_ELLIPSE,
-                                             cv::Size(2 * _settings.get_second_dilation_size() + 1,
-                                                      2 * _settings.get_second_dilation_size() + 1),
-                                             cv::Point(_settings.get_second_dilation_size(),
-                                                       _settings.get_second_dilation_size()));
-    cv::dilate(imageCopy, imageCopy, dilatedImage);
+    const cv::Mat structSecondDilation = cv::getStructuringElement(
+                cv::MORPH_ELLIPSE,
+                cv::Size(2 * _settings.get_second_dilation_size() + 1,
+                         2 * _settings.get_second_dilation_size() + 1),
+                cv::Point(_settings.get_second_dilation_size(),
+                          _settings.get_second_dilation_size())
+    );
+    cv::Mat dilatedSecond;
+    cv::dilate(eroded, dilatedSecond, structSecondDilation);
 
 #ifdef PipelineStandalone
 #ifdef DEBUG_LOCALIZER
-    cv::namedWindow("My Window", cv::WINDOW_AUTOSIZE);
-    cv::imshow("My Window", imageCopy);
+    cv::namedWindow("original", cv::WINDOW_NORMAL);
+    cv::imshow("original", grayImage);
+    cv::namedWindow("thresholded", cv::WINDOW_NORMAL);
+    cv::imshow("thresholded", thresholded);
+    cv::namedWindow("dilated", cv::WINDOW_NORMAL);
+    cv::imshow("dilated", dilated);
+    cv::namedWindow("eroded", cv::WINDOW_NORMAL);
+    cv::imshow("eroded", eroded);
+    cv::namedWindow("dilatedSecond", cv::WINDOW_NORMAL);
+    cv::imshow("dilatedSecond", dilatedSecond);
     cv::waitKey(0);
-    cv::destroyWindow("My Window");
 #endif
 #endif
 
-    return imageCopy;
+    return dilatedSecond;
 }
 
 std::vector<Tag> Localizer::locateTagCandidates(const cv::Mat &blobs, const PreprocessorResult &preprocessorResults)
@@ -264,6 +248,8 @@ std::vector<Tag> Localizer::filterTagCandidates(std::vector<Tag> &&candidates)
 {
     assert(_filterNet);
 
+    std::cout << candidates.size() << " candidates before filtering" << std::endl;
+
     if (candidates.empty()) {
         return candidates;
     }
@@ -278,6 +264,19 @@ std::vector<Tag> Localizer::filterTagCandidates(std::vector<Tag> &&candidates)
 
         const float prob = _filterNet->predict(blob);
 
+#ifdef PipelineStandalone
+#ifdef DEBUG_LOCALIZER
+        const double threshold = _settings.get_deeplocalizer_probability_threshold();
+        if (prob >= threshold) {
+            std::string title = std::string("filternet-") + std::to_string(prob);
+            cv::namedWindow(title, cv::WINDOW_AUTOSIZE);
+            cv::imshow(title, blob);
+            cv::waitKey(0);
+            cv::destroyWindow(title);
+        }
+#endif
+#endif
+
         candidate.setLocalizerScore(prob);
     }
 
@@ -289,6 +288,8 @@ std::vector<Tag> Localizer::filterTagCandidates(std::vector<Tag> &&candidates)
                            return tag.getLocalizerScore() < threshold;
                        }
                     ), candidates.end());
+
+    std::cout << candidates.size() << " candidates after filtering" << std::endl;
 
     return candidates;
 }
