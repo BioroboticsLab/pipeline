@@ -218,11 +218,11 @@ void Preprocessor::computeSobel(cv::Mat &image)
     cv::GaussianBlur(image, image, cv::Size(7, 7), 0, 0, cv::BORDER_DEFAULT);
 
     cv::Mat gradX;
-    cv::Scharr(image, gradX, ddepth, 1, 0, scale, delta, cv::BORDER_DEFAULT);
+    cv::Sobel(image, gradX, ddepth, 1, 0, 3, scale, delta, cv::BORDER_DEFAULT);
     cv::convertScaleAbs(gradX, gradX);
 
     cv::Mat gradY;
-    cv::Scharr(image, gradY, ddepth, 0, 1, scale, delta, cv::BORDER_DEFAULT);
+    cv::Sobel(image, gradY, ddepth, 0, 1, 3, scale, delta, cv::BORDER_DEFAULT);
     cv::convertScaleAbs(gradY, gradY);
 
     cv::addWeighted(gradX, 0.5, gradY, 0.5, 0, image);
