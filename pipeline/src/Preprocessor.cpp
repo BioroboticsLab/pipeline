@@ -104,6 +104,24 @@ cv::Mat Preprocessor::pipelinePreprocess(const cv::Mat &grayImage)
         filterCombs(combFiltered);
     }
 
+#ifdef PipelineStandalone
+#ifdef DEBUG_PREPROCESSOR
+    cv::namedWindow("grayImage", cv::WINDOW_NORMAL);
+    cv::imshow("grayImage", grayImage);
+    cv::namedWindow("contrastStretched", cv::WINDOW_NORMAL);
+    cv::imshow("contrastStretched", contrastStretched);
+    cv::namedWindow("honeyFiltered", cv::WINDOW_NORMAL);
+    cv::imshow("honeyFiltered", honeyFiltered);
+    cv::namedWindow("contrastEqualized", cv::WINDOW_NORMAL);
+    cv::imshow("contrastEqualized", contrastEqualized);
+    cv::namedWindow("sobelImage", cv::WINDOW_NORMAL);
+    cv::imshow("sobelImage", sobelImage);
+    cv::namedWindow("combFiltered", cv::WINDOW_NORMAL);
+    cv::imshow("combFiltered", sobelImage);
+    cv::waitKey(0);
+#endif
+#endif
+
     return combFiltered;
 }
 
@@ -151,15 +169,6 @@ void Preprocessor::filterCombs(cv::Mat &sobel)
     cv::Mat thresholdImage;
     cv::threshold(sobel, thresholdImage, _settings.get_comb_threshold(), 255, cv::THRESH_BINARY);
 
-#ifdef PipelineStandalone
-#ifdef DEBUG_PREPROCESSOR
-    cv::namedWindow("binarized Image with combs", cv::WINDOW_NORMAL);
-    cv::imshow("binarized Image with combs", threshold_image);
-    cv::waitKey(0);
-
-#endif
-#endif
-
     // find contours
     cv::Mat thresholdImageContours = thresholdImage.clone();
     std::vector<std::vector<cv::Point>> contours;
@@ -198,15 +207,6 @@ void Preprocessor::filterCombs(cv::Mat &sobel)
             cv::ellipse(sobel, ell, ellColor, _settings.get_comb_line_width());
         }
     }
-
-#ifdef PipelineStandalone
-#ifdef DEBUG_PREPROCESSOR
-        cv::namedWindow("Image without combs", cv::WINDOW_NORMAL);
-        cv::imshow("Image without combs", sobel);
-        cv::waitKey(0);
-
-#endif
-#endif
 }
 
 void Preprocessor::computeSobel(cv::Mat &image)
