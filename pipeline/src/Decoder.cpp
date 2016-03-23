@@ -60,7 +60,7 @@ std::vector<decoding_t> Decoder::getDecodings(const Tag &tag, TagCandidate &cand
     static const double SHARPENING_FACTOR = 2.0;
 
     // region of interest of tag candidate
-    const cv::Mat& roi = tag.getRepresentations().orig;
+    const cv::Mat& roi = tag.getRepresentations().clahe;
 
     const cv::Point roiOffset = tag.getRoi().tl();
 

@@ -248,7 +248,7 @@ std::vector<PipelineGrid> GridFitter::fitGrid(const Tag& tag, const TagCandidate
 	// region of interest of tag candidate
     const cv::Size2i roiSize = tag.getRoi().size();
 	cv::Mat roi;
-    tag.getRepresentations().orig.copyTo(roi);
+    tag.getRepresentations().clahe.copyTo(roi);
 
 	cv::Mat binarizedROI(roiSize, CV_8UC1);
 	cv::adaptiveThreshold(roi, binarizedROI, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C,
