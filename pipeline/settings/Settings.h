@@ -9,7 +9,12 @@
 #include <iostream>
 
 #ifndef pipelineStandalone
+namespace BioTracker {
+namespace Core {
 class Settings;
+}
+}
+namespace BC = BioTracker::Core;
 #endif
 
 #define PARAMETER(NAME, TYPE, DEFAULT_VALUE) \
@@ -131,7 +136,7 @@ public:
     bool writeToJson(std::string filename, boost::property_tree::ptree pt);
 
 #ifndef pipelineStandalone
-    void loadValues(Settings &settings, std::string base);
+    void loadValues(BC::Settings &settings, std::string base);
 #endif
 };
 
