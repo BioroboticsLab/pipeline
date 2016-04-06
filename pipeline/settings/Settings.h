@@ -14,8 +14,9 @@ namespace Core {
 class Settings;
 }
 }
-namespace BC = BioTracker::Core;
 #endif
+
+namespace BC = BioTracker::Core;
 
 #define PARAMETER(NAME, TYPE, DEFAULT_VALUE) \
     namespace Params { \
