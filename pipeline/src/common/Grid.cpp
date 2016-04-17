@@ -114,7 +114,7 @@ Grid::coordinates3D_t Grid::generate_3D_base_coordinates(const Grid::Structure &
 		// distance of the point to center (sign is irrelevant in next line, so save the "abs()")
 		const double y = (radiusInPoints - i) / radiusInPoints * s.INNER_RING_RADIUS;
 		// the farther away, the deeper (away from the camera)
-		const double z = - std::cos(s.BULGE_FACTOR * y);
+		const double z = z_coordinate(y, s.BULGE_FACTOR);
 		// save new coordinate
 		result._inner_line[i] = cv::Point3d(0, y, z);
 	}
@@ -122,9 +122,9 @@ Grid::coordinates3D_t Grid::generate_3D_base_coordinates(const Grid::Structure &
 	// generate z coordinates for the three rings
 	{
 		// all points on each ring have the same radius, thus should have the same z-value
-		const value_type z_inner_ring  = - std::cos(s.BULGE_FACTOR * s.INNER_RING_RADIUS);
-		const value_type z_middle_ring = - std::cos(s.BULGE_FACTOR * s.MIDDLE_RING_RADIUS);
-		const value_type z_outer_ring  = - std::cos(s.BULGE_FACTOR * s.OUTER_RING_RADIUS);
+		const value_type z_inner_ring  = z_coordinate(s.INNER_RING_RADIUS, s.BULGE_FACTOR);
+		const value_type z_middle_ring = z_coordinate(s.MIDDLE_RING_RADIUS, s.BULGE_FACTOR);
+		const value_type z_outer_ring  = z_coordinate(s.OUTER_RING_RADIUS, s.BULGE_FACTOR);
 
 		// subtract mean, otherwise rotation will be eccentric
 		for(size_t i = 0; i < POINTS_PER_RING; ++i)
@@ -148,7 +148,6 @@ Grid::coordinates2D_t Grid::generate_3D_coordinates_from_parameters_and_project_
 	coordinates2D_t result;
 
 	const auto rotationMatrix = CvHelper::rotationMatrix(_angle_z, _angle_y, _angle_x);
-	const double FOCAL_LENGTH = _structure->FOCAL_LENGTH;
 	int minx = INT_MAX, miny = INT_MAX;
 	int maxx = INT_MIN, maxy = INT_MIN;
 
@@ -162,8 +161,7 @@ Grid::coordinates2D_t Grid::generate_3D_coordinates_from_parameters_and_project_
 			const cv::Point3d p = rotationMatrix * _coordinates3D->_rings[r][i];
 
 			// project onto image plane
-            const cv::Point2i projectedPoint(static_cast<int>(round((p.x / (p.z + FOCAL_LENGTH))  * _radius * FOCAL_LENGTH)),
-                                             static_cast<int>(round((p.y / (p.z + FOCAL_LENGTH)) * _radius * FOCAL_LENGTH)));
+            const cv::Point2i projectedPoint = projectPoint(p);
 
 			// determine outer points of bounding box
 			minx = std::min(minx, projectedPoint.x);
@@ -182,8 +180,7 @@ Grid::coordinates2D_t Grid::generate_3D_coordinates_from_parameters_and_project_
 		const cv::Point3d p = rotationMatrix * (_coordinates3D->_inner_line[i]);
 
 		// project onto image plane
-        const cv::Point   p2(static_cast<int>(round((p.x / (p.z + FOCAL_LENGTH)) * _radius * FOCAL_LENGTH)),
-                             static_cast<int>(round((p.y / (p.z + FOCAL_LENGTH)) * _radius * FOCAL_LENGTH)));
+        const cv::Point   p2 = projectPoint(p);
 
         minx = std::min(minx, p2.x);
         miny = std::min(miny, p2.y);
