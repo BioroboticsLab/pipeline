@@ -5,6 +5,8 @@
 
 #include <cstddef>
 #include <array>
+#include <memory>
+
 
 class Grid {
 public:
@@ -29,16 +31,10 @@ public:
 
 	static_assert(POINTS_PER_RING % 4 == 0 , "POINTS_PER_RING = NUM_MIDDLE_CELLS * POINTS_PER_MIDDLE_CELL must be a multiple of 4");
 
-	static const double INNER_RING_RADIUS;
-	static const double MIDDLE_RING_RADIUS;
-	static const double OUTER_RING_RADIUS;
-	static const double BULGE_FACTOR;
-
-	static const double FOCAL_LENGTH;
-
 	typedef std::array<boost::tribool, NUM_MIDDLE_CELLS> idarray_t;
 
 	explicit Grid(cv::Point2i center, double radius, double angle_z, double angle_y, double angle_x);
+
 	virtual ~Grid() {}
 
 	void setXRotation(double angle);
@@ -68,9 +64,29 @@ public:
 	 */
 	cv::Rect getOriginBoundingBox() const {	return _boundingBox; }
 
+    struct Structure {
+        static const double DEFAULT_INNER_RING_RADIUS;
+        static const double DEFAULT_MIDDLE_RING_RADIUS;
+        static const double DEFAULT_OUTER_RING_RADIUS;
+        static const double DEFAULT_BULGE_FACTOR;
+        static const double DEFAULT_FOCAL_LENGTH;
+
+        const double INNER_RING_RADIUS;
+        const double MIDDLE_RING_RADIUS;
+        const double OUTER_RING_RADIUS;
+        const double BULGE_FACTOR;
+        const double FOCAL_LENGTH;
+
+        Structure(double inner_ring_radius, double middle_ring_radius, double outer_ring_radius,
+                  double bulge_factor, double focal_length)
+                : INNER_RING_RADIUS(inner_ring_radius), MIDDLE_RING_RADIUS(middle_ring_radius),
+                  OUTER_RING_RADIUS(outer_ring_radius), BULGE_FACTOR(bulge_factor), FOCAL_LENGTH(focal_length)
+        { };
+    };
+
+    explicit Grid(cv::Point2i center, double radius, double angle_z, double angle_y, double angle_x,
+                  const std::shared_ptr<Grid::Structure> structure);
 protected:
-	/* use only for deserialization purposes! */
-	explicit Grid() : _coordinates2D(NUM_CELLS) {}
 
 	enum RingIndex {
 		INNER_RING = 0,
@@ -117,10 +133,18 @@ protected:
 	typedef coordinates_t<cv::Point3d> coordinates3D_t;
 	typedef coordinates_t<cv::Point2i> coordinates2D_t;
 
-	/**
-	 * @brief precompute set of 3D points which will be transformed according to grid parameters
-	 */
-	static coordinates3D_t generate_3D_base_coordinates();
+    /* use only for deserialization purposes! */
+    explicit Grid() : _structure(_default_structure)
+            , _coordinates3D(_default_coordinates3D)
+            , _coordinates2D(NUM_CELLS) {}
+    explicit Grid(cv::Point2i center, double radius, double angle_z, double angle_y, double angle_x,
+                  const std::shared_ptr<Grid::Structure> structure,
+                  const std::shared_ptr<Grid::coordinates3D_t> coordinates3D);
+
+    /**
+     * @brief precompute set of 3D points which will be transformed according to grid parameters
+     */
+    static Grid::coordinates3D_t generate_3D_base_coordinates(const Grid::Structure & s);
 
 	/**
 	 * @brief rotates and scales the base mesh according to given parameter set
@@ -141,7 +165,11 @@ protected:
 	 * to the given parameters and projected onto the camera plane to produce 2D coordinates for
 	 * displaying the tag.
 	 */
-	static const coordinates3D_t        _coordinates3D; // underlying 3D coordinates of grid mesh
+    static const std::shared_ptr<coordinates3D_t> _default_coordinates3D; // underlying 3D coordinates of grid mesh
+    static const std::shared_ptr<Grid::Structure> _default_structure;
+
+    const std::shared_ptr<Grid::Structure> _structure;   // structure of the grid, (FOCAL_LENGTH, *_RADUIS, ...)
+    const std::shared_ptr<coordinates3D_t> _coordinates3D; // 3D coordinates of the mesh
 	std::vector<std::vector<cv::Point>> _coordinates2D; // 2D coordinates of mesh (after perspective projection) (see opencv function drawContours)
 	cv::Point2i                         _center;        // center point of the grid (within image borders - unit: px)
 	double                              _radius;        // radius of the tag (unit: px)

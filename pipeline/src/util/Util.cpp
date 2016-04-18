@@ -9,7 +9,8 @@
 
 namespace Util {
 
-std::array<gridconfig_t, 2> gridCandidatesFromEllipse(const pipeline::Ellipse& ellipse, const double rotation)
+std::array<gridconfig_t, 2> gridCandidatesFromEllipse(const pipeline::Ellipse& ellipse, const double rotation,
+													  const double focal_length)
 {
 	const cv::Point2i& cen = ellipse.getCen();
     const cv::Size2d& axes = ellipse.getAxis();
@@ -40,8 +41,8 @@ std::array<gridconfig_t, 2> gridCandidatesFromEllipse(const pipeline::Ellipse& e
 		                                         std::sin(theta_orth), std::cos(theta_orth));
 		const cv::Vec2d base_proj = shiftRotMat * base_x;
 
-		const cv::Point2i shiftedCen(static_cast<int>(cen.x + base_proj[0] * std::sin(roll) * major / Grid::FOCAL_LENGTH),
-		        static_cast<int>(cen.y + base_proj[1] * std::sin(roll) * major / Grid::FOCAL_LENGTH));
+		const cv::Point2i shiftedCen(static_cast<int>(cen.x + base_proj[0] * std::sin(roll) * major / focal_length),
+		        static_cast<int>(cen.y + base_proj[1] * std::sin(roll) * major / focal_length));
 		assert(shiftedCen.x > 0);
 		assert(shiftedCen.y > 0);
 

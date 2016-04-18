@@ -3,6 +3,7 @@
 #include <bitset>
 #include <cstdint>
 #include <vector>
+#include <pipeline/common/Grid.h>
 
 #include "../datastructure/Ellipse.h"
 
@@ -17,7 +18,8 @@ typedef struct {
 } gridconfig_t;
 
 
-std::array<gridconfig_t, 2> gridCandidatesFromEllipse(const pipeline::Ellipse& ellipse, const double rotation = 0);
+std::array<gridconfig_t, 2> gridCandidatesFromEllipse(const pipeline::Ellipse& ellipse, const double rotation = 0,
+													  const double focal_length = Grid::Structure::DEFAULT_FOCAL_LENGTH);
 
 inline bool pointInBounds(cv::Rect const& bounds, cv::Point const& point) {
 	return (point.x >= bounds.tl().x &&

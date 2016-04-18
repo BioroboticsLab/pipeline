@@ -145,7 +145,7 @@ void PipelineGrid::drawContours(cv::Mat& img, const double transparency, const c
 		cv::Point _offset;
 	};
 
-    const int radius = static_cast<int>(std::ceil(_radius * FOCAL_LENGTH));
+    const int radius = static_cast<int>(std::ceil(_radius * _structure->FOCAL_LENGTH));
 	const cv::Point subimage_origin( std::max(       0, _center.x - radius), std::max(       0, _center.y - radius) );
 	const cv::Point subimage_end   ( std::min(img.cols, _center.x + radius), std::min(img.rows, _center.y + radius) );
 

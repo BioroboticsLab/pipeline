@@ -2,25 +2,47 @@
 
 #include "../../util/CvHelper.h"
 
-const double Grid::INNER_RING_RADIUS  = 0.4;
-const double Grid::MIDDLE_RING_RADIUS = 0.8;
-const double Grid::OUTER_RING_RADIUS  = 1.0;
-const double Grid::BULGE_FACTOR       = 0.4;
-const double Grid::FOCAL_LENGTH       = 2.0;
+const double Grid::Structure::DEFAULT_INNER_RING_RADIUS  = 0.4;
+const double Grid::Structure::DEFAULT_MIDDLE_RING_RADIUS = 0.8;
+const double Grid::Structure::DEFAULT_OUTER_RING_RADIUS  = 1.0;
+const double Grid::Structure::DEFAULT_BULGE_FACTOR       = 0.4;
+const double Grid::Structure::DEFAULT_FOCAL_LENGTH       = 2.0;
 
-const Grid::coordinates3D_t Grid::_coordinates3D = Grid::generate_3D_base_coordinates();
 
-/**
- * hack, to make s
- */
+const std::shared_ptr<Grid::Structure> Grid::_default_structure = std::make_shared<Grid::Structure>(
+    Grid::Structure::DEFAULT_INNER_RING_RADIUS,
+    Grid::Structure::DEFAULT_MIDDLE_RING_RADIUS,
+    Grid::Structure::DEFAULT_OUTER_RING_RADIUS,
+    Grid::Structure::DEFAULT_BULGE_FACTOR,
+    Grid::Structure::DEFAULT_FOCAL_LENGTH
+);
+
+const std::shared_ptr<Grid::coordinates3D_t> Grid::_default_coordinates3D =
+        std::make_shared<Grid::coordinates3D_t>(Grid::generate_3D_base_coordinates(*_default_structure));
 
 Grid::Grid(cv::Point2i center, double radius, double angle_z, double angle_y, double angle_x)
-	: _coordinates2D(NUM_CELLS)
-	, _center(center)
-    , _radius(radius)
-	, _angle_z(angle_z)
-	, _angle_y(angle_y)
-	, _angle_x(angle_x)
+		: Grid(center, radius, angle_z, angle_y, angle_x, Grid::_default_structure, Grid::_default_coordinates3D)
+{
+}
+
+Grid::Grid(cv::Point2i center, double radius, double angle_z, double angle_y, double angle_x,
+		   const std::shared_ptr<Grid::Structure> structure)
+		: Grid(center, radius, angle_z, angle_y, angle_x, structure,
+			   std::make_shared<Grid::coordinates3D_t>(Grid::generate_3D_base_coordinates(*structure)))
+{
+}
+
+Grid::Grid(cv::Point2i center, double radius, double angle_z, double angle_y, double angle_x,
+		   const std::shared_ptr<Grid::Structure> structure,
+		   const std::shared_ptr<Grid::coordinates3D_t> coordinates3D)
+		: _structure(structure)
+		, _coordinates3D(coordinates3D)
+		, _coordinates2D(NUM_CELLS)
+		, _center(center)
+		, _radius(radius)
+		, _angle_z(angle_z)
+		, _angle_y(angle_y)
+		, _angle_x(angle_x)
 {
 	prepare_visualization_data();
 }
@@ -60,7 +82,7 @@ cv::Rect Grid::getBoundingBox() const
 					_boundingBox.size());
 }
 
-Grid::coordinates3D_t Grid::generate_3D_base_coordinates() {
+Grid::coordinates3D_t Grid::generate_3D_base_coordinates(const Grid::Structure & s) {
 
 	typedef coordinates3D_t::value_type value_type;
 	typedef coordinates3D_t::point_type point_type;
@@ -80,9 +102,9 @@ Grid::coordinates3D_t Grid::generate_3D_base_coordinates() {
 		);
 
 		// scale unit vector to obtain three concentric rings in the plane (z = 0)
-		result._inner_ring[i]  = p * INNER_RING_RADIUS;
-		result._middle_ring[i] = p * MIDDLE_RING_RADIUS;
-		result._outer_ring[i]  = p * OUTER_RING_RADIUS;
+		result._inner_ring[i]  = p * s.INNER_RING_RADIUS;
+		result._middle_ring[i] = p * s.MIDDLE_RING_RADIUS;
+		result._outer_ring[i]  = p * s.OUTER_RING_RADIUS;
 	}
 
 	// span a line from one to the other side of the inner ring
@@ -90,9 +112,9 @@ Grid::coordinates3D_t Grid::generate_3D_base_coordinates() {
 	for (size_t i = 0; i < POINTS_PER_LINE; ++i)
 	{
 		// distance of the point to center (sign is irrelevant in next line, so save the "abs()")
-		const double y = (radiusInPoints - i) / radiusInPoints * INNER_RING_RADIUS;
+		const double y = (radiusInPoints - i) / radiusInPoints * s.INNER_RING_RADIUS;
 		// the farther away, the deeper (away from the camera)
-		const double z = - std::cos(BULGE_FACTOR * y);
+		const double z = - std::cos(s.BULGE_FACTOR * y);
 		// save new coordinate
 		result._inner_line[i] = cv::Point3d(0, y, z);
 	}
@@ -100,9 +122,9 @@ Grid::coordinates3D_t Grid::generate_3D_base_coordinates() {
 	// generate z coordinates for the three rings
 	{
 		// all points on each ring have the same radius, thus should have the same z-value
-		const value_type z_inner_ring  = - std::cos(BULGE_FACTOR * INNER_RING_RADIUS);
-		const value_type z_middle_ring = - std::cos(BULGE_FACTOR * MIDDLE_RING_RADIUS);
-		const value_type z_outer_ring  = - std::cos(BULGE_FACTOR * OUTER_RING_RADIUS);
+		const value_type z_inner_ring  = - std::cos(s.BULGE_FACTOR * s.INNER_RING_RADIUS);
+		const value_type z_middle_ring = - std::cos(s.BULGE_FACTOR * s.MIDDLE_RING_RADIUS);
+		const value_type z_outer_ring  = - std::cos(s.BULGE_FACTOR * s.OUTER_RING_RADIUS);
 
 		// subtract mean, otherwise rotation will be eccentric
 		for(size_t i = 0; i < POINTS_PER_RING; ++i)
@@ -126,18 +148,18 @@ Grid::coordinates2D_t Grid::generate_3D_coordinates_from_parameters_and_project_
 	coordinates2D_t result;
 
 	const auto rotationMatrix = CvHelper::rotationMatrix(_angle_z, _angle_y, _angle_x);
-
+	const double FOCAL_LENGTH = _structure->FOCAL_LENGTH;
 	int minx = INT_MAX, miny = INT_MAX;
 	int maxx = INT_MIN, maxy = INT_MIN;
 
 	// iterate over all rings
-	for (size_t r = 0; r < _coordinates3D._rings.size(); ++r)
+	for (size_t r = 0; r < _coordinates3D->_rings.size(); ++r)
 	{
 		// iterate over all points in ring
-		for (size_t i = 0; i < _coordinates3D._rings[r].size(); ++i)
+		for (size_t i = 0; i < _coordinates3D->_rings[r].size(); ++i)
 		{
 			// rotate point (aka vector)
-			const cv::Point3d p = rotationMatrix * _coordinates3D._rings[r][i];
+			const cv::Point3d p = rotationMatrix * _coordinates3D->_rings[r][i];
 
 			// project onto image plane
             const cv::Point2i projectedPoint(static_cast<int>(round((p.x / (p.z + FOCAL_LENGTH))  * _radius * FOCAL_LENGTH)),
@@ -157,7 +179,7 @@ Grid::coordinates2D_t Grid::generate_3D_coordinates_from_parameters_and_project_
 	for (size_t i = 0; i < POINTS_PER_LINE; ++i)
 	{
 		// rotate point (aka vector)
-		const cv::Point3d p = rotationMatrix * (_coordinates3D._inner_line[i]);
+		const cv::Point3d p = rotationMatrix * (_coordinates3D->_inner_line[i]);
 
 		// project onto image plane
         const cv::Point   p2(static_cast<int>(round((p.x / (p.z + FOCAL_LENGTH)) * _radius * FOCAL_LENGTH)),
