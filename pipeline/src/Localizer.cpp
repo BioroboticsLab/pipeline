@@ -1,5 +1,7 @@
 #include "../Localizer.h"
 
+#include <set>
+
 #include <boost/filesystem.hpp>
 #include <boost/range/adaptor/reversed.hpp>
 

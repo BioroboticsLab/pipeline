@@ -8,6 +8,10 @@
 #ifndef HELPER_IMPL_H_
 #define HELPER_IMPL_H_
 
+namespace cv {
+    void scalarToRawData(const Scalar& s, void* _buf, int type, int unroll_to);
+}
+
 namespace heyho {
 
 	namespace detail {

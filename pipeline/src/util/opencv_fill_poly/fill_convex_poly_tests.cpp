@@ -56,7 +56,7 @@ namespace heyho {
 			cv::Mat img(dim_y, dim_x, img_type);
 			{
 				uchar val = 0;
-				for(auto ptr = img.datastart; ptr < img.dataend; ++ptr) {
+				for(auto ptr = img.data; ptr < img.dataend; ++ptr) {
 					*ptr = val;
 					++val;
 				}
