@@ -84,6 +84,16 @@ public:
         { };
     };
 
+	static inline double z_coordinate(const double radius, const double bugle_factor) {
+		return - std::cos(bugle_factor * radius);
+	}
+
+	inline cv::Point2i projectPoint(cv::Point3d p) const {
+		const double f = _structure->FOCAL_LENGTH;
+		return cv::Point2i(static_cast<int>(round((p.x / (p.z + f))  * _radius * f)),
+						   static_cast<int>(round((p.y / (p.z + f)) * _radius * f)));
+	}
+
     explicit Grid(cv::Point2i center, double radius, double angle_z, double angle_y, double angle_x,
                   const std::shared_ptr<Grid::Structure> structure);
 protected:
